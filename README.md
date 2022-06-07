@@ -8,7 +8,7 @@ When a valid MAC is found, it is stored in your `$HOME` directory -> `$HOME/.con
 As servers differ in the way they handle requests, one need to adapt. The key feature of `mc` is flexibility. Check that with `mc --help` or `man mc`.
 
 ## Documentation
-
+| Option | Functionality                                                |
 |--------|--------------------------------------------------------------|
 | **-k** | Keep expired MAC (accounts expired)                          |
 | **-p** | Make a break every [X] requests                              |
