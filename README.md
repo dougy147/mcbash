@@ -1,13 +1,17 @@
-# mc
+# mc bash
 
-`mc` (for `mc checker`) is an easy to use tool scanning for valid MAC addresses on Stalker Portal servers.
+`mc bash` (for mc checker bash) is an easy to use tool scanning for valid MAC addresses on Stalker Portal servers.
 Feed it with a URL, then it generates random MACs and tries them on the server.
 
 When a valid MAC is found, it is stored in your `$HOME` directory -> `$HOME/.config/mc`
 
-As servers differ in the way they handle requests, one need to adapt. The key feature of `mc` is flexibility. Check that with `mc --help` or `man mc`.
 
 ## Documentation
+
+The key feature of `mc` is **flexibility**. Check that with `mc --help` or `man mc`.
+
+As servers differ in the way they handle requests, one need to adapt.
+
 | Option | Functionality                                                |
 |--------|--------------------------------------------------------------|
 | **-k** | Store expired MAC (valid addresses but expired accounts)    |
