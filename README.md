@@ -1,7 +1,7 @@
 # mc bash
 
 `mc` (bash version) is an easy to use tool scanning for valid MAC addresses on Stalker Portal servers.
-Feed it with a URL, then it generates random MACs and tries them on the server.
+Just feed it with a URL. It then generates random MACs and tries them on the server.
 
 When a valid MAC is found, it is stored in your `$HOME` directory -> `$HOME/.config/mc`
 
