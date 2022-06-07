@@ -47,18 +47,18 @@ For `00:1A:79:xx:xx:xx`-like MAC addresses (the most commonly used), there are $
 
 ## Instructions for careless minds
 
-Power is all relative, and this program's is quite low; even pretty harmless. However, I must release myself of any responsibility in the way you will use this program. Indeed, its use might be unappropriate in your country.
+Power is all relative, and this program's is pretty low; even quite harmless. However, I must release myself of any responsibility in the way you will use this program. Indeed, its use might be unappropriate in your country.
 
 As far as I understand (i.e. poorly), imperative programming is like stacking bricks on top of each other.
 If there's nothing wrong stacking, climbing the pile might.
 That way, it's unnecessary to say I'm only responsible for sharing a recipe one could find all the ingredients thanks to any search engine.
 
 So, illegality is not contained in that program. It can only be in its user's behavior.
-Please use that script consciously, on your personal goods only.
+Please use that script consciously, with and on your personal goods only.
 
 
 ## How did that help ?
 
-If you're cool enough to know what to do with this and find this program useful, I'd be glad and thankful :
+If you (1) are cool enough to know what to do with this *and* (2) find this program useful, I'd be glad and thankful :
 
 `bc1q4cflj0e3hwcn5edut654je86upn37p37gut5yk`
