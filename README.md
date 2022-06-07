@@ -45,7 +45,7 @@ mc your-dns.com:25461 -t 4
 
 For `00:1A:79:xx:xx:xx`-like MAC addresses (the most commonly used), there are $16^6$ possibilities (≈16.7million). Collision probability on sparsely populated servers is low by definition.
 
-## Instructions for careless minds
+## Instructions for the careless mind
 
 Power is all relative, and this program's is pretty low; even quite harmless. However, I must release myself of any responsibility in the way you will use this program. Indeed, its use might be unappropriate in your country.
 
