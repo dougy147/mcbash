@@ -1,6 +1,10 @@
-# mc bash
+```
+ ░█▄▒▄█░▄▀▀░██▄▒▄▀▄░▄▀▀░█▄█
+ ░█▒▀▒█░▀▄▄▒█▄█░█▀█▒▄██▒█▒█
+```
 
-`mc` (bash version) is an easy to use tool scanning for valid MAC addresses on Stalker Portal servers.
+`mc` (bash version) scans for valid MAC addresses on Stalker Portal servers.
+It's an easy to use script.
 Just feed it with a server's URL or IP. It then checks potentially valid MAC addresses.
 
 When a valid MAC is found, it is stored in your `$HOME` directory -> `$HOME/.config/mc`
@@ -8,9 +12,9 @@ When a valid MAC is found, it is stored in your `$HOME` directory -> `$HOME/.con
 
 ## Documentation
 
-The key feature of `mc` is **flexibility**. Check that with `mc --help` or `man mc`.
+As servers may differ in the way they handle requests, one need to adapt.
 
-As servers differ in the way they handle requests, one need to adapt.
+The key feature of `mc` is **flexibility**. It comes with handy options to manage your requests. Check that with `mc --help` or `man mc`.
 
 | Option | Functionality                                                |
 |:------:|--------------------------------------------------------------|
@@ -41,7 +45,7 @@ or directly with arguments :
 mc your-dns.com:25461 -t 4
 ```
 
-## Size sometimes matters
+### Size sometimes matters
 
 For `00:1A:79:xx:xx:xx`-like MAC addresses (the most commonly used), there are $16^6$ possibilities (≈16.7million). Collision probability on sparsely populated servers is low by definition.
 
