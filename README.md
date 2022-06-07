@@ -9,6 +9,9 @@ Just feed it with a server's URL or IP. It then checks potentially valid MAC add
 
 When a valid MAC is found, it is stored in your `$HOME` directory -> `$HOME/.config/mc`
 
+<p align="center">
+<img src="https://raw.githubusercontent.com/dougy147/scitopdf/master/mbash.gif" width="80%" />
+</p>
 
 ## Documentation
 
@@ -22,7 +25,7 @@ The key feature of `mc` is **flexibility**. It comes with handy options to manag
 | **-p** | Make a break every **X** requests                            |
 | **-d** | Break duration (in seconds)                                  |
 | **-s** | Stop McBash after **X** tested MACs                          |
-| **-t** | Timeout after **X** seconds                                  |
+| **-t** | Consider request a timeout after **X** seconds               |
 | **-u** | Server's URL/IP (URL or IP is mandatory, option `-u` is not) |
 | **-w** | Wait **X** seconds between each requests                     |
 | **-h** | Print this help menu                                         |
