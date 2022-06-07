@@ -10,21 +10,21 @@ As servers differ in the way they handle requests, one need to adapt. The key fe
 
 ## Documentation
 
-- k : Keep expired MAC (accounts expired)
+- *-k* : Keep expired MAC (accounts expired)
 
-- p : Make a break every [X] requests
+- *-p* : Make a break every [X] requests
 
-- d : Break duration (in seconds)
+- *-d* : Break duration (in seconds)
 
-- s : Stop McBash after [X] tested MACs
+- *-s* : Stop McBash after [X] tested MACs
 
-- t : Timeout after [X] seconds
+- *-t* : Timeout after [X] seconds
 
-- u : Server's URL/IP (URL or IP is mandatory, option `-u` is not)
+- *-u* : Server's URL/IP (URL or IP is mandatory, option `-u` is not)
 
-- w : Wait [X] seconds between each requests
+- *-w* : Wait [X] seconds between each requests
 
-- h : Help menu
+- *-h* : Help menu
 
 Exemple : `mc my-dns.com:8080 -w 1.5 -p 10 -d 3 -s 150 -t 2`
 
