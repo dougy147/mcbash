@@ -1,6 +1,5 @@
 ```
- ░█▄▒▄█░▄▀▀░██▄▒▄▀▄░▄▀▀░█▄█
- ░█▒▀▒█░▀▄▄▒█▄█░█▀█▒▄██▒█▒█
+ █▚▞▌ ◖ ꔪ ▅▀▅ ▄█▀ █▬█
 ```
 
 `mc` (bash version) scans for valid MAC addresses on Stalker Portal servers.
