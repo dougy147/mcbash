@@ -58,7 +58,7 @@ Please use that script consciously, with and on your personal goods only.
 
 ## Good critics are worth it
 
-Don't just pass by, and help improve `mc`. Pull requests are open 24/7.
+Don't just pass by, and help improve `mc`. Pull requests are open $24/7$.
 
 ## How did that help ?
 
