@@ -1,0 +1,54 @@
+.TH McChecker 1 mc
+.SH NAME
+mc \- bash script to scan valid MAC addresses on Stalker Portal servers.
+.SH SYNOPSIS
+.B mc
+[
+.I DNS_URL
+]
+[ -t
+.I REQUESTS_PER_SECONDS
+]
+[ -p
+.I PAUSE_AFTER_x_REQUESTS
+]
+[ -d
+.I PAUSE_DURATION
+]
+[ -s
+.I STOP_AFTER_x_REQUESTS
+]
+.SH DESCRIPTION
+.B mc
+scans and stores valid MAC addresses on specified server.
+.SH COMMANDS
+.TP
+.B -t
+[
+.I requests_per_seconds
+]
+delay between two requests in seconds (avoid flood). Default delay = 2
+.TP
+.B -p
+[
+.I number_of_requests
+]
+number of requests before pausing.
+.TP
+.B -d
+[
+.I duration_in_seconds
+]
+duration time for each pause. Default duration = 10
+.TP
+.B -s
+[
+.I number_of_requests
+]
+stop
+.B mc
+after X requests.
+.SH AUTHORS
+Written by dougy147 originally in 2022.
+.SH LICENSE
+GPLv3
