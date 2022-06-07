@@ -56,9 +56,9 @@ That way, it's unnecessary to say I'm only responsible for sharing a recipe one 
 So, illegality is not contained in that program. It can only be in its user's behavior.
 Please use that script consciously, with and on your personal goods only.
 
-## Your critics might be worth it
+## Good critics are worth it
 
-Pull requests are open.
+Don't just pass by, and help improve `mc`. Pull requests are open 24/7.
 
 ## How did that help ?
 
