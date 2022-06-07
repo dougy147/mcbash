@@ -51,7 +51,7 @@ Power is all relative, and this program's is quite low; even pretty harmless. Ho
 
 As far as I understand (i.e. poorly), imperative programming is like stacking bricks on top of each other.
 If there's nothing wrong stacking, climbing the pile might.
-That way, it's unnecessary to say I'm only responsible for sharing a recipe one would find all the ingredients thanks to any search engine.
+That way, it's unnecessary to say I'm only responsible for sharing a recipe one could find all the ingredients thanks to any search engine.
 
 So, illegality is not contained in that program. It can only be in its user's behavior.
 Please use that script consciously, on your personal goods only.
