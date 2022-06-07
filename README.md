@@ -1,7 +1,9 @@
 # mc
 
 `mc` (or `mcbash`) is a bash script looking for valid MAC addresses on Stalker Portal servers.
+
 Feed it with a URL, then it generates random MACs and tries them on the server.
+
 When a valid MAC is found, it is stored in your `$HOME` directory -> `$HOME/.config/mc`
 
 As servers differ in the way they handle requests, one need to adapt. The key feature of `mc` is flexibility.
