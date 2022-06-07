@@ -43,17 +43,18 @@ mc your-dns.com:25461 -t 4
 
 ## Size sometimes matters
 
-For `00:1A:79:xx:xx:xx`-like MAC addresses (the most commonly used), there are $16^6$ possibilities (≈16.7million). The collision probability on sparsely populated servers is low by definition.
+For `00:1A:79:xx:xx:xx`-like MAC addresses (the most commonly used), there are $16^6$ possibilities (≈16.7million). Collision probability on sparsely populated servers is low by definition.
 
 ## Instructions for careless minds
 
-Illegality is not contained in that program, only in its user's purposes.
-Use that script on your personal goods only.
-I am only responsible for sharing a recipe one would find by oneself with any search engine.
-Imperative programmation is like stacking bricks on top of each other.
-If there's nothing wrong stacking bricks, climbing might.
+Power is all relative, and this program's is quite low; even pretty harmless. However, I might need to release myself of any responsibility in the way you will use this program. Indeed, it might be unappropriate in some countries.
+As far as I understand (i.e. poorly), imperative programming is like stacking bricks on top of each other.
+If there's nothing wrong stacking, climbing the pile might.
+That way, it's unnecessary to say I'm only responsible for sharing a recipe one would find all the ingredients thanks to any search engine.
 
-Last but not least, I'm .
+So, illegality is not contained in that program. It can only be in its user's purposes.
+Please use that script consciously, on your personal goods only.
+
 
 ## How did that help ?
 
