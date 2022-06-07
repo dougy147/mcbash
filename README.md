@@ -59,6 +59,6 @@ Please use that script consciously, with and on your personal goods only.
 
 ## How did that help ?
 
-If you (1) are cool enough to know what to do with this *and* (2) find this program useful, I'd be glad and thankful :
+If you (1) are cool enough to know what to do with this and (2) find this program useful, I'd be glad and thankful :
 
 `bc1q4cflj0e3hwcn5edut654je86upn37p37gut5yk`
