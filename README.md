@@ -47,7 +47,8 @@ For `00:1A:79:xx:xx:xx`-like MAC addresses (the most commonly used), there are $
 
 ## Instructions for careless minds
 
-Power is all relative, and this program's is quite low; even pretty harmless. However, I might need to release myself of any responsibility in the way you will use this program. Indeed, it might be unappropriate in some countries.
+Power is all relative, and this program's is quite low; even pretty harmless. However, I must release myself of any responsibility in the way you will use this program. Indeed, it might be unappropriate in some countries.
+
 As far as I understand (i.e. poorly), imperative programming is like stacking bricks on top of each other.
 If there's nothing wrong stacking, climbing the pile might.
 That way, it's unnecessary to say I'm only responsible for sharing a recipe one would find all the ingredients thanks to any search engine.
