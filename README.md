@@ -10,14 +10,14 @@ As servers differ in the way they handle requests, one need to adapt. The key fe
 ## Documentation
 | Option | Functionality                                                |
 |--------|--------------------------------------------------------------|
-| **-k** | Keep expired MAC (accounts expired)                          |
-| **-p** | Make a break every [X] requests                              |
+| **-k** | Store expired MAC (valid addresses but expired accounts)    |
+| **-p** | Make a break every **X** requests                            |
 | **-d** | Break duration (in seconds)                                  |
-| **-s** | Stop McBash after [X] tested MACs                            |
-| **-t** | Timeout after [X] seconds                                    |
+| **-s** | Stop McBash after **X** tested MACs                          |
+| **-t** | Timeout after **X** seconds                                  |
 | **-u** | Server's URL/IP (URL or IP is mandatory, option `-u` is not) |
-| **-w** | Wait [X] seconds between each requests                       |
-| **-h** | Help menu                                                    |
+| **-w** | Wait **X** seconds between each requests                     |
+| **-h** | Print this help menu                                        |
 
 Exemple : `mc myfake$erver.org:8080 -w 1.5 -p 10 -d 3 -s 1500 -t 2`
 
