@@ -1,6 +1,6 @@
 # mc
 
-`mc` (or `mcbash`) is a bash script looking for valid MAC addresses on Stalker Portal servers.
+`mc` (for `mc checker`) is a bash script looking for valid MAC addresses on Stalker Portal servers.
 
 Feed it with a URL, then it generates random MACs and tries them on the server.
 
