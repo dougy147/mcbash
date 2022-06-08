@@ -45,7 +45,7 @@ The key feature of `mcbash` is **flexibility**. It comes with handy options to m
 
 - Example : `mcbash my-fakedns.org:8080 -w 1.5 -p 10 -d 3 -s 1500 -t 2`
 
-By default, MACs are checked randomly. If you need to screen on a specific range, use `--range`.
+By default, MACs are checked randomly. If you want to screen on a specific range, use `--range`.
 
 |   Option    | Functionality                                                |
 |:-----------:|--------------------------------------------------------------|
