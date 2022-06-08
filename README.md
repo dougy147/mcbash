@@ -42,12 +42,19 @@ The key feature of `mcbash` is **flexibility**. It comes with handy options to m
 |   **-t**    | Consider request a timeout after **X** seconds               |
 |   **-u**    | Server's URL/IP (URL or IP is mandatory, option `-u` is not) |
 |   **-w**    | Wait **X** seconds between each requests                     |
+
+- Example : `mcbash my-fakedns.org:8080 -w 1.5 -p 10 -d 3 -s 1500 -t 2`
+
+By default, MACs are checked randomly. If you need to screen on a specific range, use `--range`.
+
+|   Option    | Functionality                                                |
+|:-----------:|--------------------------------------------------------------|
 | **--range** | Check MACs in sequential order                               |
 |   **-F**    | Set first MAC to check (`--range` is forced)                 |
 |   **-L**    | Set last MAC to check (`--range` is forced)                  |
 |             |                                                              |
 
-Exemple : `mcbash my-fakedns.org:8080 -w 1.5 -p 10 -d 3 -s 1500 -t 2`
+- Example : `mcbash my-fakedns.org:8080 -F 00:1A:79:00:00:00 -L 00:1A:79:00:11:11`
 
 ### Size sometimes matters
 
