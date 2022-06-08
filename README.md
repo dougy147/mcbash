@@ -1,7 +1,4 @@
-```
- ░█▄▒▄█░▄▀▀░██▄▒▄▀▄░▄▀▀░█▄█
- ░█▒▀▒█░▀▄▄▒█▄█░█▀█▒▄██▒█▒█
-```
+# mcbash
 
 `mcbash` (for **m**ac **c**hecker **bash** version) scans for valid MAC addresses on Stalker Portal servers.
 It's a fast, modular and easy to use script.
