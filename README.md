@@ -17,16 +17,16 @@ As servers may differ in the way they handle requests, one need to adapt.
 
 The key feature of `mcbash` is **flexibility**. It comes with handy options to manage your requests. Check most common options with `mcbash --help`, or read the manual for *"advanced"* settings (`man mcbash`).
 
-| Option | Functionality                                                |
-|:------:|--------------------------------------------------------------|
-| **-k** | Store expired MAC (valid addresses but expired accounts)     |
-| **-p** | Make a break every **X** requests                            |
-| **-d** | Break duration (in seconds)                                  |
-| **-s** | Stop McBash after **X** tested MACs                          |
-| **-t** | Consider request a timeout after **X** seconds               |
-| **-u** | Server's URL/IP (URL or IP is mandatory, option `-u` is not) |
-| **-w** | Wait **X** seconds between each requests                     |
-| **-h** | Print this help menu                                         |
+| Option | Functionality                                                | Option      | Functionality
+|:------:|--------------------------------------------------------------|:-----------:|--------------
+| **-k** | Store expired MAC (valid addresses but expired accounts)     | **--range** | Check MACs in sequential order               |
+| **-p** | Make a break every **X** requests                            | **-F**      | Set first MAC to check (`--range` is forced) |
+| **-d** | Break duration (in seconds)                                  | **-L**      | Set last MAC to check (`--range` is forced)  |
+| **-s** | Stop McBash after **X** tested MACs                          |             |                                              |
+| **-t** | Consider request a timeout after **X** seconds               |             |                                              |
+| **-u** | Server's URL/IP (URL or IP is mandatory, option `-u` is not) |             |                                              |
+| **-w** | Wait **X** seconds between each requests                     |             |                                              |
+| **-h** | Print this help menu                                         |             |                                              |
 
 Exemple : `mcbash myfake$erver.org:8080 -w 1.5 -p 10 -d 3 -s 1500 -t 2`
 
