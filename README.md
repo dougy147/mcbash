@@ -10,7 +10,7 @@ Just feed it with a server's URL or IP. It then checks potentially valid MAC add
 When a valid MAC is found, it is stored in your `$HOME` directory -> `$HOME/.config/mc`
 
 <p align="center">
-<img src="mbash.gif" width="80%" />
+<img src="mcbash.gif" width="80%" />
 </p>
 
 ## Documentation

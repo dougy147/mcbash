@@ -13,9 +13,9 @@ destination=$HOME/.config/mc
 args=("$@")
 ELEMENTS=${#args[@]} # nombre d'arguments
 for (( i=0;i<$ELEMENTS;i++));do
-	[[ $(echo ${args[${i}]}) == "-u" ]] && position_dns=$(( i + 1 )) && dns=${args[${position_argument_temps}]}
+	[[ $(echo ${args[${i}]}) == "-u" ]] && position_argument_dns=$(( i + 1 )) && dns=${args[${position_argument_dns}]}
 	[[ $(echo ${args[${i}]} | grep -o "\.[a-z][a-z]" ) || $(echo ${args[${i}]} | grep -o "[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*" ) ]] && dns=${args[${i}]}
-	[[ $(echo ${args[${i}]}) == "-w" ]] && position_argument_temps=$(( i + 1 )) && request_delay=${args[${position_argument_temps}]}
+	[[ $(echo ${args[${i}]}) == "-w" ]] && position_argument_request_delay=$(( i + 1 )) && request_delay=${args[${position_argument_request_delay}]}
 	[[ $(echo ${args[${i}]}) == "-t" ]] && position_argument_timeout=$(( i + 1 )) && timeout=${args[${position_argument_timeout}]}
 	[[ $(echo ${args[${i}]}) == "-p" ]] && position_argument_timebreak=$(( i + 1 )) && timebreak=${args[${position_argument_timebreak}]}
 	[[ $(echo ${args[${i}]}) == "-d" ]] && position_argument_timebreak_duration=$(( i + 1 )) && timebreak_duration=${args[${position_argument_timebreak_duration}]}
@@ -37,9 +37,9 @@ for (( i=0;i<$ELEMENTS;i++));do
 done
 
 dns_name() {
-	[[ ! -v dns  ]] && read -p "Server's URL/IP:port : "$(tput bold setf 4) dns
+	[[ ! -v dns || $dns == "" ]] && read -p "Server address : "$(tput bold setf 4) dns
 	tput sgr0
-	[[ $dns = "" ]] && dns_name
+	[[ $dns = "" ]] && echo -ne "\r$(tput setf 1)You need to indicate a server address [ex: my-fakedns.org:8080]$(tput sgr0)\n" && dns_name
 	[[ $(echo $dns | grep -o 'http://') = "" ]] && dns=$(echo 'http://'$dns)
 }
 
@@ -50,21 +50,22 @@ parameters() {
 		! -v stopping && \
 		! -v timeout && \
 		! -v keep_expired ]] && \
-		read -p "=> Set parameters? [y/N] " parametres
+		read -p "$(tput bold)=>$(tput sgr0) Set parameters? $(tput bold)[y/N]$(tput sgr0) " parametres
 	if [[ $(echo $parametres | grep -io "y") == "y" ]]; then
-		[[ ! -v request_delay ]] && read -p " * Wait [X] seconds between two requests [default:2] " request_delay
+		[[ ! -v request_delay ]] && read -p " $(tput bold)*$(tput sgr0) Wait $(tput setf 2)[X] $(tput sgr0)seconds between two requests $(tput bold)[default:2]$(tput sgr0) $(tput bold setf 2)" request_delay
 		[[ $request_delay == "" ]] && request_delay=2
-		[[ ! -v timebreak ]] && read -p " * Make a break every [X] requests [default:0] " timebreak
+		[[ ! -v timebreak ]] && read -p "$(tput sgr0) $(tput bold)*$(tput sgr0) Make a break every $(tput setf 2)[X]$(tput sgr0) requests $(tput bold)[0]$(tput sgr0) $(tput bold setf 2)" timebreak
 		[[ $timebreak == "" ]] && unset timebreak
-		[[ ! -v timebreak_duration && $timebreak != "" ]] && read -p " * Break duration (seconds) [default:10] " timebreak_duration
+		[[ ! -v timebreak_duration && $timebreak != "" ]] && read -p "$(tput sgr0) $(tput bold)*$(tput sgr0) Break duration (seconds) $(tput bold)[10]$(tput sgr0) $(tput bold setf 2)" timebreak_duration
 		[[ $timebreak_duration == "" ]] && unset timebreak_duration
-		[[ ! -v stopping ]] && read -p " * Stop McBash after [X] tested MACs [default:0] " stopping
+		[[ ! -v stopping ]] && read -p "$(tput sgr0) $(tput bold)*$(tput sgr0) Stop McBash after $(tput setf 2)[X]$(tput sgr0) tested MACs $(tput bold)[0]$(tput sgr0) $(tput bold setf 2)" stopping
 		[[ $stopping == "" ]] && unset stopping
-		[[ ! -v timeout ]] && read -p " * Consider request a timeout after [X] seconds [default:5] " timeout
+		[[ ! -v timeout ]] && read -p "$(tput sgr0) $(tput bold)*$(tput sgr0) Consider request a timeout after $(tput setf 2)[X]$(tput sgr0) seconds $(tput bold)[5]$(tput sgr0) $(tput bold setf 2)" timeout
 		[[ $timeout == "" ]] && unset timeout
-		[[ ! -v keep_expired ]] && read -p " * Store expired MACs (tagged as such)? [y/N] " keep_expired
+		[[ ! -v keep_expired ]] && read -p "$(tput sgr0) $(tput bold)*$(tput sgr0) Store expired MACs (tagged as such)? $(tput bold)[y/N]$(tput sgr0) " keep_expired
 		( [[ $keep_expired == "" || $(echo $keep_expired | grep -io "n") == "n" || $(echo $keep_expired | grep -io "n") == "N" ]] ) && unset keep_expired
 		echo ""
+		tput sgr0
 	else
 		return
 	fi
