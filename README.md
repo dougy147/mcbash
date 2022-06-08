@@ -33,6 +33,7 @@ As servers may differ in the way they handle requests, one need to adapt.
 
 The key feature of `mcbash` is **flexibility**. It comes with handy options to manage your requests. Check most common options with `mcbash --help`, or read the manual for *"advanced"* settings (`man mcbash`).
 
+<p align="center">
 |   Option    | Functionality                                                |
 |:-----------:|--------------------------------------------------------------|
 |   **-k**    | Store expired MAC (valid addresses but expired accounts)     |
@@ -42,7 +43,7 @@ The key feature of `mcbash` is **flexibility**. It comes with handy options to m
 |   **-t**    | Consider request a timeout after **X** seconds               |
 |   **-u**    | Server's URL/IP (URL or IP is mandatory, option `-u` is not) |
 |   **-w**    | Wait **X** seconds between each requests                     |
-
+</p>
 - Example : `mcbash my-fakedns.org:8080 -w 1.5 -p 10 -d 3 -s 1500 -t 2`
 
 By default, MACs are checked randomly. If you want to screen on a specific range, use `--range`.
