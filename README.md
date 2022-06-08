@@ -7,11 +7,11 @@
 It's a fast, modular and easy to use script.
 Just feed it with a server URL or IP, and let it check by itself.
 
-When a valid MAC is found, it is stored in a file here -> `$HOME/.config/mcbash`
-
 <p align="center">
 <img src="mcbash.gif" width="80%" />
 </p>
+
+When a valid MAC is found, it is stored in a file here -> `$HOME/.config/mcbash`
 
 ## Documentation
 
