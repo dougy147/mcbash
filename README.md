@@ -11,6 +11,22 @@ Just feed it with a server URL or IP, and let it check by itself.
 
 When a valid MAC is found, it is stored in a file here -> `$HOME/.config/mcbash`
 
+## Installation
+
+```
+git clone https://github.com/dougy147/mcbash
+cd mcbash
+sudo make install
+```
+Then simply launch :
+```
+mcbash
+```
+or directly with arguments :
+```
+mcbash my-fakedns.org:8080 -t 4 -L '00:1A:79:AB:CD:EF'
+```
+
 ## Documentation
 
 As servers may differ in the way they handle requests, one need to adapt.
@@ -31,23 +47,7 @@ The key feature of `mcbash` is **flexibility**. It comes with handy options to m
 |   **-L**    | Set last MAC to check (`--range` is forced)                  |
 |             |                                                              |
 
-Exemple : `mcbash myfake$erver.org:8080 -w 1.5 -p 10 -d 3 -s 1500 -t 2`
-
-## Installation
-
-```
-git clone https://github.com/dougy147/mcbash
-cd mcbash
-sudo make install
-```
-Then simply launch :
-```
-mcbash
-```
-or directly with arguments :
-```
-mcbash my-fakedns.org:8080 -t 4 -L '00:1A:79:AB:CD:EF'
-```
+Exemple : `mcbash my-fakedns.org:8080 -w 1.5 -p 10 -d 3 -s 1500 -t 2`
 
 ### Size sometimes matters
 
