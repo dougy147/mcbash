@@ -15,7 +15,7 @@ When a valid MAC is found, it is stored in a file here -> `$HOME/.config/mcbash`
 
 As servers may differ in the way they handle requests, one need to adapt.
 
-The key feature of `mcbash` is **flexibility**. It comes with handy options to manage your requests. Check most used options with `mcbash --help` or read the manual for *"advanced"* settings (`man mcbash`).
+The key feature of `mcbash` is **flexibility**. It comes with handy options to manage your requests. Check most common options with `mcbash --help`, or read the manual for *"advanced"* settings (`man mcbash`).
 
 | Option | Functionality                                                |
 |:------:|--------------------------------------------------------------|
