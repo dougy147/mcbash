@@ -68,9 +68,11 @@ By default, MACs are checked randomly. If you want to screen on a specific range
 
 - `mcbash my-fakedns.org:8080 -w 1.5 -p 10 -d 3 -s 1500 -t 2`
 
-1.5 seconds between requests, pauses every 10 requests for 3 seconds, stops after 1500 MACs checkeds, and consider timeout after 2 seconds (timeouts trigger a pause to avoid flood).
+The program sleeps 1.5 seconds between each requests, pauses every 10 requests for 3 seconds, stops after 1500 MACs checkeds, and consider timeout after 2 seconds (timeouts trigger a pause to avoid flood).
 
-- `mcbash my-fakedns.org:8080 -F 00:1A:79:00:00:00 -L 00:1A:79:00:11:11` : scan from first (`-F`) to last (`-L`) provided MAC.
+- `mcbash my-fakedns.org:8080 -F 00:1A:79:00:00:00 -L 00:1A:79:00:11:11`
+
+Scan from first (`-F`) to last (`-L`) provided MAC. Default settings otherwise.
 
 ## Instructions for the careless mind
 
@@ -89,6 +91,6 @@ Don't just pass by, and help improve `mcbash`. Pull requests are open $24/7$.
 
 ## How did that help ?
 
-If you (1) are cool enough to know what to do with this and (2) find this program useful, I'd be glad and thankful :
+If you (1) are cool enough to know what to do with this 😎 and (2) find this program useful, I'd be glad and thankful :
 
 `bc1q4cflj0e3hwcn5edut654je86upn37p37gut5yk`
