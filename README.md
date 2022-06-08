@@ -4,10 +4,10 @@
 ```
 
 `mcbash` (for **m**ac **c**hecker **bash** version) scans for valid MAC addresses on Stalker Portal servers.
-It's an easy to use script.
-Just feed it with a server's URL or IP. It then checks potentially valid MAC addresses.
+It's a fast, modular and easy to use script.
+Just feed it with a server URL or IP, and let it check by itself.
 
-When a valid MAC is found, it is stored in your `$HOME` directory -> `$HOME/.config/mc`
+When a valid MAC is found, it is stored in a file here -> `$HOME/.config/mcbash`
 
 <p align="center">
 <img src="mcbash.gif" width="80%" />
@@ -17,7 +17,7 @@ When a valid MAC is found, it is stored in your `$HOME` directory -> `$HOME/.con
 
 As servers may differ in the way they handle requests, one need to adapt.
 
-The key feature of `mc` is **flexibility**. It comes with handy options to manage your requests. Check that with `mc --help` or `man mc`.
+The key feature of `mcbash` is **flexibility**. It comes with handy options to manage your requests. Check that with `mcbash --help` or `man mcbash`.
 
 | Option | Functionality                                                |
 |:------:|--------------------------------------------------------------|
@@ -30,22 +30,22 @@ The key feature of `mc` is **flexibility**. It comes with handy options to manag
 | **-w** | Wait **X** seconds between each requests                     |
 | **-h** | Print this help menu                                         |
 
-Exemple : `mc myfake$erver.org:8080 -w 1.5 -p 10 -d 3 -s 1500 -t 2`
+Exemple : `mcbash myfake$erver.org:8080 -w 1.5 -p 10 -d 3 -s 1500 -t 2`
 
 ## Installation
 
 ```
-git clone https://github.com/dougy147/mc
-cd mc
+git clone https://github.com/dougy147/mcbash
+cd mcbash
 sudo make install
 ```
 Then simply launch :
 ```
-mc
+mcbash
 ```
 or directly with arguments :
 ```
-mc your-dns.com:25461 -t 4
+mcbash my-fakedns.org:8080 -t 4 -L '00:1A:79:AB:CD:EF'
 ```
 
 ### Size sometimes matters
@@ -65,7 +65,7 @@ Please use that script consciously, with and on your personal goods only.
 
 ## Good critics are worth it
 
-Don't just pass by, and help improve `mc`. Pull requests are open $24/7$.
+Don't just pass by, and help improve `mcbash`. Pull requests are open $24/7$.
 
 ## How did that help ?
 
