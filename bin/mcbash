@@ -7,7 +7,7 @@ echo $(tput setf 2) " ░█▒▀▒█░▀▄▄▒█▄█░█▀█▒�
 # Saving directory [change that to your favorite location]
 destination=$HOME/.mcbash
 
-[ -d $destination ] || mkdir -p $destination 2&> /dev/null || \
+[ -d $destination ] || mkdir -p "$destination" 2&> /dev/null || \
 	echo -e "$(tput setf 4)Can't create saving directory.\nPlease check if you have permissions for that location.\nValid MACs will not be stored.$(tput sgr0)"
 
 # Check arguments
