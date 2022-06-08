@@ -2,14 +2,12 @@
 
 `mcbash` (for **m**ac **c**hecker **bash** version) scans for valid MAC addresses on Stalker Portal servers.
 
-It's a fast, modular and easy to use script.
+It's a fast, modular and user-friendly script.
 Just feed it with a server URL or IP, and let it check by itself.
 
 <p align="center">
 <img src="mcbash.gif" width="80%" />
 </p>
-
-When a valid MAC is found, it is stored in a file here -> `$HOME/.config/mcbash`
 
 ## Installation
 
@@ -27,11 +25,24 @@ or directly with arguments :
 mcbash my-fakedns.org:8080 -t 4 -L '00:1A:79:AB:CD:EF'
 ```
 
-## Documentation
+### MACs are stored
+
+Did you close your terminal ? Don't worry, when a valid MAC is found, it is stored in `mcbash` directory : `$HOME/.mcbash`.
+
+### Size sometimes matters
+
+For `00:1A:79:xx:xx:xx`-like MAC addresses (the most commonly used), there are $16^6$ possibilities (≈16.7million). Collision probability on sparsely populated servers is low by definition. So, there won't be too much matches on small ones!
+
+### Go full command line 😎
+
+When executing `mcbash` with arguments (except `-u` and `--range` alone), it will generally assume you know what you're doing, and won't ask questions.
+Else, it will prompt you for settings. Check below for options you can manually set.
+
+### Adapt to your needs
 
 As servers may differ in the way they handle requests, one need to adapt.
 
-The key feature of `mcbash` is **flexibility**. It comes with handy options to manage your requests. Check most common options with `mcbash --help`, or read the manual for *"advanced"* settings (`man mcbash`).
+The key feature of `mcbash` is **flexibility**. It comes with handy options to manage your requests. `mcbash --help` display most common options. For *"advanced"* settings, read the manual (`man mcbash`).
 
 |   Option    | Functionality                                                |
 |:-----------:|--------------------------------------------------------------|
@@ -43,8 +54,6 @@ The key feature of `mcbash` is **flexibility**. It comes with handy options to m
 |   **-u**    | Server's URL/IP (URL or IP is mandatory, option `-u` is not) |
 |   **-w**    | Wait **X** seconds between each requests                     |
 
-- Example : `mcbash my-fakedns.org:8080 -w 1.5 -p 10 -d 3 -s 1500 -t 2`
-
 
 By default, MACs are checked randomly. If you want to screen on a specific range, use `--range`.
 
@@ -55,11 +64,11 @@ By default, MACs are checked randomly. If you want to screen on a specific range
 |   **-L**    | Set last MAC to check (`--range` is forced)                  |
 |             |                                                              |
 
-- Example : `mcbash my-fakedns.org:8080 -F 00:1A:79:00:00:00 -L 00:1A:79:00:11:11`
+### Use examples
 
-### Size sometimes matters
+- `mcbash my-fakedns.org:8080 -w 1.5 -p 10 -d 3 -s 1500 -t 2` : 1.5 seconds between requests, pauses every 10 requests for 3 seconds, stops after 1500 MACs checkeds, and consider timeout after 2 seconds (timeouts trigger a pause to avoid flood).
 
-For `00:1A:79:xx:xx:xx`-like MAC addresses (the most commonly used), there are $16^6$ possibilities (≈16.7million). Collision probability on sparsely populated servers is low by definition.
+- `mcbash my-fakedns.org:8080 -F 00:1A:79:00:00:00 -L 00:1A:79:00:11:11` : scan from first (`-F`) to last (`-L`) provided MAC.
 
 ## Instructions for the careless mind
 
