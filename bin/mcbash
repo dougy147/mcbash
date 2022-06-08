@@ -78,6 +78,12 @@ parameters() {
 		( [[ $keep_expired == "" || $(echo $keep_expired | grep -io "n") == "n" || $(echo $keep_expired | grep -io "n") == "N" ]] ) && unset keep_expired
 		echo ""
 		tput sgr0
+	elif [[ -v range && ( ! -v range_from || ! -v range_to ) ]]; then
+		[[ ! -v range_from ]] && read -p "$(tput sgr0) $(tput bold)->$(tput sgr0) Indicate first MAC to scan $(tput bold)[00:1A:79:00:00:00]$(tput sgr0) $(tput bold setf 2)" first_mac
+		[[ $first_mac == "" ]] && unset first_mac
+		[[ ! -v range_to ]] && read -p "$(tput sgr0) $(tput bold)->$(tput sgr0) Indicate last MAC to scan $(tput bold)[00:1A:79:FF:FF:FF]$(tput sgr0) $(tput bold setf 2)" last_mac
+		[[ $last_mac == "" ]] && last_mac="00:1A:79:FF:FF:FF"
+
 	else
 		return
 	fi
