@@ -33,6 +33,13 @@ Did you close your terminal ? Don't worry, when a valid MAC is found, it is stor
 
 For `00:1A:79:xx:xx:xx`-like MAC addresses (the most commonly used), there are $16^6$ possibilities (≈16.7million). Collision probability on sparsely populated servers is low by definition. So, there won't be too much matches on small ones!
 
+### "I hate the colors"
+
+- Solution 1 : join the colorblind gang.
+
+- Solution 2 : colors are set with `tput` (e.g. `tput setf 1`). Change its value from 0 to 7. If you know of a more universal/efficient way to color text, please contact me.
+
+
 ### Go full command line 😎
 
 When executing `mcbash` with arguments (except for `-u` and `--range` alone), it will generally assume you know what you're doing, and won't ask questions.
