@@ -57,12 +57,12 @@ The key feature of `mcbash` is **flexibility**. It comes with handy options to m
 
 By default, MACs are checked randomly. If you want to screen a specific range, use `--range`.
 
-|   Option    | Functionality                                                |
-|:-----------:|--------------------------------------------------------------|
-| **--range** | Check MACs in sequential order                               |
-|   **-F**    | Set first MAC to check (`--range` is forced)                 |
-|   **-L**    | Set last MAC to check (`--range` is forced)                  |
-|             |                                                              |
+|    Option     | Functionality                                |
+|:-------------:|----------------------------------------------|
+| **`--range`** | Check MACs in sequential order               |
+|   **`-F`**    | Set first MAC to check (`--range` is forced) |
+|   **`-L`**    | Set last MAC to check (`--range` is forced)  |
+|               |                                              |
 
 ### Use examples
 
