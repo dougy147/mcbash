@@ -44,15 +44,15 @@ As servers may differ in the way they handle requests, one need to adapt.
 
 The key feature of `mcbash` is **flexibility**. It comes with handy options to manage your requests. `mcbash --help` display most common options. For *"advanced"* settings, read the manual (`man mcbash`).
 
-|   Option    | Functionality                                                |
-|:-----------:|--------------------------------------------------------------|
-|   **-k**    | Store expired MAC (valid addresses but expired accounts)     |
-|   **-b**    | Make a break every **X** requests                            |
-|   **-d**    | Break duration (in seconds)                                  |
-|   **-s**    | Stop McBash after **X** tested MACs                          |
-|   **-t**    | Consider request a timeout after **X** seconds               |
-|   **-u**    | Server's URL/IP (URL or IP is mandatory, option `-u` is not) |
-|   **-w**    | Wait **X** seconds between each requests                     |
+|  Option  | Functionality                                                |
+|:--------:|--------------------------------------------------------------|
+| **`-k`** | Store expired MAC (valid addresses but expired accounts)     |
+| **`-b`** | Make a break every **X** requests                            |
+| **`-d`** | Break duration (in seconds)                                  |
+| **`-s`** | Stop McBash after **X** tested MACs                          |
+| **`-t`** | Consider request a timeout after **X** seconds               |
+| **`-u`** | Server's URL/IP (URL or IP is mandatory, option `-u` is not) |
+| **`-w`** | Wait **X** seconds between each requests                     |
 
 
 By default, MACs are checked randomly. If you want to screen a specific range, use `--range`.
