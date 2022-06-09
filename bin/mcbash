@@ -8,7 +8,7 @@ echo $(tput setf 2) " ░█▒▀▒█░▀▄▄▒█▄█░█▀█▒�
 destination=$HOME/.mcbash
 
 [ -d $destination ] || mkdir -p "$destination" &> /dev/null || \
-	echo -e "$(tput setf 4)Can't create saving directory.\nPlease check if you have permissions for that location.\nValid MACs will not be stored.$(tput sgr0)"
+	echo -e "$(tput setf 4)Can't create saving directory to $destination.\nPlease be sure you have permissions.\nValid MAC addresses will not be stored.$(tput sgr0)"
 
 # Check arguments
 args=("$@")
@@ -27,14 +27,14 @@ for (( i=0;i<$ELEMENTS;i++)); do
 	[[ $(echo ${args[${i}]}) == "-L" ]] && range=True && argument_range_to=$(( i + 1 )) && range_to=${args[${argument_range_to}]}
 	[[ $(echo ${args[${i}]}) == "-h" || $(echo ${args[${i}]}) == "--help" ]] && \
 		echo -e "Help menu : \
-		\n -k : Store expired MACs (valid addresses but expired accounts) \
+		\n -k : Store expired MAC addresses (valid but expired accounts) \
 		\n -p : Make a break every [X] requests \
 		\n -d : Break duration (in seconds) \
-		\n -s : Stop McBash after [X] tested MACs \
+		\n -s : Stop McBash after [X] tested MAC addresses \
 		\n -t : Consider request a timeout after [X] seconds \
 		\n -u : Server URL/IP (specifying -u is not mandatory) \
 		\n -w : Wait [X] seconds between each requests \
-		\n --range : Scan your range of MACs in order \
+		\n --range : Scan a range of MAC addresses sequentially \
 		\n -h : Print this help menu \
 		\n man mc : Look up the manual for more tweaks \
 		\n \
@@ -65,7 +65,7 @@ parameters() {
 		[[ $timebreak == "" ]] && unset timebreak
 		[[ ! -v timebreak_duration && $timebreak != "" ]] && read -p "$(tput sgr0) $(tput bold)*$(tput sgr0) Break duration (seconds) $(tput bold)[10]$(tput sgr0) $(tput bold setf 2)" timebreak_duration
 		[[ $timebreak_duration == "" ]] && unset timebreak_duration
-		[[ ! -v stopping ]] && read -p "$(tput sgr0) $(tput bold)*$(tput sgr0) Stop McBash after $(tput setf 2)[X]$(tput sgr0) tested MACs $(tput bold)[0]$(tput sgr0) $(tput bold setf 2)" stopping
+		[[ ! -v stopping ]] && read -p "$(tput sgr0) $(tput bold)*$(tput sgr0) Stop McBash after $(tput setf 2)[X]$(tput sgr0) tested MAC addresses $(tput bold)[0]$(tput sgr0) $(tput bold setf 2)" stopping
 		[[ $stopping == "" ]] && unset stopping
 		[[ ! -v timeout ]] && read -p "$(tput sgr0) $(tput bold)*$(tput sgr0) Consider request a timeout after $(tput setf 2)[X]$(tput sgr0) seconds $(tput bold)[5]$(tput sgr0) $(tput bold setf 2)" timeout
 		[[ $timeout == "" ]] && unset timeout
@@ -74,7 +74,7 @@ parameters() {
 		[[ $first_mac == "" ]] && unset first_mac
 		[[ -v range && ! -v range_to ]] && read -p "$(tput sgr0) $(tput bold)->$(tput sgr0) Indicate last MAC to scan $(tput bold)[00:1A:79:FF:FF:FF]$(tput sgr0) $(tput bold setf 2)" last_mac
 		[[ $last_mac == "" ]] && last_mac="00:1A:79:FF:FF:FF"
-		[[ ! -v keep_expired ]] && read -p "$(tput sgr0) $(tput bold)*$(tput sgr0) Store expired MACs (tagged as such)? $(tput bold)[y/N]$(tput sgr0) " keep_expired
+		[[ ! -v keep_expired ]] && read -p "$(tput sgr0) $(tput bold)*$(tput sgr0) Store expired MAC addresses (tagged as such)? $(tput bold)[y/N]$(tput sgr0) " keep_expired
 		( [[ $keep_expired == "" || $(echo $keep_expired | grep -io "n") == "n" || $(echo $keep_expired | grep -io "n") == "N" ]] ) && unset keep_expired
 		echo ""
 		tput sgr0
@@ -121,7 +121,7 @@ range_mac() {
 
 handshaking() {
 	item=$(( $item + 1 ))
-	[[ -v stopping ]] && [[ $(( $item - 1 )) == $stopping ]] && echo $(tput bold setf 6)"$(( $item - 1 )) tested MACs. $valid_macs_number valid. Stopping."$(tput sgr0) && exit 1
+	[[ -v stopping ]] && [[ $(( $item - 1 )) == $stopping ]] && echo $(tput bold setf 6)"$(( $item - 1 )) checked, $valid_macs_number valid. Stopping."$(tput sgr0) && exit 1
 	[[ $item == 1 ]] || ( [[ -v timebreak ]] \
 		&& [[ $(expr $(( $item - 1 )) % $timebreak ) == 0 ]] \
 		&& echo -ne $(tput setf 4)"\r[$(( $item - 1 ))] $mac $(tput sgr0)$(tput setf 6)--- Break. $timebreak_duration seconds..."$(tput sgr0) \
@@ -152,7 +152,7 @@ handshaking() {
 
 quit_mcbash() {
 	echo ""
-	[[ $valid_macs_number != 0 ]] && echo $(tput setf 2)"$valid_macs_number valid for $(( $item - 1 )) tested MACs." $(tput sgr0)
+	[[ $valid_macs_number != 0 ]] && echo $(tput setf 2)"$valid_macs_number valid for $(( $item - 1 )) tested." $(tput sgr0)
 	echo $(tput setf 6)--- Break ---$(tput sgr0)
 	trap - SIGINT
 	read -p "$(tput bold setf 5)Quit [Ctrl+C]  $(tput sgr0)-  $(tput bold setf 4)Resume [Enter]$(tput sgr0) " quit_mc
