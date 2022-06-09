@@ -35,7 +35,7 @@ For `00:1A:79:xx:xx:xx`-like MAC addresses (the most commonly used), there are $
 
 ### Go full command line 😎
 
-When executing `mcbash` with arguments (except `-u` and `--range` alone), it will generally assume you know what you're doing, and won't ask questions.
+When executing `mcbash` with arguments (except for `-u` and `--range` alone), it will generally assume you know what you're doing, and won't ask questions.
 Else, it will prompt you for settings. Check below for options you can manually set.
 
 ### Adapt to your needs
@@ -44,25 +44,24 @@ As servers may differ in the way they handle requests, one need to adapt.
 
 The key feature of `mcbash` is **flexibility**. It comes with handy options to manage your requests. `mcbash --help` display most common options. For *"advanced"* settings, read the manual (`man mcbash`).
 
-|  Option  | Functionality                                                |
-|:--------:|--------------------------------------------------------------|
-| **`-k`** | Store expired MAC (valid addresses but expired accounts)     |
-| **`-b`** | Make a break every **X** requests                            |
-| **`-d`** | Break duration (in seconds)                                  |
-| **`-s`** | Stop McBash after **X** tested MACs                          |
-| **`-t`** | Consider request a timeout after **X** seconds               |
-| **`-u`** | Server's URL/IP (URL or IP is mandatory, option `-u` is not) |
-| **`-w`** | Wait **X** seconds between each requests                     |
+| Option                  | Functionality                                                |
+|-------------------------|--------------------------------------------------------------|
+| **`-k`**, `--keep`      | Store expired MAC (valid addresses but expired accounts)     |
+| **`-b`**, `--break`     | Make a break every **X** requests                            |
+| **`-d`**, `--pause-for` | Break duration (in seconds)                                  |
+| **`-s`**, `--stop`      | Stop McBash after **X** tested MACs                          |
+| **`-t`**, `--timeout`   | Consider request a timeout after **X** seconds               |
+| **`-u`**, `--url`       | Server's URL/IP (URL or IP is mandatory, option `-u` is not) |
+| **`-w`**, `--wait`      | Wait **X** seconds between each requests                     |
 
 
 By default, MACs are checked randomly. If you want to screen a specific range, use `--range`.
 
-|    Option     | Functionality                                |
-|:-------------:|----------------------------------------------|
-| **`--range`** | Check MACs in sequential order               |
-|   **`-F`**    | Set first MAC to check (`--range` is forced) |
-|   **`-L`**    | Set last MAC to check (`--range` is forced)  |
-|               |                                              |
+|       Option       | Functionality                                |
+|:------------------:|----------------------------------------------|
+|   **`--range`**    | Check MACs in sequential order               |
+| **`-F`**, `--from` | Set first MAC to check (`--range` is forced) |
+|  **`-L`**, `--to`  | Set last MAC to check (`--range` is forced)  |
 
 ### Use examples
 

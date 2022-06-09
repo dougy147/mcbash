@@ -14,17 +14,46 @@ destination=$HOME/.mcbash
 args=("$@")
 ELEMENTS=${#args[@]} # arguments number
 for (( i=0;i<$ELEMENTS;i++)); do
-	[[ $(echo ${args[${i}]}) == "-u" ]] && argument_dns=$(( i + 1 )) && dns=${args[${argument_dns}]}
+	[[ $(echo ${args[${i}]}) == "-u" || \
+		$(echo ${args[${i}]}) == "--url" ]] && \
+		argument_dns=$(( i + 1 )) && \
+		dns=${args[${argument_dns}]}
 	[[ $(echo ${args[${i}]} | grep -o "\.[a-z][a-z]" ) || $(echo ${args[${i}]} | grep -o "[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*" ) ]] && dns=${args[${i}]}
-	[[ $(echo ${args[${i}]}) == "-w" ]] && argument_request_delay=$(( i + 1 )) && request_delay=${args[${argument_request_delay}]}
-	[[ $(echo ${args[${i}]}) == "-t" ]] && argument_timeout=$(( i + 1 )) && timeout=${args[${argument_timeout}]}
-	[[ $(echo ${args[${i}]}) == "-b" ]] && argument_timebreak=$(( i + 1 )) && timebreak=${args[${argument_timebreak}]}
-	[[ $(echo ${args[${i}]}) == "-d" ]] && argument_timebreak_duration=$(( i + 1 )) && timebreak_duration=${args[${argument_timebreak_duration}]}
-	[[ $(echo ${args[${i}]}) == "-s" ]] && argument_stop=$(( i + 1 )) && stopping=${args[${argument_stop}]}
-	[[ $(echo ${args[${i}]}) == "-k" ]] && argument_keep_expired=$(( i + 1 )) && keep_expired=${args[${argument_keep_expired}]}
+	[[ $(echo ${args[${i}]}) == "-w" || \
+		$(echo ${args[${i}]}) == "--wait" ]] && \
+		argument_request_delay=$(( i + 1 )) && \
+		request_delay=${args[${argument_request_delay}]}
+	[[ $(echo ${args[${i}]}) == "-t" || \
+		$(echo ${args[${i}]}) == "--timeout" ]] && \
+		argument_timeout=$(( i + 1 )) && \
+		timeout=${args[${argument_timeout}]}
+	[[ $(echo ${args[${i}]}) == "-b" || \
+		$(echo ${args[${i}]}) == "--break" ]] && \
+		argument_timebreak=$(( i + 1 )) && \
+		timebreak=${args[${argument_timebreak}]}
+	[[ $(echo ${args[${i}]}) == "-d" || \
+		$(echo ${args[${i}]}) == "--pause-for" ]] && \
+		argument_timebreak_duration=$(( i + 1 )) && \
+		timebreak_duration=${args[${argument_timebreak_duration}]}
+	[[ $(echo ${args[${i}]}) == "-s" || \
+		$(echo ${args[${i}]}) == "--stop" ]] && \
+		argument_stop=$(( i + 1 )) && \
+		stopping=${args[${argument_stop}]}
+	[[ $(echo ${args[${i}]}) == "-k" || \
+		$(echo ${args[${i}]}) == "--keep" ]] && \
+		argument_keep_expired=$(( i + 1 )) && \
+		keep_expired=${args[${argument_keep_expired}]}
 	[[ $(echo ${args[${i}]}) == "--range" ]] && range=True
-	[[ $(echo ${args[${i}]}) == "-F" ]] && range=True && argument_range_from=$(( i + 1 )) && range_from=${args[${argument_range_from}]}
-	[[ $(echo ${args[${i}]}) == "-L" ]] && range=True && argument_range_to=$(( i + 1 )) && range_to=${args[${argument_range_to}]}
+	[[ $(echo ${args[${i}]}) == "-F" || \
+		$(echo ${args[${i}]}) == "--from" ]] && \
+		range=True && \
+		argument_range_from=$(( i + 1 )) && \
+		range_from=${args[${argument_range_from}]}
+	[[ $(echo ${args[${i}]}) == "-L" ||
+		$(echo ${args[${i}]}) == "--to" ]] \
+		&& range=True && \
+		argument_range_to=$(( i + 1 )) && \
+		range_to=${args[${argument_range_to}]}
 	[[ $(echo ${args[${i}]}) == "-h" || $(echo ${args[${i}]}) == "--help" ]] && \
 		echo -e "Help menu : \
 		\n -k : Store expired MAC addresses (valid but expired accounts) \
