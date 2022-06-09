@@ -18,7 +18,7 @@ for (( i=0;i<$ELEMENTS;i++)); do
 	[[ $(echo ${args[${i}]} | grep -o "\.[a-z][a-z]" ) || $(echo ${args[${i}]} | grep -o "[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*" ) ]] && dns=${args[${i}]}
 	[[ $(echo ${args[${i}]}) == "-w" ]] && argument_request_delay=$(( i + 1 )) && request_delay=${args[${argument_request_delay}]}
 	[[ $(echo ${args[${i}]}) == "-t" ]] && argument_timeout=$(( i + 1 )) && timeout=${args[${argument_timeout}]}
-	[[ $(echo ${args[${i}]}) == "-p" ]] && argument_timebreak=$(( i + 1 )) && timebreak=${args[${argument_timebreak}]}
+	[[ $(echo ${args[${i}]}) == "-b" ]] && argument_timebreak=$(( i + 1 )) && timebreak=${args[${argument_timebreak}]}
 	[[ $(echo ${args[${i}]}) == "-d" ]] && argument_timebreak_duration=$(( i + 1 )) && timebreak_duration=${args[${argument_timebreak_duration}]}
 	[[ $(echo ${args[${i}]}) == "-s" ]] && argument_stop=$(( i + 1 )) && stopping=${args[${argument_stop}]}
 	[[ $(echo ${args[${i}]}) == "-k" ]] && argument_keep_expired=$(( i + 1 )) && keep_expired=${args[${argument_keep_expired}]}
@@ -28,7 +28,7 @@ for (( i=0;i<$ELEMENTS;i++)); do
 	[[ $(echo ${args[${i}]}) == "-h" || $(echo ${args[${i}]}) == "--help" ]] && \
 		echo -e "Help menu : \
 		\n -k : Store expired MAC addresses (valid but expired accounts) \
-		\n -p : Make a break every [X] requests \
+		\n -b : Make a break every [X] requests \
 		\n -d : Break duration (in seconds) \
 		\n -s : Stop McBash after [X] tested MAC addresses \
 		\n -t : Consider request a timeout after [X] seconds \
@@ -38,7 +38,7 @@ for (( i=0;i<$ELEMENTS;i++)); do
 		\n -h : Print this help menu \
 		\n man mc : Look up the manual for more tweaks \
 		\n \
-		\n Example : mc -u my-dns.com:8080 -w 1.5 -p 10 -d 3 -s 150 -t 2 -k
+		\n Example : mc -u my-dns.com:8080 -w 1.5 -b 10 -d 3 -s 150 -t 2 -k
 		" && exit 1
 done
 

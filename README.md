@@ -47,7 +47,7 @@ The key feature of `mcbash` is **flexibility**. It comes with handy options to m
 |   Option    | Functionality                                                |
 |:-----------:|--------------------------------------------------------------|
 |   **-k**    | Store expired MAC (valid addresses but expired accounts)     |
-|   **-p**    | Make a break every **X** requests                            |
+|   **-b**    | Make a break every **X** requests                            |
 |   **-d**    | Break duration (in seconds)                                  |
 |   **-s**    | Stop McBash after **X** tested MACs                          |
 |   **-t**    | Consider request a timeout after **X** seconds               |
@@ -66,7 +66,7 @@ By default, MACs are checked randomly. If you want to screen on a specific range
 
 ### Use examples
 
-- `mcbash my-fakedns.org:8080 -w 1.5 -p 10 -d 3 -s 1500 -t 2`
+- `mcbash my-fakedns.org:8080 -w 1.5 -b 10 -d 3 -s 1500 -t 2`
 
 The program sleeps 1.5 seconds between each requests, pauses every 10 requests for 3 seconds, stops after 1500 MACs checkeds, and consider timeout after 2 seconds (timeouts trigger a pause to avoid flood).
 
