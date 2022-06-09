@@ -91,7 +91,7 @@ That way, it's unnecessary to say I'm only responsible for sharing a recipe one 
 So, illegality is not contained in that program. It can only be in its user's behavior.
 Please use that script consciously, with and on your personal goods only.
 
-## Good critics are worth it
+## Constructive critics are worth it
 
 Don't just pass by, and help improve `mcbash`. Pull requests are open $24/7$.
 
