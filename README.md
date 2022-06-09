@@ -55,7 +55,7 @@ The key feature of `mcbash` is **flexibility**. It comes with handy options to m
 |   **-w**    | Wait **X** seconds between each requests                     |
 
 
-By default, MACs are checked randomly. If you want to screen on a specific range, use `--range`.
+By default, MACs are checked randomly. If you want to screen a specific range, use `--range`.
 
 |   Option    | Functionality                                                |
 |:-----------:|--------------------------------------------------------------|
