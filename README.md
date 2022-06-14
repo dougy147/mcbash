@@ -66,19 +66,24 @@ By default, MACs are checked randomly. If you want to screen a specific range, u
 
 |       Option       | Functionality                                |
 |:------------------:|----------------------------------------------|
-|   **`--range`**    | Check MACs in sequential order               |
+|     `--range`      | Check MACs in sequential order               |
 | **`-F`**, `--from` | Set first MAC to check (`--range` is forced) |
 |  **`-L`**, `--to`  | Set last MAC to check (`--range` is forced)  |
 
+#### Change default parameters
+
+The config file (`mcbash.conf`) is created during the install process here : `$HOME/.mcbash`. Change some values according to your needs.
+
 ### Use examples
+
+The program sleeps 1.5 seconds between each requests, pauses every 10 requests for 3 seconds, stops after 1500 MACs checkeds, and consider timeout after 2 seconds (timeouts trigger a pause to avoid flood) :
 
 - `mcbash my-fakedns.org:8080 -w 1.5 -b 10 -d 3 -s 1500 -t 2`
 
-The program sleeps 1.5 seconds between each requests, pauses every 10 requests for 3 seconds, stops after 1500 MACs checkeds, and consider timeout after 2 seconds (timeouts trigger a pause to avoid flood).
+Scan from first (`-F`) to last (`-L`) provided MAC :
 
 - `mcbash my-fakedns.org:8080 -F 00:1A:79:00:00:00 -L 00:1A:79:00:11:11`
 
-Scan from first (`-F`) to last (`-L`) provided MAC. Default settings otherwise.
 
 ## Instructions for the careless mind
 
