@@ -98,7 +98,7 @@ parameters() {
 		[[ $request_delay == "" ]] && request_delay=$default_request_delay
 		[[ ! -v timebreak ]] && read -p "$(tput sgr0) $(tput bold)*$(tput sgr0) Make a break every $(tput setf 2)[X]$(tput sgr0) requests $(tput bold)[$default_timebreak]$(tput sgr0) $(tput bold setf 2)" timebreak
 		[[ $timebreak == "" ]] && timebreak=$default_timebreak && [[ $timebreak == "0" ]] && unset timebreak
-		[[ ! -v timebreak_duration && $timebreak != "" ]] && read -p "$(tput sgr0) $(tput bold)*$(tput sgr0) Break duration (seconds) $(tput bold)[$default_break_duration]$(tput sgr0) $(tput bold setf 2)" timebreak_duration
+		[[ ! -v timebreak_duration && $timebreak != "" ]] && read -p "$(tput sgr0) $(tput bold)*$(tput sgr0) Break duration (seconds) $(tput bold)[$default_timebreak_duration]$(tput sgr0) $(tput bold setf 2)" timebreak_duration
 		[[ $timebreak_duration == "" ]] && timebreak_duration=$default_timebreak_duration
 		[[ ! -v stopping ]] && read -p "$(tput sgr0) $(tput bold)*$(tput sgr0) Stop McBash after $(tput setf 2)[X]$(tput sgr0) tested MAC addresses $(tput bold)[$default_stopping]$(tput sgr0) $(tput bold setf 2)" stopping
 		[[ $stopping == "" ]] && stopping=$default_stopping && [[ $stopping == "0" ]] && unset stopping
