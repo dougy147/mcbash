@@ -4,8 +4,14 @@
 echo $(tput setf 2) " ░█▄▒▄█░▄▀▀░██▄▒▄▀▄░▄▀▀░█▄█ " $(tput sgr0)
 echo $(tput setf 2) " ░█▒▀▒█░▀▄▄▒█▄█░█▀█▒▄██▒█▒█ " $(tput sgr0)
 
-# Saving directory [change that to your favorite location]
-destination=$HOME/.mcbash
+# Loading config file
+config_file=$HOME/.mcbash/mcbash.conf
+
+if [[ -f $config_file ]]; then
+	source "$config_file"
+else
+	echo -e "Config file not found.\nmcbash.conf should be placed here : $config_file"
+fi
 
 [ -d $destination ] || mkdir -p "$destination" &> /dev/null || \
 	echo -e "$(tput setf 4)Can't create saving directory to $destination.\nPlease be sure you have permissions.\nValid MAC addresses will not be stored.$(tput sgr0)"
@@ -88,30 +94,30 @@ parameters() {
 		! -v keep_expired ]] && \
 		read -p "$(tput bold)=>$(tput sgr0) Set parameters? $(tput bold)[y/N]$(tput sgr0) " parametres
 	if [[ $(echo $parametres | grep -io "y") == "y" ]]; then
-		[[ ! -v request_delay ]] && read -p " $(tput bold)*$(tput sgr0) Wait $(tput setf 2)[X] $(tput sgr0)seconds between two requests $(tput bold)[default:2]$(tput sgr0) $(tput bold setf 2)" request_delay
-		[[ $request_delay == "" ]] && request_delay=2
-		[[ ! -v timebreak ]] && read -p "$(tput sgr0) $(tput bold)*$(tput sgr0) Make a break every $(tput setf 2)[X]$(tput sgr0) requests $(tput bold)[0]$(tput sgr0) $(tput bold setf 2)" timebreak
-		[[ $timebreak == "" ]] && unset timebreak
-		[[ ! -v timebreak_duration && $timebreak != "" ]] && read -p "$(tput sgr0) $(tput bold)*$(tput sgr0) Break duration (seconds) $(tput bold)[10]$(tput sgr0) $(tput bold setf 2)" timebreak_duration
-		[[ $timebreak_duration == "" ]] && unset timebreak_duration
-		[[ ! -v stopping ]] && read -p "$(tput sgr0) $(tput bold)*$(tput sgr0) Stop McBash after $(tput setf 2)[X]$(tput sgr0) tested MAC addresses $(tput bold)[0]$(tput sgr0) $(tput bold setf 2)" stopping
-		[[ $stopping == "" ]] && unset stopping
-		[[ ! -v timeout ]] && read -p "$(tput sgr0) $(tput bold)*$(tput sgr0) Consider request a timeout after $(tput setf 2)[X]$(tput sgr0) seconds $(tput bold)[5]$(tput sgr0) $(tput bold setf 2)" timeout
-		[[ $timeout == "" ]] && unset timeout
+		[[ ! -v request_delay ]] && read -p " $(tput bold)*$(tput sgr0) Wait $(tput setf 2)[X] $(tput sgr0)seconds between two requests $(tput bold)[default:$default_request_delay]$(tput sgr0) $(tput bold setf 2)" request_delay
+		[[ $request_delay == "" ]] && request_delay=$default_request_delay
+		[[ ! -v timebreak ]] && read -p "$(tput sgr0) $(tput bold)*$(tput sgr0) Make a break every $(tput setf 2)[X]$(tput sgr0) requests $(tput bold)[$default_timebreak]$(tput sgr0) $(tput bold setf 2)" timebreak
+		[[ $timebreak == "" ]] && timebreak=$default_timebreak && [[ $timebreak == "0" ]] && unset timebreak
+		[[ ! -v timebreak_duration && $timebreak != "" ]] && read -p "$(tput sgr0) $(tput bold)*$(tput sgr0) Break duration (seconds) $(tput bold)[$default_break_duration]$(tput sgr0) $(tput bold setf 2)" timebreak_duration
+		[[ $timebreak_duration == "" ]] && timebreak_duration=$default_timebreak_duration
+		[[ ! -v stopping ]] && read -p "$(tput sgr0) $(tput bold)*$(tput sgr0) Stop McBash after $(tput setf 2)[X]$(tput sgr0) tested MAC addresses $(tput bold)[$default_stopping]$(tput sgr0) $(tput bold setf 2)" stopping
+		[[ $stopping == "" ]] && stopping=$default_stopping && [[ $stopping == "0" ]] && unset stopping
+		[[ ! -v timeout ]] && read -p "$(tput sgr0) $(tput bold)*$(tput sgr0) Consider request a timeout after $(tput setf 2)[X]$(tput sgr0) seconds $(tput bold)[$default_timeout]$(tput sgr0) $(tput bold setf 2)" timeout
+		[[ $timeout == "" ]] && timeout=$default_timeout
 		[[ -v range ]] && echo -e "$(tput sgr0) $(tput bold)*$(tput sgr0) You have set $(tput setf 2)range mode$(tput sgr0)"
-		[[ -v range && ! -v range_from ]] && read -p "$(tput sgr0) $(tput bold)->$(tput sgr0) Indicate first MAC to scan $(tput bold)[00:1A:79:00:00:00]$(tput sgr0) $(tput bold setf 2)" first_mac
+		[[ -v range && ! -v range_from ]] && read -p "$(tput sgr0) $(tput bold)->$(tput sgr0) Indicate first MAC to scan $(tput bold)[$default_first_mac]$(tput sgr0) $(tput bold setf 2)" first_mac
 		[[ $first_mac == "" ]] && unset first_mac
-		[[ -v range && ! -v range_to ]] && read -p "$(tput sgr0) $(tput bold)->$(tput sgr0) Indicate last MAC to scan $(tput bold)[00:1A:79:FF:FF:FF]$(tput sgr0) $(tput bold setf 2)" last_mac
-		[[ $last_mac == "" ]] && last_mac="00:1A:79:FF:FF:FF"
+		[[ -v range && ! -v range_to ]] && read -p "$(tput sgr0) $(tput bold)->$(tput sgr0) Indicate last MAC to scan $(tput bold)[$default_last_mac]$(tput sgr0) $(tput bold setf 2)" last_mac
+		[[ $last_mac == "" ]] && last_mac="$default_last_mac"
 		[[ ! -v keep_expired ]] && read -p "$(tput sgr0) $(tput bold)*$(tput sgr0) Store expired MAC addresses (tagged as such)? $(tput bold)[y/N]$(tput sgr0) " keep_expired
 		( [[ $keep_expired == "" || $(echo $keep_expired | grep -io "n") == "n" || $(echo $keep_expired | grep -io "n") == "N" ]] ) && unset keep_expired
 		echo ""
 		tput sgr0
 	elif [[ -v range && ( ! -v range_from || ! -v range_to ) ]]; then
-		[[ ! -v range_from ]] && read -p "$(tput sgr0) $(tput bold)->$(tput sgr0) Indicate first MAC to scan $(tput bold)[00:1A:79:00:00:00]$(tput sgr0) $(tput bold setf 2)" first_mac
+		[[ ! -v range_from ]] && read -p "$(tput sgr0) $(tput bold)->$(tput sgr0) Indicate first MAC to scan $(tput bold)[$default_first_mac]$(tput sgr0) $(tput bold setf 2)" first_mac
 		[[ $first_mac == "" ]] && unset first_mac
-		[[ ! -v range_to ]] && read -p "$(tput sgr0) $(tput bold)->$(tput sgr0) Indicate last MAC to scan $(tput bold)[00:1A:79:FF:FF:FF]$(tput sgr0) $(tput bold setf 2)" last_mac
-		[[ $last_mac == "" ]] && last_mac="00:1A:79:FF:FF:FF"
+		[[ ! -v range_to ]] && read -p "$(tput sgr0) $(tput bold)->$(tput sgr0) Indicate last MAC to scan $(tput bold)[$default_last_mac]$(tput sgr0) $(tput bold setf 2)" last_mac
+		[[ $last_mac == "" ]] && last_mac="$default_last_mac"
 
 	else
 		return
@@ -141,7 +147,7 @@ random_mac() {
 range_mac() {
 	[[ -v last_mac_reached ]] && echo "$(tput bold setf 6)Range fullfiled$(tput sgr0)" && exit
 	[[ ! -v first_mac && -v range_from ]] && first_mac=$range_from && mac=$(echo $first_mac) && return # user first value of the MAC
-	[[ ! -v first_mac ]] && first_mac="00:1A:79:00:00:00" && mac=$(echo $first_mac) && return # user first value of the MAC
+	[[ ! -v first_mac ]] && first_mac="$default_first_mac" && mac=$(echo $first_mac) && return # user first value of the MAC
 	[[ $item == 1 ]] && mac=$(echo $first_mac) && return
 	new_mac=$(echo $first_mac)
 	mac_simple=$(echo $new_mac |  tr '[:lower:]' '[:upper:]' | tr -d ':') && \
