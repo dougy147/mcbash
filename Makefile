@@ -14,7 +14,6 @@ install:
 		cp -f $$script $(DESTDIR)$(PREFIX)/bin/; \
 		chmod 755 $(DESTDIR)$(PREFIX)/$$script; \
 	done
-	mkdir -p $(DESTDIR)$(MANPREFIX)/man1/mcbash
 	cp -f mcbash.1 $(DESTDIR)$(MANPREFIX)/man1/mcbash.1
 	chmod 644 $(DESTDIR)$(MANPREFIX)/man1/mcbash.1
 	for users in /home/*; do \
