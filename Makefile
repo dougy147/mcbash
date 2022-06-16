@@ -22,8 +22,6 @@ install:
 			mkdir -p /$$users/.mcbash; \
 			cp -f mcbash.conf /$$users/.mcbash/mcbash.conf; \
 			chmod 777 /$$users/.mcbash/mcbash.conf ; \
-		else; \
-			continue; \
 		fi; \
 	done
 
