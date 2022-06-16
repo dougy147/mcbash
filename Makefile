@@ -18,7 +18,7 @@ install:
 	cp -f mcbash.1 $(DESTDIR)$(MANPREFIX)/man1/mcbash.1
 	chmod 644 $(DESTDIR)$(MANPREFIX)/man1/mcbash.1
 	for users in /home/*; do \
-		if [ $$users = "/home/lost+found" ];then \
+		if [ ! test -w $$users ];then \
 			continue; \
 		fi; \
 		mkdir -p /$$users/.mcbash; \
