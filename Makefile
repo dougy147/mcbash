@@ -8,6 +8,7 @@ ifndef MANPREFIX
   MANPREFIX = $(PREFIX)/man
 endif
 
+
 install:
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
 	for script in bin/*; do \
@@ -17,13 +18,9 @@ install:
 	mkdir -p $(DESTDIR)$(MANPREFIX)/man1
 	cp -f mcbash.1 $(DESTDIR)$(MANPREFIX)/man1/mcbash.1
 	chmod 644 $(DESTDIR)$(MANPREFIX)/man1/mcbash.1
-	for users in /home/*; do \
-		if [ test -w $$users ];then \
-			mkdir -p /$$users/.mcbash; \
-			cp -f mcbash.conf /$$users/.mcbash/mcbash.conf; \
-			chmod 777 /$$users/.mcbash/mcbash.conf ; \
-		fi; \
-	done
+	mkdir -p /home/${SUDO_USER}/.mcbash
+	cp -f mcbash.conf /home/${SUDO_USER}/.mcbash/mcbash.conf
+	chmod 777 /home/${SUDO_USER}/.mcbash/mcbash.conf
 
 uninstall:
 	for script in bin/*; do \
