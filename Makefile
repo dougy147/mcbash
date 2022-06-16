@@ -18,9 +18,12 @@ install:
 	mkdir -p $(DESTDIR)$(MANPREFIX)/man1
 	cp -f mcbash.1 $(DESTDIR)$(MANPREFIX)/man1/mcbash.1
 	chmod 644 $(DESTDIR)$(MANPREFIX)/man1/mcbash.1
-	mkdir -p $(DESTDIR)/home/${SUDO_USER}/.mcbash
-	cp -f mcbash.conf $(DESTDIR)/home/${SUDO_USER}/.mcbash/mcbash.conf
-	chmod 777 $(DESTDIR)/home/${SUDO_USER}/.mcbash/mcbash.conf
+	for users in /home/*; do \
+		if mkdir -p /$$users/.mcbash; then \
+			cp -f mcbash.conf /$$users/.mcbash/mcbash.conf; \
+			chmod 777 /$$users/.mcbash/mcbash.conf; \
+		fi;\
+	done
 
 uninstall:
 	for script in bin/*; do \
