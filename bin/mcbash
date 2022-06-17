@@ -213,7 +213,6 @@ quit_mcbash() {
 }
 
 dns_name
-echo $avoid_parameters
 [[ $avoid_parameters == true ]] || parameters
 
 [[ ! -v request_delay ]] && request_delay=2
