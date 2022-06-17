@@ -20,6 +20,9 @@ fi
 args=("$@")
 ELEMENTS=${#args[@]} # arguments number
 for (( i=0;i<$ELEMENTS;i++)); do
+	[[ $(echo ${args[${i}]}) == "-np" || \
+		$(echo ${args[${i}]}) == "--default" ]] && \
+		avoid_parameters=true
 	[[ $(echo ${args[${i}]}) == "-u" || \
 		$(echo ${args[${i}]}) == "--url" ]] && \
 		argument_dns=$(( i + 1 )) && \
@@ -70,6 +73,7 @@ for (( i=0;i<$ELEMENTS;i++)); do
 		\n -u : Server URL/IP (specifying -u is not mandatory) \
 		\n -w : Wait [X] seconds between each requests \
 		\n --range : Scan a range of MAC addresses sequentially \
+		\n -np : Parameters by default \
 		\n -h : Print this help menu \
 		\n man mc : Look up the manual for more tweaks \
 		\n \
@@ -209,7 +213,8 @@ quit_mcbash() {
 }
 
 dns_name
-parameters
+echo $avoid_parameters
+[[ $avoid_parameters == true ]] || parameters
 
 [[ ! -v request_delay ]] && request_delay=2
 [[ ! -v timebreak_duration ]] && timebreak_duration=10

@@ -60,6 +60,7 @@ The key feature of `mcbash` is **flexibility**. It comes with handy options to m
 | **`-t`**, `--timeout`   | Consider request a timeout after **X** seconds               |
 | **`-u`**, `--url`       | Server's URL/IP (URL or IP is mandatory, option `-u` is not) |
 | **`-w`**, `--wait`      | Wait **X** seconds between each requests                     |
+| **`-np`**, `--default`  | Don't ask for parameters. Use default configuration          |
 
 
 By default, MACs are checked randomly. If you want to screen a specific range, use `--range`.
