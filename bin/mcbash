@@ -90,6 +90,14 @@ dns_name() {
 }
 
 parameters() {
+	if [[ $avoid_parameters == true ]]; then
+		[[ ! -v request_delay ]] && request_delay=$default_request_delay
+		[[ ! -v timebreak ]] && timebreak=$default_timebreak
+		[[ ! -v timebreak_duration ]] && timebreak_duration=$default_timebreak_duration
+		[[ ! -v stopping ]] && stopping=$default_stopping
+		[[ ! -v timeout ]] && timeout=$default_timeout
+	fi
+
 	[[ ! -v request_delay && \
 		! -v timebreak && \
 		! -v timebreak_duration && \
@@ -213,7 +221,7 @@ quit_mcbash() {
 }
 
 dns_name
-[[ $avoid_parameters == true ]] || parameters
+parameters
 
 [[ ! -v request_delay ]] && request_delay=2
 [[ ! -v timebreak_duration ]] && timebreak_duration=10
