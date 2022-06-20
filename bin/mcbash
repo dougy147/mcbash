@@ -94,6 +94,8 @@ parameters() {
 		[[ ! -v request_delay ]] && request_delay=$default_request_delay
 		[[ ! -v timebreak_duration ]] && timebreak_duration=$default_timebreak_duration
 		[[ ! -v timeout ]] && timeout=$default_timeout
+		[[ ! -v first_mac ]] && first_mac=$default_first_mac
+		[[ ! -v last_mac ]] && first_mac=$default_last_mac
 	fi
 
 	[[ ! -v request_delay && \
