@@ -94,7 +94,6 @@ parameters() {
 		[[ ! -v request_delay ]] && request_delay=$default_request_delay
 		[[ ! -v timebreak ]] && timebreak=$default_timebreak
 		[[ ! -v timebreak_duration ]] && timebreak_duration=$default_timebreak_duration
-		[[ ! -v stopping ]] && stopping=$default_stopping
 		[[ ! -v timeout ]] && timeout=$default_timeout
 	fi
 
