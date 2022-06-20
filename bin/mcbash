@@ -1,13 +1,13 @@
 #!/bin/sh
 #
 
-_RED=$(tput setf 1)
-_GREEN=$(tput setf 2)
-_YELLOW=$(tput setf 3)
-_BLUE=$(tput setf 4)
-_MAGENTA=$(tput setf 5)
-_CYAN=$(tput setf 6)
-_WHITE=$(tput setf 7)
+_RED=$(tput setaf 1)
+_GREEN=$(tput setaf 2)
+_YELLOW=$(tput setaf 3)
+_BLUE=$(tput setaf 4)
+_MAGENTA=$(tput setaf 5)
+_CYAN=$(tput setaf 6)
+_WHITE=$(tput setaf 7)
 _RESET=$(tput sgr0)
 _BOLD=$(tput bold)
 
