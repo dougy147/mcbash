@@ -1,8 +1,8 @@
 post_install() {
-	for users in /home/*; do \
-		if mkdir -p /$$users/.mcbash; then \
-			cp -f mcbash.conf /$$users/.mcbash/mcbash.conf; \
-			chmod 777 /$$users/.mcbash/mcbash.conf; \
-		fi;\
-	done
+	if mkdir -p /home/${SUDO_USER}/.mcbash; then
+		if ! [ -f /home/${SUDO_USER}/.mcbash/mcbash.conf ] ; then
+			cp -f /etc/mcbash.conf /home/${SUDO_USER}/.mcbash/mcbash.conf
+			chmod 777 /home/${SUDO_USER}/.mcbash/mcbash.conf
+		fi
+	fi
 }

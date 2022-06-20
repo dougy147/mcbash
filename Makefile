@@ -18,6 +18,8 @@ install:
 	mkdir -p $(DESTDIR)$(MANPREFIX)/man1
 	cp -f mcbash.1 $(DESTDIR)$(MANPREFIX)/man1/mcbash.1
 	chmod 644 $(DESTDIR)$(MANPREFIX)/man1/mcbash.1
+	cp -f mcbash.conf /etc/mcbash.conf; \
+	chmod 644 /etc/mcbash.conf; \
 	for users in /home/*; do \
 		if mkdir -p /$$users/.mcbash; then \
 			cp -f mcbash.conf /$$users/.mcbash/mcbash.conf; \
