@@ -1,0 +1,8 @@
+post_install() {
+	for users in /home/*; do \
+		if mkdir -p /$$users/.mcbash; then \
+			cp -f mcbash.conf /$$users/.mcbash/mcbash.conf; \
+			chmod 777 /$$users/.mcbash/mcbash.conf; \
+		fi;\
+	done
+}
