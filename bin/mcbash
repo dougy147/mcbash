@@ -90,7 +90,7 @@ dns_name() {
 }
 
 parameters() {
-	if [[ $avoid_parameters == true ]]; then
+	if [ "$avoid_parameters" = true ]; then
 		[[ ! -v request_delay ]] && request_delay=$default_request_delay
 		[[ ! -v timebreak ]] && timebreak=$default_timebreak
 		[[ ! -v timebreak_duration ]] && timebreak_duration=$default_timebreak_duration
