@@ -1,8 +1,18 @@
 #!/bin/sh
 #
 
-echo $(tput setf 2) " ░█▄▒▄█░▄▀▀░██▄▒▄▀▄░▄▀▀░█▄█ " $(tput sgr0)
-echo $(tput setf 2) " ░█▒▀▒█░▀▄▄▒█▄█░█▀█▒▄██▒█▒█ " $(tput sgr0)
+_RED=$(tput setf 1)
+_GREEN=$(tput setf 2)
+_YELLOW=$(tput setf 3)
+_BLUE=$(tput setf 4)
+_MAGENTA=$(tput setf 5)
+_CYAN=$(tput setf 6)
+_WHITE=$(tput setf 7)
+_RESET=$(tput sgr0)
+_BOLD=$(tput bold)
+
+echo ${_GREEN} " ░█▄▒▄█░▄▀▀░██▄▒▄▀▄░▄▀▀░█▄█ " ${_RESET}
+echo ${_GREEN} " ░█▒▀▒█░▀▄▄▒█▄█░█▀█▒▄██▒█▒█ " ${_RESET}
 
 # Loading config file
 config_file=$HOME/.mcbash/mcbash.conf
@@ -14,7 +24,7 @@ else
 fi
 
 [ -d $destination ] || mkdir -p "$destination" &> /dev/null || \
-	echo -e "$(tput setf 4)Can't create saving directory to $destination.\nPlease be sure you have permissions.\nValid MAC addresses will not be stored.$(tput sgr0)"
+	echo -e "${_BLUE}Can't create saving directory to $destination.\nPlease be sure you have permissions.\nValid MAC addresses will not be stored.${_RESET}"
 
 # Check arguments
 args=("$@")
@@ -83,9 +93,9 @@ done
 
 # Declaring functions
 dns_name() {
-	[[ ! -v dns || $dns == "" ]] && read -p "Server address : "$(tput bold setf 4) dns
-	tput sgr0
-	[[ $dns = "" ]] && echo -ne "\r$(tput setf 1)You need to indicate a server address [ex: my-fakedns.org:8080]$(tput sgr0)\n" && dns_name
+	[[ ! -v dns || $dns == "" ]] && read -p "Server address : "${_BOLD}${_BLUE} dns
+	tput sgr0 # can't place _RESET here due to last 'read' command. Help?
+	[[ $dns = "" ]] && echo -ne "\r${_RED}You need to indicate a server address [ex: my-fakedns.org:8080]${_RESET}\n" && dns_name
 	[[ $(echo $dns | grep -o 'http://') = "" ]] && dns=$(echo 'http://'$dns)
 }
 
@@ -104,31 +114,32 @@ parameters() {
 		! -v stopping && \
 		! -v timeout && \
 		! -v keep_expired ]] && \
-		read -p "$(tput bold)=>$(tput sgr0) Set parameters? $(tput bold)[y/N]$(tput sgr0) " parametres
+		read -p "${_BOLD}=>${_RESET} Set parameters? ${_BOLD}[y/N]${_RESET} " parametres
 	if [[ $(echo $parametres | grep -io "y") == "y" ]]; then
-		[[ ! -v request_delay ]] && read -p " $(tput bold)*$(tput sgr0) Wait $(tput setf 2)[X] $(tput sgr0)seconds between two requests $(tput bold)[default:$default_request_delay]$(tput sgr0) $(tput bold setf 2)" request_delay
+		[[ ! -v request_delay ]] && read -p " ${_BOLD}*${_RESET} Wait ${_GREEN}[X] ${_RESET}seconds between two requests ${_BOLD}[default:$default_request_delay]${_RESET} ${_BOLD}${_GREEN}" request_delay
 		[[ $request_delay == "" ]] && request_delay=$default_request_delay
-		[[ ! -v timebreak ]] && read -p "$(tput sgr0) $(tput bold)*$(tput sgr0) Make a break every $(tput setf 2)[X]$(tput sgr0) requests $(tput bold)[$default_timebreak]$(tput sgr0) $(tput bold setf 2)" timebreak
+		[[ ! -v timebreak ]] && read -p "${_RESET} ${_BOLD}*${_RESET} Make a break every ${_GREEN}[X]${_RESET} requests ${_BOLD}[$default_timebreak]${_RESET} ${_BOLD}${_GREEN}" timebreak
 		[[ $timebreak == "" ]] && timebreak=$default_timebreak && [[ $timebreak == "0" ]] && unset timebreak
-		[[ ! -v timebreak_duration && $timebreak != "" ]] && read -p "$(tput sgr0) $(tput bold)*$(tput sgr0) Break duration (seconds) $(tput bold)[$default_timebreak_duration]$(tput sgr0) $(tput bold setf 2)" timebreak_duration
+		[[ ! -v timebreak_duration && $timebreak != "" ]] && read -p "${_RESET} ${_BOLD}*${_RESET} Break duration (seconds) ${_BOLD}[$default_timebreak_duration]${_RESET} ${_BOLD}${_GREEN}" timebreak_duration
 		[[ $timebreak_duration == "" ]] && timebreak_duration=$default_timebreak_duration
-		[[ ! -v stopping ]] && read -p "$(tput sgr0) $(tput bold)*$(tput sgr0) Stop McBash after $(tput setf 2)[X]$(tput sgr0) tested MAC addresses $(tput bold)[$default_stopping]$(tput sgr0) $(tput bold setf 2)" stopping
+		[[ ! -v stopping ]] && read -p "${_RESET} ${_BOLD}*${_RESET} Stop McBash after ${_GREEN}[X]${_RESET} tested MAC addresses ${_BOLD}[$default_stopping]${_RESET} ${_BOLD}${_GREEN}" stopping
 		[[ $stopping == "" ]] && stopping=$default_stopping && [[ $stopping == "0" ]] && unset stopping
-		[[ ! -v timeout ]] && read -p "$(tput sgr0) $(tput bold)*$(tput sgr0) Consider request a timeout after $(tput setf 2)[X]$(tput sgr0) seconds $(tput bold)[$default_timeout]$(tput sgr0) $(tput bold setf 2)" timeout
+		[[ ! -v timeout ]] && read -p "${_RESET} ${_BOLD}*${_RESET} Consider request a timeout after ${_GREEN}[X]${_RESET} seconds ${_BOLD}[$default_timeout]${_RESET} ${_BOLD}${_GREEN}" timeout
 		[[ $timeout == "" ]] && timeout=$default_timeout
-		[[ -v range ]] && echo -e "$(tput sgr0) $(tput bold)*$(tput sgr0) You have set $(tput setf 2)range mode$(tput sgr0)"
-		[[ -v range && ! -v range_from ]] && read -p "$(tput sgr0) $(tput bold)->$(tput sgr0) Indicate first MAC to scan $(tput bold)[$default_first_mac]$(tput sgr0) $(tput bold setf 2)" first_mac
+		[[ -v range ]] && echo -e "${_RESET} ${_BOLD}*${_RESET} You have set ${_GREEN}range mode${_RESET}"
+		[[ -v range && ! -v range_from ]] && read -p "${_RESET} ${_BOLD}->${_RESET} Indicate first MAC to scan ${_BOLD}[$default_first_mac]${_RESET} ${_BOLD}${_GREEN}" first_mac
 		[[ $first_mac == "" ]] && unset first_mac
-		[[ -v range && ! -v range_to ]] && read -p "$(tput sgr0) $(tput bold)->$(tput sgr0) Indicate last MAC to scan $(tput bold)[$default_last_mac]$(tput sgr0) $(tput bold setf 2)" last_mac
+		[[ -v range && ! -v range_to ]] && read -p "${_RESET} ${_BOLD}->${_RESET} Indicate last MAC to scan ${_BOLD}[$default_last_mac]${_RESET} ${_BOLD}${_GREEN}" last_mac
 		[[ $last_mac == "" ]] && last_mac="$default_last_mac"
-		[[ ! -v keep_expired ]] && read -p "$(tput sgr0) $(tput bold)*$(tput sgr0) Store expired MAC addresses (tagged as such)? $(tput bold)[y/N]$(tput sgr0) " keep_expired
+		[[ ! -v keep_expired ]] && read -p "${_RESET} ${_BOLD}*${_RESET} Store expired MAC addresses (tagged as such)? ${_BOLD}[y/N]${_RESET} " keep_expired
 		( [[ $keep_expired == "" || $(echo $keep_expired | grep -io "n") == "n" || $(echo $keep_expired | grep -io "n") == "N" ]] ) && unset keep_expired
 		echo ""
-		tput sgr0
+		#tput sgr0
+		${_RESET}
 	elif [[ -v range && ( ! -v range_from || ! -v range_to ) ]]; then
-		[[ ! -v range_from ]] && read -p "$(tput sgr0) $(tput bold)->$(tput sgr0) Indicate first MAC to scan $(tput bold)[$default_first_mac]$(tput sgr0) $(tput bold setf 2)" first_mac
+		[[ ! -v range_from ]] && read -p "${_RESET} ${_BOLD}->${_RESET} Indicate first MAC to scan ${_BOLD}[$default_first_mac]${_RESET} ${_BOLD}${_GREEN}" first_mac
 		[[ $first_mac == "" ]] && unset first_mac
-		[[ ! -v range_to ]] && read -p "$(tput sgr0) $(tput bold)->$(tput sgr0) Indicate last MAC to scan $(tput bold)[$default_last_mac]$(tput sgr0) $(tput bold setf 2)" last_mac
+		[[ ! -v range_to ]] && read -p "${_RESET} ${_BOLD}->${_RESET} Indicate last MAC to scan ${_BOLD}[$default_last_mac]${_RESET} ${_BOLD}${_GREEN}" last_mac
 		[[ $last_mac == "" ]] && last_mac="$default_last_mac"
 
 	else
@@ -157,7 +168,7 @@ random_mac() {
 }
 
 range_mac() {
-	[[ -v last_mac_reached ]] && echo "$(tput bold setf 6)Range fullfiled$(tput sgr0)" && exit
+	[[ -v last_mac_reached ]] && echo "${_BOLD}${_CYAN}Range fullfiled${_RESET}" && exit
 	[[ ! -v first_mac && -v range_from ]] && first_mac=$range_from && mac=$(echo $first_mac) && return # user first value of the MAC
 	[[ ! -v first_mac ]] && first_mac="$default_first_mac" && mac=$(echo $first_mac) && return # user first value of the MAC
 	[[ $item == 1 ]] && mac=$(echo $first_mac) && return
@@ -176,10 +187,10 @@ range_mac() {
 
 handshaking() {
 	item=$(( $item + 1 ))
-	[[ -v stopping ]] && [[ $(( $item - 1 )) == $stopping ]] && echo $(tput bold setf 6)"$(( $item - 1 )) checked, $valid_macs_number valid. Stopping."$(tput sgr0) && exit 1
+	[[ -v stopping ]] && [[ $(( $item - 1 )) == $stopping ]] && echo ${_BOLD}${_CYAN}"$(( $item - 1 )) checked, $valid_macs_number valid. Stopping."${_RESET} && exit 1
 	[[ $item == 1 ]] || ( [[ -v timebreak ]] \
 		&& [[ $(expr $(( $item - 1 )) % $timebreak ) == 0 ]] \
-		&& echo -ne $(tput setf 4)"\r[$(( $item - 1 ))] $mac $(tput sgr0)$(tput setf 6)--- Break. $timebreak_duration seconds..."$(tput sgr0) \
+		&& echo -ne ${_BLUE}"\r[$(( $item - 1 ))] $mac ${_RESET}${_CYAN}--- Break. $timebreak_duration seconds..."${_RESET} \
 		&& sleep $timebreak_duration ) || \
 		sleep $request_delay
 	[[ -v range ]] && range_mac
@@ -189,31 +200,31 @@ handshaking() {
 	random_user_agent
 	handshake_token=$(curl --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Cookie: $(echo $cookie)" "$(echo $handshake_url)"); if [ $? -eq 28 ]; then echo -ne "\r\033[0KTimeout. Server may protect against flood (we respect it). New attempt in $timebreak_duration seconds." && sleep $timebreak_duration && echo -ne "\r\033[0KNew attempt..." && return; fi
 	handshake_token=$(echo $handshake_token| grep -o '\"token\".*' | sed 's/\"token\":// ; s/\}\}//')
-	[[ $handshake_token = "" ]] && echo -ne "\r\033[0K$@$(tput setf 3)[$item]$(tput sgr0) $(tput setf 1)$mac $(tput sgr0)" && return # [vide]
+	[[ $handshake_token = "" ]] && echo -ne "\r\033[0K$@${_YELLOW}[$item]${_RESET} ${_RED}$mac ${_RESET}" && return # [vide]
 	authorization='Bearer '$(echo $handshake_token)
 	profile_url=$(echo $dns)'/portal.php?type=account_info&action=get_main_info&mac='$(echo $mac)
 	profile=$(curl --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $profile_url)")
 	expiration_date=$(echo $profile | grep -o "\"phone\":\".*\"" | sed 's/\"phone\":\"//' | sed 's/\".*//')
 	[[ $expiration_date == "" ]] && \
-		( ( [[ ! -v keep_expired ]] && echo -ne "\r$(tput setf 3)[$item]$(tput sgr0) $(tput bold setf 1)$mac [expired] $(tput sgr0)" && return ) || \
-			( echo -ne "\r$(tput setf 3)[$item]$(tput sgr0) $(tput bold setf 1)$mac [expired] $(tput sgr0)\n" && \
+		( ( [[ ! -v keep_expired ]] && echo -ne "\r${_YELLOW}[$item]${_RESET} ${_BOLD}${_RED}$mac [expired] ${_RESET}" && return ) || \
+			( echo -ne "\r${_YELLOW}[$item]${_RESET} ${_BOLD}${_RED}$mac [expired] ${_RESET}\n" && \
 			echo "$mac [expired]" >> $destination/valid_macs_$name ) )
 	name=$(echo $dns | sed 's/http:\/\///' | sed 's/://')
 	[[ $valid_macs_number == 0 ]] && echo -e "\n$dns ($(date))\n" >> $destination/valid_macs_$name
 	echo "$mac [$expiration_date]" >> $destination/valid_macs_$name
-	echo -ne "\r$(tput bold setf 2)[$item] $mac [VALID!] $(tput sgr0)\n"
+	echo -ne "\r${_BOLD}${_GREEN}[$item] $mac [VALID!] ${_RESET}\n"
 	valid_macs_number=$(( $valid_macs_number + 1 ))
 }
 
 quit_mcbash() {
 	echo ""
-	[[ $valid_macs_number != 0 ]] && echo $(tput setf 2)"$valid_macs_number valid for $(( $item - 1 )) tested." $(tput sgr0)
-	echo $(tput setf 6)--- Break ---$(tput sgr0)
+	[[ $valid_macs_number != 0 ]] && echo ${_GREEN}"$valid_macs_number valid for $(( $item - 1 )) tested." ${_RESET}
+	echo ${_CYAN}--- Break ---${_RESET}
 	trap - SIGINT
-	read -p "$(tput bold setf 5)Quit [Ctrl+C]  $(tput sgr0)-  $(tput bold setf 4)Resume [Enter]$(tput sgr0) " quit_mc
+	read -p "${_BOLD}${_MAGENTA}Quit [Ctrl+C]  ${_RESET}-  ${_BOLD}${_BLUE}Resume [Enter]${_RESET} " quit_mc
 	( [[ $(echo $quit_mc | grep -io "y") ]] && \
 		if [ $valid_macs_number != 0 ]; then
-			echo $(tput setf 2)"File saved => $destination/valid_macs_$name"$(tput sgr0)
+			echo ${_GREEN}"File saved => $destination/valid_macs_$name"${_RESET}
 		fi && \
 			exit ) ||
 			( ( [[ $valid_macs_number != 0 ]] && echo -ne "\r\033[1A\033[0K$@\r\033[1A\033[0K$@\r\033[1A\033[0K$@\r\033[1A\033[0K$@" ) || \
@@ -229,7 +240,7 @@ parameters
 [[ -v range_from ]] && range=True #first_mac=$range_from
 [[ -v range_to ]] && range=True && last_mac=$range_to
 
-echo "$(tput bold)=> $(tput sgr0)Scan @ $(tput bold setf 4)$dns$(tput sgr0) $(tput setf 2)[$request_delay seconds/request]$(tput sgr0)"
+echo "${_BOLD}=> ${_RESET}Scan @ ${_BOLD}${_BLUE}$dns${_RESET} ${_GREEN}[$request_delay seconds/request]${_RESET}"
 
 # Start counting MACs from 0
 item=0
