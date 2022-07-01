@@ -37,7 +37,9 @@ for (( i=0;i<$ELEMENTS;i++)); do
 		$(echo ${args[${i}]}) == "--url" ]] && \
 		argument_dns=$(( i + 1 )) && \
 		dns=${args[${argument_dns}]}
-	[[ $(echo ${args[${i}]} | grep -o "\.[a-z][a-z]" ) || $(echo ${args[${i}]} | grep -o "[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*" ) ]] && dns=${args[${i}]}
+	[[ $(echo ${args[${i}]} | grep -o "\.[a-z][a-z]" ) || \
+		$(echo ${args[${i}]} | grep -o "[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*" ) ]] && \
+		dns=${args[${i}]}
 	[[ $(echo ${args[${i}]}) == "-w" || \
 		$(echo ${args[${i}]}) == "--wait" ]] && \
 		argument_request_delay=$(( i + 1 )) && \
@@ -143,6 +145,11 @@ parameters() {
 		[[ $last_mac == "" ]] && last_mac="$default_last_mac"
 
 	else
+		[[ ! -v request_delay ]] && request_delay=$default_request_delay
+		[[ ! -v timebreak_duration ]] && timebreak_duration=$default_timebreak_duration
+		[[ ! -v timeout ]] && timeout=$default_timeout
+		[[ ! -v range_from ]] && range_from=$default_first_mac
+		[[ ! -v range_to ]] && range_to=$default_last_mac
 		return
 	fi
 }
