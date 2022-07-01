@@ -64,32 +64,33 @@ for (( i=0;i<$ELEMENTS;i++)); do
 		$(echo ${args[${i}]}) == "--keep" ]] && \
 		argument_keep_expired=$(( i + 1 )) && \
 		keep_expired=${args[${argument_keep_expired}]}
-	[[ $(echo ${args[${i}]}) == "--range" ]] && range=True
+	[[ $(echo ${args[${i}]}) == "--range" ]] && \
+		range=True
 	[[ $(echo ${args[${i}]}) == "-F" || \
 		$(echo ${args[${i}]}) == "--from" ]] && \
 		range=True && \
 		argument_range_from=$(( i + 1 )) && \
 		range_from=${args[${argument_range_from}]}
 	[[ $(echo ${args[${i}]}) == "-L" ||
-		$(echo ${args[${i}]}) == "--to" ]] \
-		&& range=True && \
+		$(echo ${args[${i}]}) == "--to" ]] && \
+		range=True && \
 		argument_range_to=$(( i + 1 )) && \
 		range_to=${args[${argument_range_to}]}
 	[[ $(echo ${args[${i}]}) == "-h" || $(echo ${args[${i}]}) == "--help" ]] && \
-		echo -e "Help menu : \
+		echo -e "${_BOLD}Help menu :${_RESET} \
+		\n -b ${_BLUE}X ${_RESET}: Make a break every ${_BLUE}X${_RESET} requests \
+		\n -d ${_BLUE}X ${_RESET}: Break duration (${_BLUE}X${_RESET} seconds) \
+		\n -s ${_BLUE}X ${_RESET}: Stop McBash after ${_BLUE}X${_RESET} tested MAC addresses \
+		\n -t ${_BLUE}X ${_RESET}: Consider request a timeout after ${_BLUE}X${_RESET} seconds \
+		\n -u ${_BLUE}URL ${_RESET}: Server ${_BLUE}URL/IP${_RESET} (specifying -u is not mandatory) \
+		\n -w ${_BLUE}X ${_RESET}: Wait ${_BLUE}X${_RESET} seconds between each requests \
 		\n -k : Store expired MAC addresses (valid but expired accounts) \
-		\n -b : Make a break every [X] requests \
-		\n -d : Break duration (in seconds) \
-		\n -s : Stop McBash after [X] tested MAC addresses \
-		\n -t : Consider request a timeout after [X] seconds \
-		\n -u : Server URL/IP (specifying -u is not mandatory) \
-		\n -w : Wait [X] seconds between each requests \
 		\n --range : Scan a range of MAC addresses sequentially \
 		\n -np : Parameters by default \
 		\n -h : Print this help menu \
-		\n man mc : Look up the manual for more tweaks \
+		\n man mcbash : Look up the manual for more tweaks \
 		\n \
-		\n Example : mc -u my-dns.com:8080 -w 1.5 -b 10 -d 3 -s 150 -t 2 -k
+		\n ${_BOLD}Example ${_RESET}: mcbash -u my-dns.com:8080 -w 1.5 -b 10 -d 3 -s 150 -t 2 -k
 		" && exit 1
 done
 
@@ -145,6 +146,13 @@ parameters() {
 		[[ $first_mac == "" ]] && unset first_mac
 		[[ ! -v range_to ]] && read -p "${_RESET} ${_BOLD}->${_RESET} Indicate last MAC to scan ${_BOLD}[$default_last_mac]${_RESET} ${_BOLD}${_GREEN}" last_mac
 		[[ $last_mac == "" ]] && last_mac="$default_last_mac"
+		[[ ! -v request_delay ]] && request_delay=$default_request_delay
+		[[ ! -v timebreak_duration ]] && timebreak_duration=$default_timebreak_duration
+		[[ ! -v timeout ]] && timeout=$default_timeout
+		if [[ -v range ]]; then
+			[[ ! -v range_from ]] && range_from=$default_first_mac
+			[[ ! -v range_to ]] && range_to=$default_last_mac
+		fi
 
 	else
 		[[ ! -v request_delay ]] && request_delay=$default_request_delay
