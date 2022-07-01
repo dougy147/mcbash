@@ -91,6 +91,7 @@ for (( i=0;i<$ELEMENTS;i++)); do
 		\n man mcbash : Look up the manual for more tweaks \
 		\n \
 		\n ${_BOLD}Example ${_RESET}: mcbash -u my-dns.com:8080 -w 1.5 -b 10 -d 3 -s 150 -t 2 -k
+		\n Set default parameters from this file : \"$HOME/.mcbash/mcbash.conf\"\
 		" && exit 1
 done
 
