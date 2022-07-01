@@ -139,9 +139,9 @@ parameters() {
 		[[ $last_mac == "" ]] && last_mac="$default_last_mac"
 		[[ ! -v keep_expired ]] && read -p "${_RESET} ${_BOLD}*${_RESET} Store expired MAC addresses (tagged as such)? ${_BOLD}[y/N]${_RESET} " keep_expired
 		( [[ $keep_expired == "" || $(echo $keep_expired | grep -io "n") == "n" || $(echo $keep_expired | grep -io "n") == "N" ]] ) && unset keep_expired
-		echo ""
+		echo " ${_RESET}"
 		#tput sgr0
-		${_RESET}
+		#${_RESET}
 	elif [[ -v range && ( ! -v range_from || ! -v range_to ) ]]; then
 		[[ ! -v range_from ]] && read -p "${_RESET} ${_BOLD}->${_RESET} Indicate first MAC to scan ${_BOLD}[$default_first_mac]${_RESET} ${_BOLD}${_GREEN}" first_mac
 		[[ $first_mac == "" ]] && unset first_mac
