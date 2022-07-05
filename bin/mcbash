@@ -20,7 +20,11 @@ config_file=$HOME/.mcbash/mcbash.conf
 if [[ -f $config_file ]]; then
 	source "$config_file"
 else
-	echo -e "Config file not found.\nmcbash.conf should be placed here : $config_file"
+	if [[ -f "/etc/mcbash.conf" ]]; then
+		source "/etc/mcbash.conf"
+	else
+		echo -e "Config file not found.\nmcbash.conf should be placed here : $config_file"
+	fi
 fi
 
 [ -d $destination ] || mkdir -p "$destination" &> /dev/null || \
