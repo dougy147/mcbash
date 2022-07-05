@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 
 _RED=$(tput setaf 1)
