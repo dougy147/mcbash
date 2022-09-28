@@ -73,7 +73,7 @@ By default, MACs are checked randomly. If you want to screen a specific range, u
 
 #### Change default parameters
 
-The config file (`mcbash.conf`) is created during the install process here : `$HOME/.mcbash`. Change some values according to your needs.
+The config file (`mcbash.conf`) is created during the install process here : `$HOME/.mcbash/mcbash.conf`. Change some values according to your needs.
 
 ### Use examples
 
