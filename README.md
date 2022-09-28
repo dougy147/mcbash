@@ -25,6 +25,8 @@ or directly with arguments :
 mcbash my-fakedns.org:8080 -t 4 -L '00:1A:79:AB:CD:EF'
 ```
 
+If you'r an ArchLinux-like distro user, you can also install from the AUR with `yay -S mcbash`.
+
 ### MACs are stored
 
 Did you close your terminal ? Don't worry, when a valid MAC is found, it is stored in `mcbash` directory : `$HOME/.mcbash`.
