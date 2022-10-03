@@ -96,7 +96,7 @@ for (( i=0;i<$ELEMENTS;i++)); do
 		\n \
 		\n ${_BOLD}Example ${_RESET}: mcbash -u my-dns.com:8080 -w 1.5 -b 10 -d 3 -s 150 -t 2 -k
 		\n Set default parameters from this file : \"$HOME/.mcbash/mcbash.conf\"\
-		" && exit 1
+		" && exit 0
 done
 
 # Declaring functions
@@ -105,6 +105,7 @@ dns_name() {
 	tput sgr0 # can't place _RESET here due to last 'read' command. Help?
 	[[ $dns = "" ]] && echo -ne "\r${_RED}You need to indicate a server address [ex: my-fakedns.org:8080]${_RESET}\n" && dns_name
 	[[ $(echo $dns | grep -o 'http://') = "" ]] && dns=$(echo 'http://'$dns)
+	dns=$(echo $dns | sed 's/\/$//') # if trailing "/" at the end of DNS, remove it
 }
 
 parameters() {
@@ -117,7 +118,6 @@ parameters() {
 			[[ ! -v range_to ]] && range_to=$default_last_mac
 		fi
 	fi
-
 	[[ ! -v request_delay && \
 		! -v timebreak && \
 		! -v timebreak_duration && \
@@ -144,8 +144,6 @@ parameters() {
 		[[ ! -v keep_expired ]] && read -p "${_RESET} ${_BOLD}*${_RESET} Store expired MAC addresses (tagged as such)? ${_BOLD}[y/N]${_RESET} " keep_expired
 		( [[ $keep_expired == "" || $(echo $keep_expired | grep -io "n") == "n" || $(echo $keep_expired | grep -io "n") == "N" ]] ) && unset keep_expired
 		echo " ${_RESET}"
-		#tput sgr0
-		#${_RESET}
 	elif [[ -v range && ( ! -v range_from || ! -v range_to ) ]]; then
 		[[ ! -v range_from ]] && read -p "${_RESET} ${_BOLD}->${_RESET} Indicate first MAC to scan ${_BOLD}[$default_first_mac]${_RESET} ${_BOLD}${_GREEN}" first_mac
 		[[ $first_mac == "" ]] && unset first_mac
@@ -158,7 +156,6 @@ parameters() {
 			[[ ! -v range_from ]] && range_from=$default_first_mac
 			[[ ! -v range_to ]] && range_to=$default_last_mac
 		fi
-
 	else
 		[[ ! -v request_delay ]] && request_delay=$default_request_delay
 		[[ ! -v timebreak_duration ]] && timebreak_duration=$default_timebreak_duration
@@ -192,7 +189,7 @@ random_mac() {
 }
 
 range_mac() {
-	[[ -v last_mac_reached ]] && echo "${_BOLD}${_CYAN}Range fullfiled${_RESET}" && exit
+	[[ -v last_mac_reached ]] && echo "${_BOLD}${_CYAN}Range fullfiled${_RESET}" && exit 0
 	[[ ! -v first_mac && -v range_from ]] && first_mac=$range_from && mac=$(echo $first_mac) && return # user first value of the MAC
 	[[ ! -v first_mac ]] && first_mac="$default_first_mac" && mac=$(echo $first_mac) && return # user first value of the MAC
 	[[ $item == 1 ]] && mac=$(echo $first_mac) && return
@@ -208,10 +205,9 @@ range_mac() {
 		return
 }
 
-
 handshaking() {
 	item=$(( $item + 1 ))
-	[[ -v stopping ]] && [[ $(( $item - 1 )) == $stopping ]] && echo ${_BOLD}${_CYAN}"$(( $item - 1 )) checked, $valid_macs_number valid. Stopping."${_RESET} && exit 1
+	[[ -v stopping ]] && [[ $(( $item - 1 )) == $stopping ]] && echo ${_BOLD}${_CYAN}"$(( $item - 1 )) checked, $valid_macs_number valid. Stopping."${_RESET} && exit 0
 	[[ $item == 1 ]] || ( [[ -v timebreak ]] \
 		&& [[ $(expr $(( $item - 1 )) % $timebreak ) == 0 ]] \
 		&& echo -ne ${_BLUE}"\r[$(( $item - 1 ))] $mac ${_RESET}${_CYAN}--- Break. $timebreak_duration seconds..."${_RESET} \
@@ -224,11 +220,12 @@ handshaking() {
 	random_user_agent
 	handshake_token=$(curl --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Cookie: $(echo $cookie)" "$(echo $handshake_url)"); if [ $? -eq 28 ]; then echo -ne "\r\033[0KTimeout. Server may protect against flood (we respect it). New attempt in $timebreak_duration seconds." && sleep $timebreak_duration && echo -ne "\r\033[0KNew attempt..." && return; fi
 	handshake_token=$(echo $handshake_token| grep -o '"token".*' | sed 's/\"token\":// ; s/\}\}//')
-	[[ $handshake_token = "" ]] && echo -ne "\r\033[0K$@${_YELLOW}[$item]${_RESET} ${_RED}$mac ${_RESET}" && return # [vide]
-	[[ $(echo $handshake_token | grep null) ]] && echo -ne "\r\033[0K$@${_YELLOW}[$item]${_RESET} ${_RED}$mac ${_RESET}" && return # [vide]
+	[[ $handshake_token = "" ]] && echo -ne "\r\033[0K$@${_YELLOW}[$item]${_RESET} ${_RED}$mac ${_RESET}" && return # [empty]
+	[[ $(echo $handshake_token | grep null) ]] && echo -ne "\r\033[0K$@${_YELLOW}[$item]${_RESET} ${_RED}$mac ${_RESET}" && return # [empty]
 	authorization='Bearer '$(echo $handshake_token)
 	profile_url=$(echo $dns)'/portal.php?type=account_info&action=get_main_info&mac='$(echo $mac)
 	profile=$(curl --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $profile_url)")
+	[[ $profile == "" ]] && echo -ne "\r\033[0K$@${_YELLOW}[$item]${_RESET} ${_RED}$mac ${_RESET}" && return # test
 	expiration_date=$(echo $profile | grep -o "\"phone\":\".*\"" | sed 's/\"phone\":\"//' | sed 's/\".*//')
 	[[ $expiration_date == "" ]] && \
 		( ( [[ ! -v keep_expired ]] && echo -ne "\r${_YELLOW}[$item]${_RESET} ${_BOLD}${_RED}$mac [expired] ${_RESET}" && return ) || \
@@ -252,7 +249,7 @@ quit_mcbash() {
 		if [ $valid_macs_number != 0 ]; then
 			echo ${_GREEN}"File saved => $destination/valid_macs_$name"${_RESET}
 		fi && \
-			exit ) ||
+			exit 0 ) ||
 			( ( [[ $valid_macs_number != 0 ]] && echo -ne "\r\033[1A\033[0K$@\r\033[1A\033[0K$@\r\033[1A\033[0K$@\r\033[1A\033[0K$@" ) || \
 			echo -ne "\r\033[1A\033[0K$@\r\033[1A\033[0K$@\r\033[1A\033[0K$@" )
 }
@@ -268,11 +265,9 @@ parameters
 
 echo "${_BOLD}=> ${_RESET}Scan @ ${_BOLD}${_BLUE}$dns${_RESET} ${_GREEN}[$request_delay seconds/request]${_RESET}"
 
-# Start counting MACs from 0
 item=0
 valid_macs_number=0
-# Hide ^C when pressing Ctrl+C
-stty -echoctl
+stty -echoctl # Hide ^C when pressing Ctrl+C
 
 # Let's go !
 while :
@@ -288,4 +283,4 @@ done
 
 # dougy147 [2022]
 # https://github.com/dougy147/mcbash
-# last updated : 28.09.2022
+# last updated : 03oct2022
