@@ -11,12 +11,16 @@ Just feed it with a server URL or IP, and let it check by itself.
 
 ## Installation
 
+If you're an Arch user, you can install from the AUR with `yay -S mcbash`. Else, simply :
+
 ```
 git clone https://github.com/dougy147/mcbash
 cd mcbash
 sudo make install
 ```
-Then simply launch :
+
+Then just launch :
+
 ```
 mcbash
 ```
@@ -25,7 +29,6 @@ or directly with arguments :
 mcbash my-fakedns.org:8080 -t 4 -L '00:1A:79:AB:CD:EF'
 ```
 
-If you'r an ArchLinux-like distro user, you can also install from the AUR with `yay -S mcbash`.
 
 ### MACs are stored
 
@@ -102,6 +105,12 @@ Please use that script consciously, with and on your personal goods only.
 ## Constructive critics are worth it
 
 Don't just pass by, and help improve `mcbash`. Pull requests are open $24/7$.
+
+### Thanks to contributors
+
+<a href="https://github.com/ian10951">
+  <img src="https://avatars.githubusercontent.com/u/11910714?v=4" width='50px'>
+</a>
 
 ## How did that help ?
 
