@@ -30,26 +30,6 @@ mcbash my-fakedns.org:8080 -t 4 -L '00:1A:79:AB:CD:EF'
 ```
 
 
-### MACs are stored
-
-Did you close your terminal ? Don't worry, when a valid MAC is found, it is stored in `mcbash` directory : `$HOME/.mcbash`.
-
-### Size sometimes matters
-
-For `00:1A:79:xx:xx:xx`-like MAC addresses (the most commonly used), there are $16^6$ possibilities (≈16.7million). Collision probability on sparsely populated servers is low by definition. So, there won't be too much matches on small ones!
-
-### "I hate the colors"
-
-- Solution 1 : join the colorblind gang.
-
-- Solution 2 : colors are set with `tput` (e.g. `tput setf 1`). Change its value from 0 to 7. If you know of a more universal/efficient way to color text, please contact me.
-
-
-### Go full command line 😎
-
-When executing `mcbash` with arguments (except for `-u` and `--range` alone), it will generally assume you know what you're doing, and won't ask questions.
-Else, it will prompt you for settings. Check below for options you can manually set.
-
 ### Adapt to your needs
 
 As servers may differ in the way they handle requests, one need to adapt.
@@ -87,6 +67,25 @@ By default, MACs are checked randomly. If you want to screen a specific range, u
 #### Change default parameters
 
 The config file (`mcbash.conf`) is created during the install process here : `$HOME/.mcbash/mcbash.conf`. Change some values according to your needs.
+
+### MACs are stored
+
+Did you close your terminal ? Don't worry, when a valid MAC is found, it is stored in `mcbash` directory : `$HOME/.mcbash`.
+
+### Go full command line 😎
+
+When executing `mcbash` with arguments (except for `-u` and `--range` alone), it will generally assume you know what you're doing, and won't ask questions.
+Else, it will prompt you for settings. Check below for options you can manually set.
+
+### Size sometimes matters
+
+For `00:1A:79:xx:xx:xx`-like MAC addresses (the most commonly used), there are $16^6$ possibilities (≈16.7million). Collision probability on sparsely populated servers is low by definition. So, there won't be too much matches on small ones!
+
+### "I hate the colors"
+
+- Solution 1 : join the colorblind gang.
+
+- Solution 2 : colors are set with `tput` (e.g. `tput setf 1`). Change its value from 0 to 7. If you know of a more universal/efficient way to color text, please contact me.
 
 ### Use examples
 
