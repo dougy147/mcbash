@@ -1,9 +1,6 @@
 #!/bin/bash
 #
 
-# TODO :
-# 1) add option to select MAC format (--format); e.g. AA:BB:CC:xx:xx:xx
-
 _RED=$(tput setaf 1)
 _GREEN=$(tput setaf 2)
 _YELLOW=$(tput setaf 3)
@@ -44,9 +41,9 @@ for (( i=0;i<$ELEMENTS;i++)); do
 		$(echo ${args[${i}]}) == "--url" ]] && \
 		argument_dns=$(( i + 1 )) && \
 		dns=${args[${argument_dns}]}
-	[[ $(echo ${args[${i}]} | grep -o "\.[a-z][a-z]" ) || \
-		$(echo ${args[${i}]} | grep -o "[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*" ) ]] && \
-		dns=${args[${i}]}
+	#[[ $(echo ${args[${i}]} | grep -o "\.[a-z][a-z]" ) || \
+	#	$(echo ${args[${i}]} | grep -o "[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*" ) ]] && \
+	#	dns=${args[${i}]}
 	[[ $(echo ${args[${i}]}) == "-w" || \
 		$(echo ${args[${i}]}) == "--wait" ]] && \
 		argument_request_delay=$(( i + 1 )) && \
@@ -83,6 +80,16 @@ for (( i=0;i<$ELEMENTS;i++)); do
 		range=True && \
 		argument_range_to=$(( i + 1 )) && \
 		range_to=${args[${argument_range_to}]}
+	[[ $(echo ${args[${i}]}) == "-P" ||
+		$(echo ${args[${i}]}) == "--proxy" ]] && \
+		argument_proxy_url=$(( i + 1 )) && \
+		proxy_url=${args[${argument_proxy_url}]} && \
+		proxy_url_option=$(echo "-x $proxy_url")
+	[[ $(echo ${args[${i}]}) == "-pu" ||
+		$(echo ${args[${i}]}) == "--proxy-user" ]] && \
+		argument_proxy_user=$(( i + 1 )) && \
+		proxy_user=${args[${argument_proxy_user}]} && \
+		proxy_user_option=$(echo "--proxy-anyauth --proxy-user $proxy_user")
 	[[ $(echo ${args[${i}]}) == "-h" || $(echo ${args[${i}]}) == "--help" ]] && \
 		echo -e "${_BOLD}Help menu :${_RESET} \
 		\n -b ${_BLUE}X${_RESET} : Make a break every ${_BLUE}X${_RESET} requests \
@@ -95,7 +102,7 @@ for (( i=0;i<$ELEMENTS;i++)); do
 		\n --range : Scan a range of MAC addresses sequentially \
 		\n -np : Parameters by default \
 		\n -h : Print this help menu \
-		\n man mcbash : Look up the manual for more tweaks \
+		\n man mcbash : Look up the manual for more tweaks (proxy support, shell scripts call, etc.)\
 		\n \
 		\n ${_BOLD}Example ${_RESET}: mcbash -u my-dns.com:8080 -w 1.5 -b 10 -d 3 -s 150 -t 2 -k
 		\n Set your default parameters inside this file : \"$HOME/.mcbash/mcbash.conf\"\
@@ -226,21 +233,21 @@ handshaking() {
 	handshake_url=$(echo $dns)'/portal.php?action=handshake&type=stb&token=&mac='$(echo $encoded_mac)
 	cookie="mac=$mac; stb_lang=en; timezone=Europe/Amsterdam; "
 	random_user_agent
-	handshake_token=$(curl --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Cookie: $(echo $cookie)" "$(echo $handshake_url)"); if [ $? -eq 28 ]; then timeout_number=$(( $timeout_number + 1 )) && last_request_timedout=true && echo -ne "\r\033[0KTimeout [$timeout_number]. New attempt in $timebreak_duration seconds." && sleep $timebreak_duration && echo -ne "\r\033[0K\r\033[0KNew attempt..." && return; fi
+	handshake_token=$(curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Cookie: $(echo $cookie)" "$(echo $handshake_url)"); if [ $? -eq 28 ]; then timeout_number=$(( $timeout_number + 1 )) && last_request_timedout=true && echo -ne "\r\033[0KTimeout [$timeout_number]. New attempt in $timebreak_duration seconds." && sleep $timebreak_duration && echo -ne "\r\033[0K\r\033[0KNew attempt..." && return; fi
 	handshake_token=$(echo $handshake_token| grep -o '"token".*' | sed 's/\"token\":// ; s/\}\}//')
 	[[ $handshake_token = "" ]] && echo -ne "\r\033[0K$@${_YELLOW}[$item]${_RESET} ${_RED}$mac ${_RESET}" && return # [empty]
 	[[ $(echo $handshake_token | grep null) ]] && echo -ne "\r\033[0K$@${_YELLOW}[$item]${_RESET} ${_RED}$mac ${_RESET}" && return # [empty]
 	authorization='Bearer '$(echo $handshake_token)
 	profile_url=$(echo $dns)'/portal.php?type=account_info&action=get_main_info&mac='$(echo $mac)
-	profile=$(curl --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $profile_url)")
+	profile=$(curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $profile_url)")
 	[[ $profile == "" ]] && \
 		maybeGEN1portal=true && \
 		profile_url=$(echo $dns)'/portal.php?type=stb&action=get_profile&JsHttpRequest=1-xml='$(echo $mac) && \
-		profile=$(curl --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $profile_url)")
+		profile=$(curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $profile_url)")
 	[[ $profile == "" ]] && unset maybeGEN1portal && echo -ne "\r\033[0K$@${_YELLOW}[$item]${_RESET} ${_RED}$mac ${_RESET}" && return # test
 	[[ -v maybeGEN1portal ]] && \
 		account_url=$(echo $dns)'/portal.php?type=account_info&action=get_main_info&mac='$(echo $mac) && \
-		account=$(curl --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $account_url)") && \
+		account=$(curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $account_url)") && \
 		[[ ! $account == "" ]] && \
 		profile=$account
 	expiration_date=$(echo $profile | grep -o "\"phone\":\".*\"" | sed 's/\"phone\":\"//' | sed 's/\".*//')
