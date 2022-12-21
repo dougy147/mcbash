@@ -63,7 +63,7 @@ The key feature of `mcbash` is **flexibility**. It comes with handy options to m
 | **`-d`**, `--pause-for` | Break duration (in seconds)                                  |
 | **`-s`**, `--stop`      | Stop McBash after **X** tested MACs                          |
 | **`-t`**, `--timeout`   | Consider request a timeout after **X** seconds               |
-| **`-u`**, `--url`       | Server's URL/IP (URL or IP is mandatory, option `-u` is not) |
+| **`-u`**, `--url`       | Server's URL/IP                                              |
 | **`-w`**, `--wait`      | Wait **X** seconds between each requests                     |
 | **`-np`**, `--default`  | Don't ask for parameters. Use default configuration          |
 
@@ -90,17 +90,17 @@ The config file (`mcbash.conf`) is created during the install process here : `$H
 
 ### Use examples
 
-- `mcbash my-fakedns.org:8080 -w 1.5 -b 10 -d 3 -s 1500 -t 2`
+- `mcbash -u my-fakedns.org:8080 -w 1.5 -b 10 -d 3 -s 1500 -t 2`
 
 The program sleeps 1.5 seconds between each requests, pauses every 10 requests for 3 seconds, stops after 1500 MACs checkeds, and consider timeout after 2 seconds (timeouts trigger a pause to avoid flood).
 
 
-- `mcbash my-fakedns.org:8080 -F 00:1A:79:00:00:00 -L 00:1A:79:00:11:11`
+- `mcbash -u my-fakedns.org:8080 -F 00:1A:79:00:00:00 -L 00:1A:79:00:11:11`
 
 Scan from first (`-F`) to last (`-L`) provided MAC.
 
 
-- `mcbash my-fakedns.org:8080 --proxy http://localhost:12345 --proxy-user user:password`
+- `mcbash -u my-fakedns.org:8080 --proxy http://localhost:12345 --proxy-user user:password`
 
 Tells `mcbash` to communicate through proxy `http://localhost:12345` with `user:password` username and password.
 
