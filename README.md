@@ -76,20 +76,33 @@ By default, MACs are checked randomly. If you want to screen a specific range, u
 | **`-F`**, `--from` | Set first MAC to check (`--range` is forced) |
 |  **`-L`**, `--to`  | Set last MAC to check (`--range` is forced)  |
 
+
+🆕 You can now tell `mcbash` to use your proxy (credentials supported too).
+
+|       Option              | Functionality                                           |
+|:-------------------------:|---------------------------------------------------------|
+| **`-P`**, `--proxy`       | Set the proxy URL (any authentication method supported  |
+| **`-pu`**, `--proxy-user` | Set your proxy credentials `user:password`              |
+
 #### Change default parameters
 
 The config file (`mcbash.conf`) is created during the install process here : `$HOME/.mcbash/mcbash.conf`. Change some values according to your needs.
 
 ### Use examples
 
-The program sleeps 1.5 seconds between each requests, pauses every 10 requests for 3 seconds, stops after 1500 MACs checkeds, and consider timeout after 2 seconds (timeouts trigger a pause to avoid flood) :
-
 - `mcbash my-fakedns.org:8080 -w 1.5 -b 10 -d 3 -s 1500 -t 2`
 
-Scan from first (`-F`) to last (`-L`) provided MAC :
+The program sleeps 1.5 seconds between each requests, pauses every 10 requests for 3 seconds, stops after 1500 MACs checkeds, and consider timeout after 2 seconds (timeouts trigger a pause to avoid flood).
+
 
 - `mcbash my-fakedns.org:8080 -F 00:1A:79:00:00:00 -L 00:1A:79:00:11:11`
 
+Scan from first (`-F`) to last (`-L`) provided MAC.
+
+
+- `mcbash my-fakedns.org:8080 --proxy http://localhost:12345 --proxy-user user:password`
+
+Tells `mcbash` to communicate through proxy `http://localhost:12345` with `user:password` username and password.
 
 ## Instructions for the careless mind
 
