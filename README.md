@@ -64,6 +64,12 @@ By default, MACs are checked randomly. If you want to screen a specific range, u
 | **`-P`**, `--proxy`       | Set the proxy URL (any authentication method supported  |
 | **`-pu`**, `--proxy-user` | Set your proxy credentials `user:password`              |
 
+
+🆕 Only redirect found MAC addresses to stdout.
+|       Option              | Functionality                                                                       |
+|:-------------------------:|-------------------------------------------------------------------------------------|
+| `--show-only-mac`         | Only outputs found MACs (useful if you want to redirect stdout to another program)  |
+
 #### Change default parameters
 
 The config file (`mcbash.conf`) is created during the install process here : `$HOME/.mcbash/mcbash.conf`. Change some values according to your needs.
