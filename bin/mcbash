@@ -121,7 +121,7 @@ done
 # Declaring functions
 dns_name() {
 	[[ ! -v dns || $dns == "" ]] && read -p "Server address : "${_BOLD}${_BLUE} dns
-	tput sgr0 # can't place _RESET here due to last 'read' command. Help?
+	[[ ! -v only_outputs_mac ]] && tput sgr0 # can't place _RESET here due to last 'read' command. Help?
 	[[ $dns = "" ]] && echo -ne "\r${_RED}You need to indicate a server address [ex: my-fakedns.org:8080]${_RESET}\n" && dns_name
 	[[ $(echo $dns | grep -o 'http://') = "" ]] && dns=$(echo 'http://'$dns)
 	dns=$(echo $dns | sed 's/\/$//') # if trailing "/" at the end of DNS, remove it
