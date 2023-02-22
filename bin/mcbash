@@ -161,11 +161,11 @@ parameters() {
 		[[ -n ${range} ]] && echo -e "${_RESET} ${_BOLD}*${_RESET} You have set ${_GREEN}range mode${_RESET}"
 		[[ -n ${range} && -z ${range_from+x} ]] && read -p "${_RESET} ${_BOLD}->${_RESET} Indicate first MAC to scan ${_BOLD}[$default_first_mac]${_RESET} ${_BOLD}${_GREEN}" first_mac
 		#[[ -z $first_mac == "" ]] && unset first_mac
-		[[ -z ${first_mac} ]] && first_mac=$default_first_mac # TODO rechange ? line above
+		[[ -z ${first_mac} ]] && first_mac=$default_first_mac
 		[[ -n ${first_mac} ]] && range_from=$first_mac
 		[[ -n ${range} && -z ${range_to+x} ]] && read -p "${_RESET} ${_BOLD}->${_RESET} Indicate last MAC to scan ${_BOLD}[$default_last_mac]${_RESET} ${_BOLD}${_GREEN}" last_mac
 		#[[ $last_mac == "" ]] && last_mac="$default_last_mac"
-		[[ -z ${last_mac} ]] && last_mac=$default_last_mac # TODO rechange ? line above
+		[[ -z ${last_mac} ]] && last_mac=$default_last_mac
 		[[ -n ${last_mac} ]] && range_to=$last_mac
 		[[ -n ${keep_expired} ]] || read -p "${_RESET} ${_BOLD}*${_RESET} Store expired MAC addresses (tagged as such)? ${_BOLD}[y/N]${_RESET} " keep_expired
 		( [[ $keep_expired == "" || $(echo $keep_expired | grep -io "n") == "n" || $(echo $keep_expired | grep -io "n") == "N" ]] ) && unset keep_expired
@@ -174,13 +174,13 @@ parameters() {
 		[[ -n ${range_from} ]] || read -p "${_RESET} ${_BOLD}->${_RESET} Indicate first MAC to scan ${_BOLD}[$default_first_mac]${_RESET} ${_BOLD}${_GREEN}" first_mac
 		[[ -n ${range_from} ]] && first_mac=$range_from
 		#[[ $first_mac == "" ]] && unset first_mac
-		[[ -z ${first_mac} ]] && first_mac=$default_first_mac && range_from="$default_first_mac" # TODO rechange ? line above
-		[[ -n ${first_mac} ]] && range_from=$first_mac # TODO rechange ? line above
+		[[ -z ${first_mac} ]] && first_mac=$default_first_mac && range_from="$default_first_mac"
+		[[ -n ${first_mac} ]] && range_from=$first_mac
 
 		[[ -n ${range_to} ]] || read -p "${_RESET} ${_BOLD}->${_RESET} Indicate last MAC to scan ${_BOLD}[$default_last_mac]${_RESET} ${_BOLD}${_GREEN}" last_mac
 		[[ -n ${range_to} ]] && last_mac=$range_to
 		[[ -z $last_mac ]] && last_mac="$default_last_mac" && range_to="$default_last_mac"
-		[[ -n ${last_mac} ]] && range_to=$last_mac # TODO rechange ? line above
+		[[ -n ${last_mac} ]] && range_to=$last_mac
 
 		[[ -n ${request_delay} ]] || request_delay=$default_request_delay
 		[[ -n ${timebreak} ]] || timebreak=$default_timebreak
@@ -190,7 +190,7 @@ parameters() {
 		#[[ -n ${range_to} ]] || range_to=$default_last_mac
 	else
 		[[ -n ${request_delay} ]] || request_delay=$default_request_delay
-		[[ -n ${timebreak} ]] || timebreak=$default_timebreak # TODO REMOVE ?
+		[[ -n ${timebreak} ]] || timebreak=$default_timebreak
 		[[ -n ${timebreak_duration} ]] || timebreak_duration=$default_timebreak_duration
 		[[ -n ${timeout} ]] || timeout=$default_timeout
 		if [[ -n ${range} || -n ${range_from} || -n ${range_to} ]]; then
@@ -315,11 +315,11 @@ dns_name
 parameters
 
 [[ -n ${request_delay} ]] || request_delay=2 # should grab default parameters in config TODO
-[[ -n ${timebreak} ]] || timebreak=0 # same #TODO
-[[ -n ${timebreak_duration} ]] || timebreak_duration=10 # same #TODO
-[[ -n ${timeout} ]] || timeout=5 # same #TODO
-[[ -n ${range_from} ]] && range=True && first_mac=$range_from # TODO
-[[ -n ${range_to} ]] && range=True && last_mac=$range_to
+[[ -n ${timebreak} ]] || timebreak=0 # same
+[[ -n ${timebreak_duration} ]] || timebreak_duration=10 # same
+[[ -n ${timeout} ]] || timeout=5 # same
+[[ -n ${range_from} ]] && range=True && first_mac=$range_from # same
+[[ -n ${range_to} ]] && range=True && last_mac=$range_to # same
 
 [[ -n ${only_outputs_mac} ]] || \
 	echo "${_BOLD}=> ${_RESET}Scan @ ${_BOLD}${_BLUE}$dns${_RESET} ${_GREEN}[$request_delay seconds/request]${_RESET}"
