@@ -9,7 +9,9 @@ Just feed it with a server URL or IP, and let it check by itself.
 <img src="mcbash.gif" width="80%" />
 </p>
 
-## Installation
+ℹ now compatible with macOS
+
+## Quick start
 
 If you're an Arch user, you can install from the AUR with `yay -S mcbash`. Else, simply :
 
@@ -17,18 +19,8 @@ If you're an Arch user, you can install from the AUR with `yay -S mcbash`. Else,
 git clone https://github.com/dougy147/mcbash
 cd mcbash
 sudo make install
-```
-
-Then just launch :
-
-```
 mcbash
 ```
-or directly with arguments :
-```
-mcbash my-fakedns.org:8080 -t 4 -L '00:1A:79:AB:CD:EF'
-```
-
 
 ### Adapt to your needs
 
@@ -93,7 +85,7 @@ For `00:1A:79:xx:xx:xx`-like MAC addresses (the most commonly used), there are $
 
 - Solution 2 : colors are set with `tput` (e.g. `tput setf 1`). Change its value from 0 to 7. If you know of a more universal/efficient way to color text, please contact me.
 
-### Use examples
+### Usage examples
 
 - `mcbash -u my-fakedns.org:8080 -w 1.5 -b 10 -d 3 -s 1500 -t 2`
 
