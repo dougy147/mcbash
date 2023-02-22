@@ -140,12 +140,6 @@ parameters() {
 			[[ -n ${range_to} ]] || range_to=$default_last_mac
 		fi
 	fi
-	#echo ${request_delay}
-	#echo $timebreak
-	#echo $timebreak_duration
-	#echo $stopping
-	#echo $timeout
-	#echo $keep_expired
 	[[ -z ${request_delay+x} && \
 		-z ${timebreak+x} && \
 		-z ${timebreak_duration+x} && \
@@ -168,9 +162,11 @@ parameters() {
 		[[ -n ${range} && -z ${range_from+x} ]] && read -p "${_RESET} ${_BOLD}->${_RESET} Indicate first MAC to scan ${_BOLD}[$default_first_mac]${_RESET} ${_BOLD}${_GREEN}" first_mac
 		#[[ -z $first_mac == "" ]] && unset first_mac
 		[[ -z ${first_mac} ]] && first_mac=$default_first_mac # TODO rechange ? line above
+		[[ -n ${first_mac} ]] && range_from=$first_mac
 		[[ -n ${range} && -z ${range_to+x} ]] && read -p "${_RESET} ${_BOLD}->${_RESET} Indicate last MAC to scan ${_BOLD}[$default_last_mac]${_RESET} ${_BOLD}${_GREEN}" last_mac
 		#[[ $last_mac == "" ]] && last_mac="$default_last_mac"
 		[[ -z ${last_mac} ]] && last_mac=$default_last_mac # TODO rechange ? line above
+		[[ -n ${last_mac} ]] && range_to=$last_mac
 		[[ -n ${keep_expired} ]] || read -p "${_RESET} ${_BOLD}*${_RESET} Store expired MAC addresses (tagged as such)? ${_BOLD}[y/N]${_RESET} " keep_expired
 		( [[ $keep_expired == "" || $(echo $keep_expired | grep -io "n") == "n" || $(echo $keep_expired | grep -io "n") == "N" ]] ) && unset keep_expired
 		echo " ${_RESET}"
@@ -187,6 +183,7 @@ parameters() {
 		[[ -n ${last_mac} ]] && range_to=$last_mac # TODO rechange ? line above
 
 		[[ -n ${request_delay} ]] || request_delay=$default_request_delay
+		[[ -n ${timebreak} ]] || timebreak=$default_timebreak
 		[[ -n ${timebreak_duration} ]] || timebreak_duration=$default_timebreak_duration
 		[[ -n ${timeout} ]] || timeout=$default_timeout
 		#[[ -n ${range_from} ]] || range_from=$default_first_mac
@@ -240,7 +237,7 @@ range_mac() {
 		new_mac=$(echo $mac_hex | sed 's/../&:/g;s/:$//') && \
 		first_mac=$(echo $new_mac) && \
 		mac=$(echo $new_mac) && \
-		[[ -z ${last_mac+x} && $last_mac == $mac ]] && last_mac_reached=True
+		[[ -n ${last_mac} && $last_mac == $mac ]] && last_mac_reached=True
 		return
 }
 
@@ -253,9 +250,9 @@ handshaking() {
 			( [[ -n ${only_outputs_mac} ]] || \
 			echo ${_BOLD}${_CYAN}"$(( $item - 1 )) checked, $valid_macs_number valid. Stopping."${_RESET} ) && \
 			exit 0
-		[[ $item == 1 ]] || ( [[ -z ${timebreak+x} ]] && \
+		[[ $item == 1 ]] || ( [[ ${timebreak} -ne 0 ]] && \
 			[[ $(expr $(( $item - 1 )) % $timebreak ) == 0 ]] && \
-			( [[ -z ${only_outputs_mac+x} ]] || echo -ne ${_BLUE}"\r[$(( $item - 1 ))] $mac ${_RESET}${_CYAN}--- Pausing for $timebreak_duration seconds..."${_RESET} ) && \
+			( [[ -n ${only_outputs_mac} ]] || echo -ne ${_BLUE}"\r[$(( $item - 1 ))] $mac ${_RESET}${_CYAN}--- Pausing for $timebreak_duration seconds..."${_RESET} ) && \
 			sleep $timebreak_duration ) || \
 			sleep $request_delay
 		[[ -n ${range} ]] && range_mac
@@ -323,8 +320,6 @@ parameters
 [[ -n ${timeout} ]] || timeout=5 # same #TODO
 [[ -n ${range_from} ]] && range=True && first_mac=$range_from # TODO
 [[ -n ${range_to} ]] && range=True && last_mac=$range_to
-
-#echo "Range?  $range , $range_from , $range_to ; $first_mac ; $last_mac"
 
 [[ -n ${only_outputs_mac} ]] || \
 	echo "${_BOLD}=> ${_RESET}Scan @ ${_BOLD}${_BLUE}$dns${_RESET} ${_GREEN}[$request_delay seconds/request]${_RESET}"
