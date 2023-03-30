@@ -12,8 +12,7 @@ _CYAN=$(tput setaf 6)
 _WHITE=$(tput setaf 7)
 _RESET=$(tput sgr0)
 _BOLD=$(tput bold)
-
-_ERASE="\r\033[0K" #Erase from cursor to end of line (\r repositions the cursor to the beginning of the line)
+_ERASE="\r\033[0K" #Cursor to EOL (\r resets cursor to left)
 _ERASE_UP="\r\033[1A" #Erase one line up
 
 args=("$@")
@@ -43,7 +42,6 @@ fi
 [ -d $destination ] || mkdir -p "$destination" &> /dev/null || \
 	echo -e "${_BLUE}Can't create saving directory to $destination.\nPlease be sure you have permissions.\nValid MAC addresses will not be stored.${_RESET}"
 
-# Check arguments
 args=("$@")
 ELEMENTS=${#args[@]}
 for (( i=0;i<$ELEMENTS;i++)); do
@@ -123,7 +121,6 @@ for (( i=0;i<$ELEMENTS;i++)); do
 		" && exit 0
 done
 
-# Declaring functions
 dns_name() {
 	[[ -z ${dns+x} ]] && read -p "Server address : "${_BOLD}${_BLUE} dns
 	[[ -n ${only_outputs_mac} ]] && tput sgr0 # can't place _RESET here due to last 'read' command. Help?
@@ -316,13 +313,6 @@ quit_mcbash() {
 
 dns_name
 parameters
-
-#[[ -n ${request_delay} ]] || request_delay=2 # should grab default parameters in config TODO
-#[[ -n ${timebreak} ]] || timebreak=0 # same
-#[[ -n ${timebreak_duration} ]] || timebreak_duration=10 # same
-#[[ -n ${timeout} ]] || timeout=5 # same
-#[[ -n ${range_from} ]] && range=True && first_mac=$range_from # same
-#[[ -n ${range_to} ]] && range=True && last_mac=$range_to # same
 
 [[ -n ${only_outputs_mac} ]] || \
 	echo "${_BOLD}=> ${_RESET}Scan @ ${_BOLD}${_BLUE}$dns${_RESET} ${_GREEN}[$request_delay seconds/request]${_RESET}"
