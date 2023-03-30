@@ -39,6 +39,7 @@ The key feature of `mcbash` is **flexibility**. It comes with handy options to m
 
 By default, MACs are pseudo-randomly checked. If you want to screen sequentially, use `--range`. This option allows you to specify lower and upper bounds.
 
+[]()                 |
 |:------------------:|----------------------------------------------|
 |     `--range`      | Check MACs in sequential order               |
 | **`-F`**, `--from` | Set first MAC to check (`--range` is forced) |
@@ -47,12 +48,15 @@ By default, MACs are pseudo-randomly checked. If you want to screen sequentially
 
 The use of a proxy and credentials is supported thanks to `curl`.
 
+[]()                 |
 |:-------------------------:|---------------------------------------------------------|
 | **`-P`**, `--proxy`       | Set the proxy URL (any authentication method supported  |
 | **`-pu`**, `--proxy-user` | Set your proxy credentials `user:password`              |
 
 
 This exotic option makes `mcbash` exclusively output valid MACs to stdout (useful if you want to redirect stdout to another program).
+
+[]()                 |
 |:-------------------------:|---------------------------|
 | `--show-only-mac`         | Only outputs found MACs   |
 
