@@ -314,12 +314,12 @@ quit_mcbash() {
 dns_name
 parameters
 
-[[ -n ${request_delay} ]] || request_delay=2 # should grab default parameters in config TODO
-[[ -n ${timebreak} ]] || timebreak=0 # same
-[[ -n ${timebreak_duration} ]] || timebreak_duration=10 # same
-[[ -n ${timeout} ]] || timeout=5 # same
-[[ -n ${range_from} ]] && range=True && first_mac=$range_from # same
-[[ -n ${range_to} ]] && range=True && last_mac=$range_to # same
+#[[ -n ${request_delay} ]] || request_delay=2 # should grab default parameters in config TODO
+#[[ -n ${timebreak} ]] || timebreak=0 # same
+#[[ -n ${timebreak_duration} ]] || timebreak_duration=10 # same
+#[[ -n ${timeout} ]] || timeout=5 # same
+#[[ -n ${range_from} ]] && range=True && first_mac=$range_from # same
+#[[ -n ${range_to} ]] && range=True && last_mac=$range_to # same
 
 [[ -n ${only_outputs_mac} ]] || \
 	echo "${_BOLD}=> ${_RESET}Scan @ ${_BOLD}${_BLUE}$dns${_RESET} ${_GREEN}[$request_delay seconds/request]${_RESET}"
