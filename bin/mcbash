@@ -13,6 +13,9 @@ _WHITE=$(tput setaf 7)
 _RESET=$(tput sgr0)
 _BOLD=$(tput bold)
 
+_ERASE="\r\033[0K" #Erase from cursor to end of line (\r repositions the cursor to the beginning of the line)
+_ERASE_UP="\r\033[1A" #Erase one line up
+
 args=("$@")
 ELEMENTS=${#args[@]}
 for (( i=0;i<$ELEMENTS;i++)); do
@@ -261,10 +264,10 @@ handshaking() {
 	handshake_url=$(echo $dns)'/portal.php?action=handshake&type=stb&token=&mac='$(echo $encoded_mac)
 	cookie="mac=$mac; stb_lang=en; timezone=Europe/Amsterdam; "
 	random_user_agent
-	handshake_token=$(curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Cookie: $(echo $cookie)" "$(echo $handshake_url)"); if [ $? -eq 28 ]; then timeout_number=$(( $timeout_number + 1 )) && last_request_timedout=true && ( [[ -n ${only_outputs_mac} ]] || echo -ne "\r\033[0KTimeout [$timeout_number]. New attempt in $timebreak_duration seconds." ) && sleep $timebreak_duration && ( [[ -n ${only_outputs_mac} ]] || echo -ne "\r\033[0K\r\033[0KNew attempt..." ) && return; fi
+	handshake_token=$(curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Cookie: $(echo $cookie)" "$(echo $handshake_url)"); if [ $? -eq 28 ]; then timeout_number=$(( $timeout_number + 1 )) && last_request_timedout=true && ( [[ -n ${only_outputs_mac} ]] || echo -ne "${_ERASE}Timeout [$timeout_number]. New attempt in $timebreak_duration seconds." ) && sleep $timebreak_duration && ( [[ -n ${only_outputs_mac} ]] || echo -ne "${_ERASE}${_ERASE}New attempt..." ) && return; fi
 	handshake_token=$(echo $handshake_token| grep -o '"token".*' | sed 's/\"token\":// ; s/\}\}//')
-	[[ $handshake_token = "" ]] && ( [[ -n ${only_outputs_mac} ]] || echo -ne "\r\033[0K$@${_YELLOW}[$item]${_RESET} ${_RED}$mac ${_RESET}" ) && return # [empty]
-	[[ $(echo $handshake_token | grep null) ]] && ( [[ -n ${only_outputs_mac} ]] || echo -ne "\r\033[0K$@${_YELLOW}[$item]${_RESET} ${_RED}$mac ${_RESET}" ) && return # [empty]
+	[[ $handshake_token = "" ]] && ( [[ -n ${only_outputs_mac} ]] || echo -ne "${_ERASE}$@${_YELLOW}[$item]${_RESET} ${_RED}$mac ${_RESET}" ) && return # [empty]
+	[[ $(echo $handshake_token | grep null) ]] && ( [[ -n ${only_outputs_mac} ]] || echo -ne "${_ERASE}$@${_YELLOW}[$item]${_RESET} ${_RED}$mac ${_RESET}" ) && return # [empty]
 	authorization='Bearer '$(echo $handshake_token)
 	profile_url=$(echo $dns)'/portal.php?type=account_info&action=get_main_info&mac='$(echo $mac)
 	profile=$(curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $profile_url)")
@@ -272,7 +275,7 @@ handshaking() {
 		maybeGEN1portal=true && \
 		profile_url=$(echo $dns)'/portal.php?type=stb&action=get_profile&JsHttpRequest=1-xml='$(echo $mac) && \
 		profile=$(curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $profile_url)")
-		[[ $profile == "" ]] && unset maybeGEN1portal && ( [[ -n ${only_outputs_mac} ]] || echo -ne "\r\033[0K$@${_YELLOW}[$item]${_RESET} ${_RED}$mac ${_RESET}" ) && return # test
+		[[ $profile == "" ]] && unset maybeGEN1portal && ( [[ -n ${only_outputs_mac} ]] || echo -ne "${_ERASE}$@${_YELLOW}[$item]${_RESET} ${_RED}$mac ${_RESET}" ) && return # test
 	[[ -z ${maybeGEN1portal+x} ]] && \
 		account_url=$(echo $dns)'/portal.php?type=account_info&action=get_main_info&mac='$(echo $mac) && \
 		account=$(curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $account_url)") && \
@@ -307,8 +310,8 @@ quit_mcbash() {
 			echo ${_GREEN}"File saved => $destination/valid_macs_$name"${_RESET}
 		fi && \
 			exit 0 ) ||
-			( ( [[ $valid_macs_number != 0 ]] && echo -ne "\r\033[1A\033[0K$@\r\033[1A\033[0K$@\r\033[1A\033[0K$@\r\033[1A\033[0K$@" ) || \
-			echo -ne "\r\033[1A\033[0K$@\r\033[1A\033[0K$@\r\033[1A\033[0K$@" )
+			( ( [[ $valid_macs_number != 0 ]] && echo -ne "${_ERASE_UP}\033[0K$@${_ERASE_UP}\033[0K$@${_ERASE_UP}\033[0K$@${_ERASE_UP}\033[0K$@" ) || \
+			echo -ne "${_ERASE_UP}\033[0K$@${_ERASE_UP}\033[0K$@${_ERASE_UP}\033[0K$@" )
 }
 
 dns_name
@@ -345,4 +348,4 @@ done
 
 # dougy147 [2022]
 # https://github.com/dougy147/mcbash
-# last updated : 30nov2022
+# last updated : 30mar2023
