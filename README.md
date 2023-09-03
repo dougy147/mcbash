@@ -41,8 +41,12 @@ The key feature of `mcbash` is **flexibility**. It comes with handy options to m
 | **`-P`**, `--proxy`       | Set the proxy URL (any authentication method supported       |
 | **`-pu`**, `--proxy-user` | Set your proxy credentials `user:password`                   |
 | `--show-only-mac`         | Only outputs found MACs                                      |
+| `--no-checkpoint`         | Don't store checkpoints                                      |
 
-By default, MACs are pseudo-randomly checked. If you want to screen sequentially, use `--range`. This option allows you to specify lower and upper bounds.
+By default, MACs are pseudo-randomly generated and checked. If you want to screen sequentially, use `--range`. This option allows you to specify lower and upper bounds.
+
+ℹ  When screening sequentially, `mcbash` creates a checkpoint file, storing last checked MAC.
+You can specify `--no-checkpoint` to bypass that (i.e. no checkpoint will be saved).
 
 The use of a proxy and credentials is supported thanks to `curl`.
 
@@ -53,7 +57,7 @@ The `--show-only-mac` exotic option exclusively outputs valid MACs to stdout (us
 
 ### Default parameters are configurable
 
-The config file `$HOME/.mcbash/mcbash.conf` is created during the install process. It contains a set of default options you can change according to your needs.
+Config file `$HOME/.mcbash/mcbash.conf` contains default options. You can change them according to your needs.
 
 ### MACs are stored
 
@@ -61,7 +65,7 @@ Did you close your terminal ? Don't worry, when a MAC is found, it is immediatel
 
 ### Size sometimes matters
 
-For `00:1A:79:xx:xx:xx`-like MAC addresses (the most commons), there are $16^6$ possibilities (≈16.7million). Collision probability on sparsely populated servers is low by definition. So, there won't be too much matches on small ones!
+For `00:1A:79:xx:xx:xx`-like MAC addresses (most commons), there are $16^6$ possibilities (≈16.7million). Collision probability on sparsely populated servers is low by definition. So, there won't be too much matches on small ones!
 
 ### macOS compatibility
 
