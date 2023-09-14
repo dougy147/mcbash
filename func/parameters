@@ -6,6 +6,7 @@ check_parameters() {
 		[[ -n ${timebreak_duration} ]] || timebreak_duration=$default_timebreak_duration
 		[[ -n ${timeout} ]] || timeout=$default_timeout
 		if [[ -n ${range} ]]; then
+		#if [[ -n ${seq} ]]; then
 			[[ -n ${range_from} ]] || range_from=$default_first_mac
 			[[ -n ${range_to} ]] || range_to=$default_last_mac
 		fi
@@ -51,11 +52,14 @@ check_parameters() {
 
 		[[ $timeout == "" ]] && timeout=$default_timeout
 
-		[[ -z ${range+x} ]] && \
+		#[[ -z ${range+x} ]] && \
+		[[ -z ${seq+x} ]] && \
 			read -p "${_RESET} ${_BOLD}*${_RESET} Scan ${_GREEN}randomly [r]${_RESET} or ${_GREEN}sequentially [s]${_RESET} ${_BOLD}[r]${_RESET} ${_BOLD}${_GREEN}" mode
-		[[ $(echo $mode | grep -io "s") ]] && range=true
+		#[[ $(echo $mode | grep -io "s") ]] && range=true
+		[[ $(echo $mode | grep -io "s") ]] && seq=true
 
-		[[ -z ${range+x} ]] && \
+		#[[ -z ${range+x} ]] && \
+		[[ -z ${seq+x} ]] && \
 			echo -e "${_RESET} ${_BOLD}*${_RESET} You have selected ${_GREEN}random mode${_RESET}"
 
 		if [[ -z ${range+x} && -z ${prefix} ]]; then
@@ -65,8 +69,10 @@ check_parameters() {
 			fi
 		fi
 
-		[[ -n ${range} ]] && \
-			echo -e "${_RESET} ${_BOLD}*${_RESET} You have selected ${_GREEN}range mode${_RESET}"
+		#[[ -n ${range} ]] && \
+		[[ -n ${seq} ]] && \
+			echo -e "${_RESET} ${_BOLD}*${_RESET} You have selected ${_GREEN}sequential mode${_RESET}" && \
+			range=true
 
 		[[ -n ${range} && -z ${range_from+x} ]] && \
 			# If already checked on that dns AND not '--no-checkpoint' : default_first_mac = last checked!

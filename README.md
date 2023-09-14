@@ -35,19 +35,24 @@ The key feature of `mcbash` is **flexibility**. It comes with handy options to m
 | **`-t`**, `--timeout`     | Consider request a timeout after **X** seconds               |
 | **`-k`**, `--keep`        | Store expired MACs (valid addresses but expired accounts)    |
 | **`-np`**, `--default`    | Don't ask for parameters. Use default configuration          |
-| `--range`                 | Check MACs in sequential order                               |
-| **`-F`**, `--from`        | Set first MAC to check (`--range` is forced)                 |
-|  **`-L`**, `--to`         | Set last MAC to check (`--range` is forced)                  |
+| `--mac-file`              | Choose a file to read MACs from (MACs should be line by line)|
+| `--seq`                   | Check MACs in sequential order                               |
+| `--range`                 | Set a range for checked MACs (forced with `--seq`)           |
+| **`-F`**, `--from`        | Set first MAC to check (`--seq` is forced)                   |
+|  **`-L`**, `--to`         | Set last MAC to check (`--seq` is forced)                    |
 | `--prefix`                | Select MACs prefix when screening in random mode             |
-| **`-P`**, `--proxy`       | Set the proxy URL (any authentication method supported       |
+| **`-P`**, `--proxy`       | Set the proxy URL (any authentication method supported)      |
 | **`-pu`**, `--proxy-user` | Set your proxy credentials `user:password`                   |
 | `--show-only-mac`         | Only outputs found MACs                                      |
 | `--no-checkpoint`         | Don't store checkpoints                                      |
 
-By default, MACs are pseudo-randomly generated and checked. If you want to screen sequentially, use `--range`. This option allows you to specify lower and upper bounds.
+By default, MACs are pseudo-randomly generated and checked. If you want to screen sequentially, use `--seq`. 
+This option let you specify lower and upper bounds.
 
 When screening sequentially, `mcbash` creates a checkpoint file, storing last checked MAC.
-You can specify `--no-checkpoint` to bypass that (i.e. no checkpoint will be saved).
+You can specify `--no-checkpoint` to bypass that (i.e. no checkpoint will then be saved).
+
+Screening a specific range is also possible when checking randomly with the option `--range`.
 
 The use of a proxy and credentials is supported thanks to `curl`.
 

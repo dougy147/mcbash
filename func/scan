@@ -14,8 +14,14 @@ handshaking() {
 			( [[ -n ${only_outputs_mac} ]] || echo -ne ${_BLUE}"\r[$(( $item - 1 ))] $mac ${_RESET}${_CYAN}--- Pausing for $timebreak_duration seconds..."${_RESET} ) && \
 			sleep $timebreak_duration ) || \
 			sleep $request_delay
-		[[ -n ${range} ]] && range_mac
-		[[ -z ${range+x} ]] && random_mac
+		#[[ -n ${range} ]] && range_mac
+		#[[ -z ${range+x} ]] && random_mac
+		if [[ -n ${read_from_file} ]]; then
+			read_mac_from_file
+		else
+			[[ -n ${seq} ]] && seq_mac
+			[[ -z ${seq+x} ]] && random_mac
+		fi
 	fi
 	handshake_url=$(echo $dns)'/portal.php?action=handshake&type=stb&token=&mac='$(echo $encoded_mac)
 	cookie="mac=$mac; stb_lang=en; timezone=Europe/Amsterdam; "

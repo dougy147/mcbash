@@ -52,8 +52,20 @@ consider requests timeouted after this delay.
 ]
 indicate the server URL/IP.
 .TP
-.B --range
+.B --seq
 check MAC addresses sequentially.
+.TP
+.B --mac-file
+check MAC addresses sequentially.
+[
+.I FILE
+]
+check MAC addresses stored inside a file. MAC addresses should be line by line in that file.
+.TP
+.B --range
+set a range (lower and upper bound) between which MAC addresses are checked. This option is force when using
+.B --seq
+option, and fully functional with random checking.
 .TP
 .B -F
 [

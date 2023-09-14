@@ -1,5 +1,6 @@
 #!/bin/sh
 
+# Check MAC randomly (between a range or not).
 random_mac() {
 	a=(1 2 3 4 5 6 7 8 9 0 A B C D E F)
 	if [[ -n ${prefix} ]]; then
@@ -15,13 +16,25 @@ random_mac() {
 		suffix=$(echo $suffix)$(echo ${a[RANDOM%16]})
 	done
 	mac_without_colon=$(echo $mac_prefix | sed 's/://g')$(echo $suffix)
-	mac=$(echo $mac_without_colon | sed -r 's/.{2}/&:/g ; s/:$//')
-	#mac="00:1A:79:"
-	#mac=$(echo $mac_prefix)$(echo ${a[RANDOM%16]})$(echo ${a[RANDOM%16]})$(echo ':')$(echo ${a[RANDOM%16]})$(echo ${a[RANDOM%16]})$(echo ':')$(echo ${a[RANDOM%16]})$(echo ${a[RANDOM%16]})
+	new_mac=$(echo $mac_without_colon | sed -r 's/.{2}/&:/g ; s/:$//')
+
+	# If --range is set, chose randomly between it
+	if [[ -n ${range} ]]; then
+		prev_mac=$(echo $mac)
+		range_mac
+		if [[ $(echo $new_mac) == $(echo $prev_mac) ]]; then
+			random_mac
+		fi
+	fi
+
+	# Encode mac
+	mac=$(echo $new_mac)
 	encoded_mac=$(echo $mac | sed 's/:/\%3A/g')
+	#return
 }
 
-range_mac() {
+# Check MAC one by one from --range-from to --range-to.
+seq_mac() {
 	[[ -n ${last_mac_reached} ]] && \
 		( [[ -n ${only_outputs_mac} ]] || echo "${_BOLD}${_CYAN}Range fullfiled${_RESET}" ) && \
 		exit 0
@@ -40,5 +53,47 @@ range_mac() {
 		first_mac=$(echo $new_mac) && \
 		mac=$(echo $new_mac) && \
 		[[ -n ${last_mac} && $last_mac == $mac ]] && last_mac_reached=true
-	return
+	#return
+}
+
+# If --range is selected, MAC are created BETWEEN the range.
+range_mac() {
+	if [[ -z ${mac_low_dec+x} || -z ${mac_max_dec+x} ]]; then
+		mac_low_basic=$(echo $range_from |  tr '[:lower:]' '[:upper:]' | tr -d ':')
+		mac_low_dec=$( printf '%d\n' 0x$mac_low_basic )
+		mac_max_basic=$(echo $range_to |  tr '[:lower:]' '[:upper:]' | tr -d ':')
+		mac_max_dec=$( printf '%d\n' 0x$mac_max_basic )
+	fi
+	mac_basic=$(echo $new_mac |  tr '[:lower:]' '[:upper:]' | tr -d ':')
+	mac_dec=$( printf '%d\n' 0x$mac_basic )
+
+	random_between_range=$(awk -v beginning=${mac_low_dec} -v finish=${mac_max_dec} 'BEGIN{srand();print int(rand()*(finish - beginning)) }')
+	number_chars_random=$(( $(echo ${random_between_range} | sed 's/://g' | wc --chars) - 1 ))
+	number_of_non_changing_values=$(( max_mac_length - number_chars_random ))
+	range_from_without_colon=$(echo $range_from | sed 's/://g')
+	non_random_prefix=$(echo ${range_from_without_colon:0:$number_of_non_changing_values})
+	printf_prefix=$(echo "%0${number_chars_random}X\n")
+	suffix_hex=$( printf "${printf_prefix}" $random_between_range )
+	mac_hex=$(echo $non_random_prefix)$(echo $suffix_hex)
+	new_mac=$(echo $mac_hex | sed 's/../&:/g;s/:$//')
+	#return
+}
+
+
+read_mac_from_file() {
+	if [[ -z ${started_reading_file+x} ]]; then
+		started_reading_file=true
+		line_to_read=0
+		#max_number_of_lines_to_read=$(cat "$file_to_read_mac_from" | sed '/^$/d' | wc -l)
+		max_number_of_lines_to_read=$(cat "$file_to_read_mac_from" | wc -l)
+	fi
+	if [[ $line_to_read -gt $max_number_of_lines_to_read ]]; then
+		echo -e "\n${_YELLOW}End of MAC file.${_RESET}"
+		exit 0
+	fi
+	line_to_read=$(( line_to_read + 1 ))
+	mac=$(sed "${line_to_read}q;d" "$file_to_read_mac_from")
+	if [[ $mac == "" ]]; then
+		read_mac_from_file
+	fi
 }

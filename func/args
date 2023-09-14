@@ -42,6 +42,9 @@ read_args() {
 			keep_expired=${args[${argument_keep_expired}]}
 		[[ $(echo ${args[${i}]}) == "--range" ]] && \
 			range=true
+		[[ $(echo ${args[${i}]}) == "--seq" ]] && \
+			seq=true && \
+			range=true
 		[[ $(echo ${args[${i}]}) == "-F" || \
 			$(echo ${args[${i}]}) == "--from" ]] && \
 			range=true && \
@@ -68,6 +71,14 @@ read_args() {
 			set_prefix=true && \
 			argument_set_prefix=$(( i + 1 )) && \
 			prefix=${args[${argument_set_prefix}]}
+		[[ $(echo ${args[${i}]}) == "--mac-file" ]] && \
+			read_from_file=true && \
+			argument_read_from_file=$(( i + 1 )) && \
+			file_to_read_mac_from=${args[${argument_read_from_file}]} && \
+			if ! [[ -f $(realpath "$file_to_read_mac_from") ]]; then
+				echo -e "${_RED}Error: file does not exist.${_RESET}"
+				exit 1
+			fi
 		#[[ $(echo ${args[${i}]}) == "--rm-checkpoint" ]] && \
 		#	echo "Remove checkpoint file for ${dns} ?" && exit 0
 		[[ $(echo ${args[${i}]}) == "-h" || $(echo ${args[${i}]}) == "--help" ]] && \
