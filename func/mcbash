@@ -1,0 +1,24 @@
+#!/bin/sh
+
+load_config_file
+locate_destination_folder
+read_args "$@"
+
+[[ -n ${only_outputs_mac} ]] || display_logo
+
+dns_name
+check_parameters
+
+[[ -n ${only_outputs_mac} ]] || scanning_text
+
+item=0
+valid_macs_number=0
+timeout_number=0
+stty -echoctl # Hide ^C when pressing Ctrl+C
+
+# Let's go !
+while :
+do
+	handshaking
+	trap quit_mcbash SIGINT
+done

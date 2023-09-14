@@ -35,7 +35,7 @@ cat ./func/mcbash  | sed '/^#!\/bin\/sh/d ; /^#.*/d' >> ./build/mcbash
 # Append infos to the end of the program
 while read -r lines; do
 	if [[ "${lines}" == "" ]]; then
-		echo "\n" >> ./build/mcbash;
+		echo -e "\n" >> ./build/mcbash;
 	fi;
 	echo -e "# ${lines}" >> ./build/mcbash;
 done < <(cat ./misc/infos.txt)
