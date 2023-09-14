@@ -1,0 +1,44 @@
+#!/bin/sh
+
+random_mac() {
+	a=(1 2 3 4 5 6 7 8 9 0 A B C D E F)
+	if [[ -n ${prefix} ]]; then
+		mac_prefix=${prefix}
+	else
+		mac_prefix=${default_mac_prefix}
+	fi
+	number_chars_prefix=$(( $(echo ${mac_prefix} | sed 's/://g' | wc --chars) - 1 ))
+	max_mac_length=12
+	missing_mac_values=$(( max_mac_length - number_chars_prefix ))
+	suffix=""
+	for (( i=0;i<${missing_mac_values};i++ )); do
+		suffix=$(echo $suffix)$(echo ${a[RANDOM%16]})
+	done
+	mac_without_colon=$(echo $mac_prefix | sed 's/://g')$(echo $suffix)
+	mac=$(echo $mac_without_colon | sed -r 's/.{2}/&:/g ; s/:$//')
+	#mac="00:1A:79:"
+	#mac=$(echo $mac_prefix)$(echo ${a[RANDOM%16]})$(echo ${a[RANDOM%16]})$(echo ':')$(echo ${a[RANDOM%16]})$(echo ${a[RANDOM%16]})$(echo ':')$(echo ${a[RANDOM%16]})$(echo ${a[RANDOM%16]})
+	encoded_mac=$(echo $mac | sed 's/:/\%3A/g')
+}
+
+range_mac() {
+	[[ -n ${last_mac_reached} ]] && \
+		( [[ -n ${only_outputs_mac} ]] || echo "${_BOLD}${_CYAN}Range fullfiled${_RESET}" ) && \
+		exit 0
+	[[ -z ${first_mac+x} ]] && first_mac="$default_first_mac" && mac=$(echo $first_mac) && return # user first value of the MAC
+	[[ $item == 1 ]] && mac=$(echo $first_mac) && return
+
+	# if not '--no-checkpoint', save that MAC in checkpoint file
+	[[ -z ${no_checkpoint+x} ]] && echo "${first_mac}" > "${destination}/checkpoint_${name}"
+
+	new_mac=$(echo $first_mac)
+	mac_simple=$(echo $new_mac |  tr '[:lower:]' '[:upper:]' | tr -d ':') && \
+		mac_dec=$( printf '%d\n' 0x$mac_simple ) && \
+		mac_add=$( expr $mac_dec + 1 ) && \
+		mac_hex=$( printf '%012X\n' $mac_add ) && \
+		new_mac=$(echo $mac_hex | sed 's/../&:/g;s/:$//') && \
+		first_mac=$(echo $new_mac) && \
+		mac=$(echo $new_mac) && \
+		[[ -n ${last_mac} && $last_mac == $mac ]] && last_mac_reached=true
+	return
+}

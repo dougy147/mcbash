@@ -5,7 +5,7 @@
 Just feed it with a server URL or IP, and let it check by itself.
 
 <p align="center">
-<img src="mcbash.gif" width="80%" />
+<img src="./assets/mcbash.gif" width="80%" />
 </p>
 
 
@@ -38,6 +38,7 @@ The key feature of `mcbash` is **flexibility**. It comes with handy options to m
 | `--range`                 | Check MACs in sequential order                               |
 | **`-F`**, `--from`        | Set first MAC to check (`--range` is forced)                 |
 |  **`-L`**, `--to`         | Set last MAC to check (`--range` is forced)                  |
+| `--prefix`                | Select MACs prefix when screening in random mode             |
 | **`-P`**, `--proxy`       | Set the proxy URL (any authentication method supported       |
 | **`-pu`**, `--proxy-user` | Set your proxy credentials `user:password`                   |
 | `--show-only-mac`         | Only outputs found MACs                                      |
@@ -45,7 +46,7 @@ The key feature of `mcbash` is **flexibility**. It comes with handy options to m
 
 By default, MACs are pseudo-randomly generated and checked. If you want to screen sequentially, use `--range`. This option allows you to specify lower and upper bounds.
 
-ℹ  When screening sequentially, `mcbash` creates a checkpoint file, storing last checked MAC.
+When screening sequentially, `mcbash` creates a checkpoint file, storing last checked MAC.
 You can specify `--no-checkpoint` to bypass that (i.e. no checkpoint will be saved).
 
 The use of a proxy and credentials is supported thanks to `curl`.
@@ -53,15 +54,16 @@ The use of a proxy and credentials is supported thanks to `curl`.
 The `--show-only-mac` exotic option exclusively outputs valid MACs to stdout (useful if you want to redirect stdout to another program).
 
 
-## Useful infos ℹ 
+## Useful infos
 
 ### Default parameters are configurable
 
-Config file `$HOME/.mcbash/mcbash.conf` contains default options. You can change them according to your needs.
+Config file `$HOME/.config/mcbash/mcbash.conf` contains default options. You can change them according to your needs.
 
 ### MACs are stored
 
 Did you close your terminal ? Don't worry, when a MAC is found, it is immediately stored in `$HOME/.mcbash` directory.
+This directory is tweakable in the configuration file.
 
 ### Size sometimes matters
 

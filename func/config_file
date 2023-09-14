@@ -1,0 +1,15 @@
+#!/bin/sh
+
+load_config_file() {
+	config_file="${CONF_DEST}/mcbash.conf"
+
+	if [[ -f $config_file ]]; then
+		source "$config_file"
+	else
+		if [[ -f "${ALT_CONF_DEST}/mcbash.conf" ]]; then
+			source "${ALT_CONF_DEST}/mcbash.conf"
+		else
+			echo -e "Config file not found. This can cause weird behaviors.\nmcbash.conf should be placed here : $config_file"
+		fi
+	fi
+}

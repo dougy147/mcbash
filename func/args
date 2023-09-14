@@ -1,0 +1,92 @@
+#!/bin/sh
+
+read_args() {
+	args=("$@")
+	ELEMENTS=${#args[@]}
+	for (( i=0;i<$ELEMENTS;i++)); do
+		[[ $(echo ${args[${i}]}) == "--show-only-mac" ]] && \
+			only_outputs_mac=true
+		[[ $(echo ${args[${i}]}) == "-np" || \
+			$(echo ${args[${i}]}) == "--default" ]] && \
+			avoid_parameters=true
+		[[ $(echo ${args[${i}]}) == "-u" || \
+			$(echo ${args[${i}]}) == "--url" ]] && \
+			argument_dns=$(( i + 1 )) && \
+			dns=${args[${argument_dns}]}
+		#[[ $(echo ${args[${i}]} | grep -o "\.[a-z][a-z]" ) || \
+		#	$(echo ${args[${i}]} | grep -o "[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*" ) ]] && \
+		#	dns=${args[${i}]}
+		[[ $(echo ${args[${i}]}) == "-w" || \
+			$(echo ${args[${i}]}) == "--wait" ]] && \
+			argument_request_delay=$(( i + 1 )) && \
+			request_delay=${args[${argument_request_delay}]}
+		[[ $(echo ${args[${i}]}) == "-t" || \
+			$(echo ${args[${i}]}) == "--timeout" ]] && \
+			argument_timeout=$(( i + 1 )) && \
+			timeout=${args[${argument_timeout}]}
+		[[ $(echo ${args[${i}]}) == "-b" || \
+			$(echo ${args[${i}]}) == "--break" ]] && \
+			argument_timebreak=$(( i + 1 )) && \
+			timebreak=${args[${argument_timebreak}]}
+		[[ $(echo ${args[${i}]}) == "-d" || \
+			$(echo ${args[${i}]}) == "--pause-for" ]] && \
+			argument_timebreak_duration=$(( i + 1 )) && \
+			timebreak_duration=${args[${argument_timebreak_duration}]}
+		[[ $(echo ${args[${i}]}) == "-s" || \
+			$(echo ${args[${i}]}) == "--stop" ]] && \
+			argument_stop=$(( i + 1 )) && \
+			stopping=${args[${argument_stop}]}
+		[[ $(echo ${args[${i}]}) == "-k" || \
+			$(echo ${args[${i}]}) == "--keep" ]] && \
+			argument_keep_expired=$(( i + 1 )) && \
+			keep_expired=${args[${argument_keep_expired}]}
+		[[ $(echo ${args[${i}]}) == "--range" ]] && \
+			range=true
+		[[ $(echo ${args[${i}]}) == "-F" || \
+			$(echo ${args[${i}]}) == "--from" ]] && \
+			range=true && \
+			argument_range_from=$(( i + 1 )) && \
+			range_from=${args[${argument_range_from}]}
+		[[ $(echo ${args[${i}]}) == "-L" ||
+			$(echo ${args[${i}]}) == "--to" ]] && \
+			range=true && \
+			argument_range_to=$(( i + 1 )) && \
+			range_to=${args[${argument_range_to}]}
+		[[ $(echo ${args[${i}]}) == "-P" ||
+			$(echo ${args[${i}]}) == "--proxy" ]] && \
+			argument_proxy_url=$(( i + 1 )) && \
+			proxy_url=${args[${argument_proxy_url}]} && \
+			proxy_url_option=$(echo "-x $proxy_url")
+		[[ $(echo ${args[${i}]}) == "-pu" ||
+			$(echo ${args[${i}]}) == "--proxy-user" ]] && \
+			argument_proxy_user=$(( i + 1 )) && \
+			proxy_user=${args[${argument_proxy_user}]} && \
+			proxy_user_option=$(echo "--proxy-anyauth --proxy-user $proxy_user")
+		[[ $(echo ${args[${i}]}) == "--no-checkpoint" ]] && \
+			no_checkpoint=true
+		[[ $(echo ${args[${i}]}) == "--prefix" ]] && \
+			set_prefix=true && \
+			argument_set_prefix=$(( i + 1 )) && \
+			prefix=${args[${argument_set_prefix}]}
+		#[[ $(echo ${args[${i}]}) == "--rm-checkpoint" ]] && \
+		#	echo "Remove checkpoint file for ${dns} ?" && exit 0
+		[[ $(echo ${args[${i}]}) == "-h" || $(echo ${args[${i}]}) == "--help" ]] && \
+			echo -e "${_BOLD}Help menu :${_RESET} \
+			\n -b ${_BLUE}X${_RESET} : Make a break every ${_BLUE}X${_RESET} requests \
+			\n -d ${_BLUE}X${_RESET} : Break or timeout duration (${_BLUE}X${_RESET} seconds) \
+			\n -s ${_BLUE}X${_RESET} : Stop McBash after ${_BLUE}X${_RESET} tested MAC addresses \
+			\n -t ${_BLUE}X${_RESET} : Consider request a timeout after a delay of ${_BLUE}X${_RESET} seconds \
+			\n -u ${_BLUE}URL:port${_RESET} : Server ${_BLUE}URL/IP${_RESET} and ${_BLUE}port (optional)${_RESET} (specifying -u is not mandatory) \
+			\n -w ${_BLUE}X${_RESET} : Wait ${_BLUE}X${_RESET} seconds between each requests \
+			\n -k : Store expired MAC addresses (valid but expired accounts) \
+			\n --range : Scan a range of MAC addresses sequentially \
+			\n -np : Parameters by default \
+			\n -h : Print this help menu \
+			\n man mcbash : Look up the manual for more tweaks (proxy support, shell scripts call, etc.)\
+			\n \
+			\n ${_BOLD}Example ${_RESET}: mcbash -u my-dns.com:8080 -w 1.5 -b 10 -d 3 -s 150 -t 2 -k
+			\n Set your default parameters inside this file : \"$HOME/.mcbash/mcbash.conf\"\
+			\n MACs are stored here : \"${destination}\"\
+			" && exit 0
+	done
+}

