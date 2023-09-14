@@ -45,5 +45,5 @@ done < <(cat ./misc/infos.txt)
 
 # Finalize program building
 chmod +x ./build/mcbash
-mv ./build/mcbash .
+mv ./build/mcbash ./bin/mcbash
 rm -r ./build 2>/dev/null

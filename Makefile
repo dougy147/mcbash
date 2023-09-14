@@ -12,7 +12,7 @@ endif
 install:
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
 	sh build.sh
-	cp -f mcbash $(DESTDIR)$(PREFIX)/bin/
+	cp -f ./bin/mcbash $(DESTDIR)$(PREFIX)/bin/
 	chmod 755 $(DESTDIR)$(PREFIX)/bin/mcbash
 	mkdir -p $(DESTDIR)$(MANPREFIX)/man1
 	cp -f mcbash.1 $(DESTDIR)$(MANPREFIX)/man1/mcbash.1
