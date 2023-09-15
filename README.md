@@ -19,11 +19,9 @@ sudo make install
 
 For Arch users, there is an up-to-date package on the AUR (e.g. `yay -S mcbash`)
 
-## Functionalities
+## Functionalities overview
 
-As servers may differ in the way they handle requests, one need to adapt.
-
-The key feature of `mcbash` is **flexibility**. It comes with handy options to manage your requests. `mcbash --help` display most common options. For *"advanced"* settings, read the manual (`man mcbash`).
+As servers may differ in the way they handle requests, one need to adapt. The key feature of `mcbash` is **flexibility**. It comes with handy options to manage your requests. 
 
 | Option                    | Functionality                                                |
 |---------------------------|--------------------------------------------------------------|
@@ -36,8 +34,8 @@ The key feature of `mcbash` is **flexibility**. It comes with handy options to m
 | **`-k`**, `--keep`        | Store expired MACs (valid addresses but expired accounts)    |
 | **`-np`**, `--default`    | Don't ask for parameters. Use default configuration          |
 | `--mac-file`              | Choose a file to read MACs from (MACs should be line by line)|
-| `--seq`                   | Check MACs in sequential order                               |
-| `--range`                 | Set a range for checked MACs (forced with `--seq`)           |
+| `--seq`                   | Check MACs in sequential order (`--range` is forced)         |
+| `--range`                 | Set a range for checked MACs                                 |
 | **`-F`**, `--from`        | Set first MAC to check (`--seq` is forced)                   |
 |  **`-L`**, `--to`         | Set last MAC to check (`--seq` is forced)                    |
 | `--prefix`                | Select MACs prefix when screening in random mode             |
@@ -46,29 +44,41 @@ The key feature of `mcbash` is **flexibility**. It comes with handy options to m
 | `--show-only-mac`         | Only outputs found MACs                                      |
 | `--no-checkpoint`         | Don't store checkpoints                                      |
 
-By default, MACs are pseudo-randomly generated and checked. If you want to screen sequentially, use `--seq`. 
-This option let you specify lower and upper bounds.
+`mcbash --help` displays most common options. 
+
+For **"advanced"** settings, read the manual : `man mcbash`.
+
+
+### Scan randomly, sequentially, or from file
+
+By default, MACs are *pseudo*-randomly generated and checked (random mode). 
+If you want to screen sequentially, use `--seq` (sequential mode). 
+You can also read MACs from a file (line by line) with `--mac-file your_file.txt`.
+
+### Scan inside a range
+
+In sequential mode you need to specify lower and upper bounds of the range of MACs you want to scan (i.e. the "lowest" and "highest" MAC values).
+You can do that in random mode too, with the option `--range`.
+
+### Checkpoints
 
 When screening sequentially, `mcbash` creates a checkpoint file, storing last checked MAC.
 You can specify `--no-checkpoint` to bypass that (i.e. no checkpoint will then be saved).
 
-Screening a specific range is also possible when checking randomly with the option `--range`.
+### Proxy works
 
-The use of a proxy and credentials is supported thanks to `curl`.
+The use of a proxy and credentials is supported. Thanks to `curl`, any protocol works.
+Here is an example with proxy and credentials use : `--proxy http://localhost:12345 --proxy-user user:pwd`.
 
-The `--show-only-mac` exotic option exclusively outputs valid MACs to stdout (useful if you want to redirect stdout to another program).
+### Default parameters
 
-
-## Useful infos
-
-### Default parameters are configurable
-
-Config file `$HOME/.config/mcbash/mcbash.conf` contains default options. You can change them according to your needs.
+The configuration file `$HOME/.config/mcbash/mcbash.conf` contains default options. You can change them according to your needs.
 
 ### MACs are stored
 
-Did you close your terminal ? Don't worry, when a MAC is found, it is immediately stored in `$HOME/.mcbash` directory.
-This directory is tweakable in the configuration file.
+When a valid MAC is found, it is immediately stored in `$HOME/.mcbash` directory.
+
+## Misc
 
 ### Size sometimes matters
 
@@ -79,20 +89,23 @@ For `00:1A:79:xx:xx:xx`-like MAC addresses (most commons), there are $16^6$ poss
 macOS runs a dinosaur version of bash. But `mcbash` won't allow its users to be left behind. That's why its code is meant to stay retro-compatible. How kind from this little script 😎!
 
 
-
 ## Usage examples
 
-- **Example 1** : `mcbash -u my-fakedns.org:8080 -w 1.5 -b 10 -d 3 -s 1500 -t 2`
+- **Example 0** : `mcbash`
+
+Easiest way to use it! `mcbash` guides you and adapts to your requests.
+
+- **Example 1** : `mcbash -u my-fakedns.bla:8080 -w 1.5 -b 10 -d 3 -s 1500 -t 2`
 
 The program waits 1.5 seconds between each requests, makes a break every 10 requests for 3 seconds, stops after 1500 MACs checked, and considers a request timeouted after 2 seconds (timeouts trigger a pause to avoid flood).
 
 
-- **Example 2** : `mcbash -u my-fakedns.org:8080 -F 00:1A:79:00:00:00 -L 00:1A:79:00:11:11`
+- **Example 2** : `mcbash -u my-fakedns.bla:8080 -F 00:1A:79:00:00:00 -L 00:1A:79:00:11:11`
 
 Scans sequentially from `00:1A:79:00:00:00` to `00:1A:79:00:11:11`.
 
 
-- **Example 3** : `mcbash -u my-fakedns.org:8080 --proxy http://localhost:12345 --proxy-user user:pwd`
+- **Example 3** : `mcbash -u my-fakedns.bla:8080 --proxy http://localhost:12345 --proxy-user user:pwd`
 
 Establishes communications through proxy `http://localhost:12345`, with `user:pwd` username and password.
 
@@ -118,7 +131,7 @@ Please use that script consciously, with and on your personal goods only.
 
 ## Feel free ! 😎
 
-If mcbash has been of any help to you, I'd be glad and thankful !
+If `mcbash` has been of any help to you, I'd be glad and thankful !
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/dougy147)
 
