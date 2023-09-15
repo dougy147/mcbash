@@ -23,7 +23,7 @@ For Arch users, there is an up-to-date package on the AUR (e.g. `yay -S mcbash`)
 
 As servers may differ in the way they handle requests, one need to adapt. The key feature of `mcbash` is **flexibility**. It comes with handy options to manage your requests. 
 
-| Option                    | Functionality                                                |
+| Requests                  | Functionality                                                |
 |---------------------------|--------------------------------------------------------------|
 | **`-u`**, `--url`         | Server's URL/IP                                              |
 | **`-w`**, `--wait`        | Wait **X** seconds between each requests                     |
@@ -31,22 +31,30 @@ As servers may differ in the way they handle requests, one need to adapt. The ke
 | **`-d`**, `--pause-for`   | Break duration (in seconds)                                  |
 | **`-s`**, `--stop`        | Stop McBash after **X** tested MACs                          |
 | **`-t`**, `--timeout`     | Consider request a timeout after **X** seconds               |
-| **`-k`**, `--keep`        | Store expired MACs (valid addresses but expired accounts)    |
-| **`-np`**, `--default`    | Don't ask for parameters. Use default configuration          |
+| **`-P`**, `--proxy`       | Set the proxy URL (any authentication method supported)      |
+| **`-pu`**, `--proxy-user` | Set your proxy credentials `user:password`                   |
+
+
+| Scan mode                 | Functionality                                                |
+|---------------------------|--------------------------------------------------------------|
 | `--mac-file`              | Choose a file to read MACs from (MACs should be line by line)|
 | `--seq`                   | Check MACs in sequential order (`--range` is forced)         |
 | `--range`                 | Set a range for checked MACs                                 |
-| **`-F`**, `--from`        | Set first MAC to check (`--seq` is forced)                   |
-|  **`-L`**, `--to`         | Set last MAC to check (`--seq` is forced)                    |
+| **`-F`**, `--from`        | Set range lower boundary (lowest MAC value to check)         |
+|  **`-L`**, `--to`         | Set range higher boundary (highest MAC value to check)       |
 | `--prefix`                | Select MACs prefix when screening in random mode             |
-| **`-P`**, `--proxy`       | Set the proxy URL (any authentication method supported)      |
-| **`-pu`**, `--proxy-user` | Set your proxy credentials `user:password`                   |
+
+
+| Others                    | Functionality                                                |
+|---------------------------|--------------------------------------------------------------|
+| **`-k`**, `--keep`        | Store expired MACs (valid addresses but expired accounts)    |
+| **`-np`**, `--default`    | Don't ask for parameters. Use default configuration          |
 | `--show-only-mac`         | Only outputs found MACs                                      |
 | `--no-checkpoint`         | Don't store checkpoints                                      |
 
 `mcbash --help` displays most common options. 
 
-For **"advanced"** settings, read the manual : `man mcbash`.
+For *advanced* settings, read the manual : `man mcbash`.
 
 
 ### Scan randomly, sequentially, or from file
