@@ -23,7 +23,9 @@ For Arch users, there is an up-to-date package on the AUR (e.g. `yay -S mcbash`)
 
 As servers may differ in the way they handle requests, one need to adapt. The key feature of `mcbash` is **flexibility**. It comes with handy options to manage your requests. 
 
-| Requests                  | Functionality                                                |
+### Requests
+
+| Option                    | Functionality                                                |
 |---------------------------|--------------------------------------------------------------|
 | **`-u`**, `--url`         | Server's URL/IP                                              |
 | **`-w`**, `--wait`        | Wait **X** seconds between each requests                     |
@@ -34,8 +36,9 @@ As servers may differ in the way they handle requests, one need to adapt. The ke
 | **`-P`**, `--proxy`       | Set the proxy URL (any authentication method supported)      |
 | **`-pu`**, `--proxy-user` | Set your proxy credentials `user:password`                   |
 
+### Scan mode
 
-| Scan mode                 | Functionality                                                |
+| Option                    | Functionality                                                |
 |---------------------------|--------------------------------------------------------------|
 | `--mac-file`              | Choose a file to read MACs from (MACs should be line by line)|
 | `--seq`                   | Check MACs in sequential order (`--range` is forced)         |
@@ -44,8 +47,9 @@ As servers may differ in the way they handle requests, one need to adapt. The ke
 |  **`-L`**, `--to`         | Set range higher boundary (highest MAC value to check)       |
 | `--prefix`                | Select MACs prefix when screening in random mode             |
 
+### Others
 
-| Others                    | Functionality                                                |
+| Option                    | Functionality                                                |
 |---------------------------|--------------------------------------------------------------|
 | **`-k`**, `--keep`        | Store expired MACs (valid addresses but expired accounts)    |
 | **`-np`**, `--default`    | Don't ask for parameters. Use default configuration          |
