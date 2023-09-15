@@ -1,5 +1,7 @@
 #!/bin/sh
 
+max_mac_length=12
+
 # Check MAC randomly (between a range or not).
 random_mac() {
 	a=(1 2 3 4 5 6 7 8 9 0 A B C D E F)
@@ -9,7 +11,6 @@ random_mac() {
 		mac_prefix=${default_mac_prefix}
 	fi
 	number_chars_prefix=$(( $(echo ${mac_prefix} | sed 's/://g' | wc --chars) - 1 ))
-	max_mac_length=12
 	missing_mac_values=$(( max_mac_length - number_chars_prefix ))
 	suffix=""
 	for (( i=0;i<${missing_mac_values};i++ )); do
@@ -54,6 +55,7 @@ seq_mac() {
 		mac=$(echo $new_mac) && \
 		[[ -n ${last_mac} && $last_mac == $mac ]] && last_mac_reached=true
 	#return
+	encoded_mac=$(echo $mac | sed 's/:/\%3A/g')
 }
 
 # If --range is selected, MAC are created BETWEEN the range.
@@ -64,19 +66,11 @@ range_mac() {
 		mac_max_basic=$(echo $range_to |  tr '[:lower:]' '[:upper:]' | tr -d ':')
 		mac_max_dec=$( printf '%d\n' 0x$mac_max_basic )
 	fi
-	mac_basic=$(echo $new_mac |  tr '[:lower:]' '[:upper:]' | tr -d ':')
-	mac_dec=$( printf '%d\n' 0x$mac_basic )
-
-	random_between_range=$(awk -v beginning=${mac_low_dec} -v finish=${mac_max_dec} 'BEGIN{srand();print int(rand()*(finish - beginning)) }')
-	number_chars_random=$(( $(echo ${random_between_range} | sed 's/://g' | wc --chars) - 1 ))
-	number_of_non_changing_values=$(( max_mac_length - number_chars_random ))
-	range_from_without_colon=$(echo $range_from | sed 's/://g')
-	non_random_prefix=$(echo ${range_from_without_colon:0:$number_of_non_changing_values})
-	printf_prefix=$(echo "%0${number_chars_random}X\n")
-	suffix_hex=$( printf "${printf_prefix}" $random_between_range )
-	mac_hex=$(echo $non_random_prefix)$(echo $suffix_hex)
-	new_mac=$(echo $mac_hex | sed 's/../&:/g;s/:$//')
-	#return
+	random_between_range=$(awk -v beginning=${mac_low_dec} -v finish=${mac_max_dec} 'BEGIN{srand();print int(rand()*(finish - beginning) + beginning) }')
+	printf_string=$(echo "%0${max_mac_length}x\n")
+	mac_hex=$(printf "${printf_string}" $random_between_range)
+	new_mac=$(echo $mac_hex | tr '[:lower:]' '[:upper:]' | sed 's/../&:/g;s/:$//')
+	encoded_mac=$(echo $mac | sed 's/:/\%3A/g')
 }
 
 
@@ -96,4 +90,5 @@ read_mac_from_file() {
 	if [[ $mac == "" ]]; then
 		read_mac_from_file
 	fi
+	encoded_mac=$(echo $mac | sed 's/:/\%3A/g')
 }
