@@ -461,7 +461,7 @@ proxy_from_file() {
 	current_proxy_line=$(( current_proxy_line + 1 ))
 	#echo $current_proxy_line
 	if [[ "${current_proxy_line}" -gt $(cat "${proxy_file}" | wc -l) ]]; then
-		current_proxy_line=0
+		current_proxy_line=1
 	fi
 	proxy_url=$(sed "${current_proxy_line}q;d" "${proxy_file}")
 }
