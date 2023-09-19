@@ -65,6 +65,11 @@ read_args() {
 			argument_proxy_user=$(( i + 1 )) && \
 			proxy_user=${args[${argument_proxy_user}]} && \
 			proxy_user_option=$(echo "--proxy-anyauth --proxy-user $proxy_user")
+		[[ $(echo ${args[${i}]}) == "--proxy-file" ]] && \
+			proxy_from_file=true && \
+			argument_proxy_file=$(( i + 1 )) && \
+			proxy_file=${args[${argument_proxy_file}]} && \
+			update_proxy
 		[[ $(echo ${args[${i}]}) == "--no-checkpoint" ]] && \
 			no_checkpoint=true
 		[[ $(echo ${args[${i}]}) == "--prefix" ]] && \

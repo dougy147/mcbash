@@ -3,6 +3,13 @@
 handshaking() {
 	if [[ -n ${last_request_timedout} ]]; then
 		unset last_request_timedout
+		if [[ -n "${proxy_from_file}" ]]; then
+			#echo "Current proxy is : $proxy_url_option"
+			#echo "Changing proxy..."
+			update_proxy
+			#echo "New proxy is : $proxy_url_option"
+			echo -e "${_ERASE}${_DIM}Rotated proxy to '${_BLUE}${proxy_url}${_RESET}${_DIM}'${_RESET}"
+		fi
 	else
 		item=$(( $item + 1 ))
 		[[ -n ${stopping} ]] && [[ $(( $item - 1 )) == $stopping ]] && \
@@ -26,7 +33,7 @@ handshaking() {
 	handshake_url=$(echo $dns)'/portal.php?action=handshake&type=stb&token=&mac='$(echo $encoded_mac)
 	cookie="mac=$mac; stb_lang=en; timezone=Europe/Amsterdam; "
 	random_user_agent
-	handshake_token=$(curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Cookie: $(echo $cookie)" "$(echo $handshake_url)"); if [ $? -eq 28 ]; then timeout_number=$(( $timeout_number + 1 )) && last_request_timedout=true && ( [[ -n ${only_outputs_mac} ]] || echo -ne "${_ERASE}Timeout [$timeout_number]. New attempt in $timebreak_duration seconds." ) && sleep $timebreak_duration && ( [[ -n ${only_outputs_mac} ]] || echo -ne "${_ERASE}${_ERASE}New attempt..." ) && return; fi
+	handshake_token=$(curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Cookie: $(echo $cookie)" "$(echo $handshake_url)"); if [ $? -eq 28 ]; then timeout_number=$(( $timeout_number + 1 )) && last_request_timedout=true && ( [[ -n ${only_outputs_mac} ]] || echo -ne "${_ERASE}${_BLUE}Timeout [$timeout_number]. New attempt in $timebreak_duration seconds.${_RESET}" ) && sleep $timebreak_duration && ( [[ -n ${only_outputs_mac} ]] || echo -ne "${_ERASE}${_ERASE}${_BLUE}New attempt...${_RESET}" ) && return; fi
 	handshake_token=$(echo $handshake_token| grep -o '"token".*' | sed 's/\"token\":// ; s/\}\}//')
 	[[ $handshake_token = "" ]] && ( [[ -n ${only_outputs_mac} ]] || echo -ne "${_ERASE}$@${_YELLOW}[$item]${_RESET} ${_RED}$mac ${_RESET}" ) && return # [empty]
 	[[ $(echo $handshake_token | grep null) ]] && ( [[ -n ${only_outputs_mac} ]] || echo -ne "${_ERASE}$@${_YELLOW}[$item]${_RESET} ${_RED}$mac ${_RESET}" ) && return # [empty]
