@@ -35,6 +35,7 @@ As servers may differ in the way they handle requests, one need to adapt. The ke
 | **`-t`**, `--timeout`     | Consider request a timeout after **X** seconds               |
 | **`-P`**, `--proxy`       | Set the proxy URL (any authentication method supported)      |
 | **`-pu`**, `--proxy-user` | Set your proxy credentials `user:password`                   |
+| `--proxy-file`            | Read proxy IPs from a file. Rotation when request timeout    |
 
 ### Scan mode
 
