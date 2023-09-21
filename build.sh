@@ -24,7 +24,7 @@ for conf_file in ./misc/*.conf; do cat "${conf_file}" | sed '/^#!\/bin\/sh/d ; /
 
 # Concatenate all functions into mcbash
 for function in ./func/*; do
-	if [[ $(grep mcbash <<< "${function}") ]]; then
+	if [[ $(grep mcbash << "${function}") ]]; then
 		continue;
 	else
 		cat "${function}" | sed '/^#!\/bin\/sh/d ; /^#.*/d' >> ./build/mcbash;
