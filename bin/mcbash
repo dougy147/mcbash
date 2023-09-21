@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 CONF_DEST="${HOME}/.config/mcbash"
 ALT_CONF_DEST="/etc"
 
@@ -184,7 +184,7 @@ random_mac() {
 	else
 		mac_prefix=${default_mac_prefix}
 	fi
-	number_chars_prefix=$(( $(echo ${mac_prefix} | sed 's/://g' | wc --chars) - 1 ))
+	number_chars_prefix=$(( $(echo ${mac_prefix} | sed 's/://g' | wc -m) - 1 ))
 	missing_mac_values=$(( max_mac_length - number_chars_prefix ))
 	suffix=""
 	for (( i=0;i<${missing_mac_values};i++ )); do
