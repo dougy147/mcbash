@@ -5,7 +5,7 @@ services:
         # image: Not available yet
         build:
             context: ./
-            dockerfile: DOCKERFILE
+            dockerfile: Dockerfile
         container_name: mcbash
         environment:
             - TZ=Europe/Berlin
