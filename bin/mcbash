@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 CONF_DEST="${HOME}/.config/mcbash"
 ALT_CONF_DEST="/etc"
 
