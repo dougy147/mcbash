@@ -1,0 +1,18 @@
+---
+version: '3.5'
+services:
+    mcbash:
+        # image: Not available yet
+        build:
+            context: ./
+            dockerfile: DOCKERFILE
+        container_name: mcbash
+        environment:
+            - TZ=Europe/Berlin
+        volumes:
+            - ./config:/root/.mcbash
+        #network_mode: container:vpn
+        tty: true
+        stdin_open: true
+        command: bash
+        #restart: unless-s
