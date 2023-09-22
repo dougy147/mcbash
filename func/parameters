@@ -16,8 +16,8 @@ check_parameters() {
 		-z ${timebreak+x} && \
 		-z ${timebreak_duration+x} && \
 		-z ${stopping+x} && \
-		-z ${timeout+x} && \
-		-z ${keep_expired+x} ]] && \
+		-z ${timeout+x} ]] && \
+		#-z ${keep_expired+x} ]] && \
 		read -p "${_BOLD}=>${_RESET} Adjust parameters? ${_BOLD}[y/N]${_RESET} " PARAMETERS
 
 	if [[ $(echo $PARAMETERS | grep -io "y") ]]; then
@@ -109,8 +109,8 @@ check_parameters() {
 
 		[[ -n ${last_mac} ]] && range_to=$last_mac
 
-		[[ -n ${keep_expired} ]] || \
-			read -p "${_RESET} ${_BOLD}*${_RESET} Store expired MAC addresses (tagged as such)? ${_BOLD}[y/N]${_RESET} " keep_expired
+		#[[ -n ${keep_expired} ]] || \
+		#	read -p "${_RESET} ${_BOLD}*${_RESET} Store expired MAC addresses (tagged as such)? ${_BOLD}[y/N]${_RESET} " keep_expired
 
 		( [[ $keep_expired == "" || $(echo $keep_expired | grep -io "n") ]] ) && \
 			unset keep_expired
