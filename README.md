@@ -11,13 +11,24 @@ Just feed it with a server URL or IP, and let it check by itself.
 
 ## Quick start
 
-```
+```bash
 git clone https://github.com/dougy147/mcbash
 cd ./mcbash
 sudo make install
 ```
 
-For Arch users, there is an up-to-date package on the AUR (e.g. `yay -S mcbash`)
+### Docker
+
+```bas
+git clone https://github.com/dougy147/mcbash
+cd ./mcbash
+docker-compose up -d
+docker exec -it mcbash /bin/bash
+```
+
+### AUR
+
+For Arch users, there is an up-to-date `mcbash` package on the AUR.
 
 ## Functionalities overview
 
@@ -139,6 +150,9 @@ Please use that script consciously, with and on your personal goods only.
 
 <a href="https://github.com/ian10951">
   <img src="https://avatars.githubusercontent.com/u/11910714?v=4" width='50px'>
+</a>
+<a href="https://github.com/jojo141185">
+  <img src="https://avatars.githubusercontent.com/u/6240522?v=4" width='50px'>
 </a>
 
 
