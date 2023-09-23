@@ -62,7 +62,7 @@ check_parameters() {
 		[[ -z ${seq+x} ]] && \
 			echo -e "${_RESET} ${_BOLD}*${_RESET} You have selected ${_GREEN}random mode${_RESET}"
 
-		if [[ -z ${range+x} && -z ${prefix} ]]; then
+		if [[ -z ${range+x} && -z ${seq+x} && -z ${prefix} ]]; then
 			read -p "${_RESET} ${_BOLD}->${_RESET} Indicate MAC to scan prefix ${_BOLD}[$default_mac_prefix]${_RESET} ${_BOLD}${_GREEN}" prefix
 			if [[ ${prefix} == "" ]]; then
 				unset prefix
