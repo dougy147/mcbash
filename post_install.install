@@ -3,15 +3,6 @@ post_install() {
 		if ! [ -f /home/${SUDO_USER}/.config/mcbash/mcbash.conf ] ; then
 			cp -f /etc/mcbash.conf /home/${SUDO_USER}/.config/mcbash/mcbash.conf
 			chmod 777 /home/${SUDO_USER}/.config/mcbash/mcbash.conf
-		else
-			while read -r etc_config_line; do
-				variable=$(echo ${etc_config_line} | grep -Eo "^.*=.*")
-				variable_name=$(echo ${variable} | grep -Eo "^.*=")
-				variable_value=$(echo ${variable} | grep -Eo "=.*" | sed 's/=//')
-				if ! [[ $(grep -o "${variable_name}" "/home/${SUDO_USER}/.config/mcbash/mcbash.conf") ]]; then
-					echo "$variable" >> "/home/${SUDO_USER}/.config/mcbash/mcbash.conf"
-				fi
-			done < <(cat /etc/mcbash.conf)
 		fi
 	fi
 	chown -R ${SUDO_USER}:${SUDO_USER} /home/${SUDO_USER}/.config/mcbash
