@@ -216,6 +216,7 @@ ask_range() {
 			ask_first_mac
 		fi
 	fi
+	[[ -n ${range_from} ]] && first_mac=$range_from
 	[[ -z ${first_mac} ]] && first_mac=$default_first_mac
 	[[ -n ${first_mac} ]] && range_from=$first_mac
 	[[ -n ${range} && -z ${range_to+x} ]] && ask_last_mac
