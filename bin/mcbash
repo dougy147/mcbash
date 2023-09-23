@@ -211,6 +211,12 @@ load_config_file() {
 	config_file="${CONF_DEST}/mcbash.conf"
 
 	if [[ -f $config_file ]]; then
+		# Sourcing /etc/config_file first
+		# because when updates to config file, this one is ALWAYS REPLACED.
+		# This way, variables not updated inside the USER config folder are loaded anyway.
+		if [[ -f "${ALT_CONF_DEST}/mcbash.conf" ]]; then
+			source "${ALT_CONF_DEST}/mcbash.conf"
+		fi
 		source "$config_file"
 	else
 		if [[ -f "${ALT_CONF_DEST}/mcbash.conf" ]]; then
