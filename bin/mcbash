@@ -15,6 +15,17 @@ _DIM=$(tput dim)
 _ERASE="\r\033[0K" #Cursor to EOL (\r resets cursor to left)
 _ERASE_UP="\r\033[1A" #Erase one line up
 
+check_dependencies() {
+	#dep=("curl" "echo" "tput")
+	dep=("curl")
+	for d in ${dep[@]}; do
+		if ! [[ $(which $d 2>/dev/null) ]]; then
+			echo -e "${_BLUE}${_BOLD}INFO: mcbash needs ${_YELLOW}${d}${_BLUE} to function correctly.\nPlease install it on your machine.${_RESET}"
+			exit 1
+		fi
+	done
+}
+
 read_args() {
 	args=("$@")
 	ELEMENTS=${#args[@]}
@@ -28,35 +39,32 @@ read_args() {
 			$(echo ${args[${i}]}) == "--url" ]] && \
 			argument_dns=$(( i + 1 )) && \
 			dns=${args[${argument_dns}]} && \
-			inspect "--url" "${dns}"
-		#[[ $(echo ${args[${i}]} | grep -o "\.[a-z][a-z]" ) || \
-		#	$(echo ${args[${i}]} | grep -o "[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*" ) ]] && \
-		#	dns=${args[${i}]}
+			inspect_from_args "--url" "${dns}"
 		[[ $(echo ${args[${i}]}) == "-w" || \
 			$(echo ${args[${i}]}) == "--wait" ]] && \
 			argument_request_delay=$(( i + 1 )) && \
 			request_delay=${args[${argument_request_delay}]} && \
-			inspect "--wait" "${request_delay}"
+			inspect_from_args "--wait" "${request_delay}"
 		[[ $(echo ${args[${i}]}) == "-t" || \
 			$(echo ${args[${i}]}) == "--timeout" ]] && \
 			argument_timeout=$(( i + 1 )) && \
 			timeout=${args[${argument_timeout}]} && \
-			inspect "--timeout" "${timeout}"
+			inspect_from_args "--timeout" "${timeout}"
 		[[ $(echo ${args[${i}]}) == "-b" || \
 			$(echo ${args[${i}]}) == "--break" ]] && \
 			argument_timebreak=$(( i + 1 )) && \
 			timebreak=${args[${argument_timebreak}]} && \
-			inspect "--break" "${timebreak}"
+			inspect_from_args "--break" "${timebreak}"
 		[[ $(echo ${args[${i}]}) == "-d" || \
 			$(echo ${args[${i}]}) == "--pause-for" ]] && \
 			argument_timebreak_duration=$(( i + 1 )) && \
 			timebreak_duration=${args[${argument_timebreak_duration}]} && \
-			inspect "--pause-for" "${timebreak_duration}"
+			inspect_from_args "--pause-for" "${timebreak_duration}"
 		[[ $(echo ${args[${i}]}) == "-s" || \
 			$(echo ${args[${i}]}) == "--stop" ]] && \
 			argument_stop=$(( i + 1 )) && \
 			stopping=${args[${argument_stop}]} && \
-			inspect "--stop" "${stopping}"
+			inspect_from_args "--stop" "${stopping}"
 		[[ $(echo ${args[${i}]}) == "-k" || \
 			$(echo ${args[${i}]}) == "--keep" ]] && \
 			argument_keep_expired=$(( i + 1 )) && \
@@ -71,13 +79,13 @@ read_args() {
 			range=true && \
 			argument_range_from=$(( i + 1 )) && \
 			range_from=${args[${argument_range_from}]} && \
-			inspect "--from" "${range_from}"
+			inspect_from_args "--from" "${range_from}"
 		[[ $(echo ${args[${i}]}) == "-L" ||
 			$(echo ${args[${i}]}) == "--to" ]] && \
 			range=true && \
 			argument_range_to=$(( i + 1 )) && \
 			range_to=${args[${argument_range_to}]} && \
-			inspect "--to" "${range_to}"
+			inspect_from_args "--to" "${range_to}"
 		[[ $(echo ${args[${i}]}) == "-P" ||
 			$(echo ${args[${i}]}) == "--proxy" ]] && \
 			argument_proxy_url=$(( i + 1 )) && \
@@ -99,12 +107,12 @@ read_args() {
 			set_prefix=true && \
 			argument_set_prefix=$(( i + 1 )) && \
 			prefix=${args[${argument_set_prefix}]} #&& \
-			#inspect "--prefix" "${prefix}"
+			#inspect_from_args "--prefix" "${prefix}"
 		[[ $(echo ${args[${i}]}) == "--mac-file" ]] && \
 			read_from_file=true && \
 			argument_read_from_file=$(( i + 1 )) && \
 			file_to_read_mac_from=${args[${argument_read_from_file}]} && \
-			inspect "--mac-file" "${file_to_read_mac_from}"
+			inspect_from_args "--mac-file" "${file_to_read_mac_from}"
 		#[[ $(echo ${args[${i}]}) == "--rm-checkpoint" ]] && \
 		#	echo "Remove checkpoint file for ${dns} ?" && exit 0
 		[[ $(echo ${args[${i}]}) == "-h" || $(echo ${args[${i}]}) == "--help" ]] && \
@@ -127,49 +135,70 @@ read_args() {
 	done
 }
 
-inspect() {
+inspect_from_args() {
 	case "${1}" in
-		"--url"|"-u") inspect_dns "${2}";;
-		"--wait"|"-w") inspect_float "${1}" "${2}";;
-		"--timeout"|"-t") inspect_float "${1}" "${2}";;
-		"--break"|"-b") inspect_int "${1}" "${2}";;
-		"--pause-for"|"-d") inspect_float "${1}" "${2}";;
-		"--stop"|"-s") inspect_int "${1}" "${2}";;
-		"--from"|"-F"|"--to"|"-L") inspect_mac "${2}" "args";; # is it a well formed mac
+		"--url"|"-u"|"dns") inspect_dns "${2}" "from_args";;
+		"--wait"|"-w"|"delay") inspect_float "${1}" "${2}" "from_args";;
+		"--timeout"|"-t"|"timeout") inspect_float "${1}" "${2}" "from_args";;
+		"--break"|"-b"|"break") inspect_int "${1}" "${2}" "from_args";;
+		"--pause-for"|"-d"|"break_duration") inspect_float "${1}" "${2}" "from_args";;
+		"--stop"|"-s"|"stop") inspect_int "${1}" "${2}" "from_args";;
+		"--from"|"-F"|"--to"|"-L") inspect_mac "${2}" "from_args";; # is it a well formed mac
 		#"--prefix") inspect_mac_prefix "${2}";;
-		"--mac-file") inspect_mac_file "${2}";;
-		*) echo "Something went wrong inspecting arguments.";;
+		"--mac-file") inspect_mac_file "${2}" "from_args";;
+		*) echo "${_RED}${_BOLD}Something went wrong inspecting arguments.${_RESET}";;
 	esac
 }
 
 inspect_dns() {
+	mode=$2
 	# Check if DNS is well formed URL or IP
 	if ! [[ $(echo "${1}" | grep -Eo '((https?|ftp)://)?([a-Z0-9-]+\.)?[a-Z0-9-]+\.[a-Z0-9-]+((:)[0-9]{1,5})?') == "${1}" ||
 		$(echo "${1}" | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}') == "${1}" ]]; then
-		echo -e "${_RED}ERROR: invalid DNS format.${_RESET}"
-		exit 1
+		echo -e "${_RESET}${_RED}ERROR: invalid DNS format.${_RESET}"
+		if [[ "${mode}" == "from_args" ]]; then
+			exit 1
+		else
+			return 1
+		fi
 	elif [[ $(echo "${1}" | sed 's/\ //g') == "" ]]; then
-		echo -e "${_RED}ERROR: empty DNS.${_RESET}"
-		exit 1
+		echo -e "${_RESET}${_RED}ERROR: empty DNS.${_RESET}"
+		if [[ "${mode}" == "from_args" ]]; then
+			exit 1
+		else
+			return 1
+		fi
 	fi
 }
 
 inspect_float() {
+	mode=$3
 	if ! [[ $(echo "$2" | grep -Eo '([0-9]+)?(\.)?[0-9]+') == "${2}" ]]; then
-		echo -e "${_RED}ERROR: ${_YELLOW}${1}${_RESET}${_RED} takes float or integer for parameter (e.g. ${_YELLOW}${1} 1.5${_RED}).${_RESET}"
-		exit 1
-	elif [[ $(echo "${2}" | sed 's/\ //g') == "" ]]; then
-		echo -e "${_RED}ERROR: empty value for ${_YELLOW}${1}${_RED}.${_RESET}"
+		echo -e "${_RESET}${_RED}ERROR: ${_YELLOW}${1}${_RESET}${_RED} takes float or integer for parameter (e.g. ${_YELLOW}${1} 1.5${_RED}).${_RESET}"
+		if [[ "${mode}" == "from_args" ]]; then
+			exit 1
+		else
+			return 1
+		fi
+	fi
+	if [[ "${mode}" == "from_args" && $(echo "${2}" | sed 's/\ //g') == "" ]]; then
+		echo -e "${_RESET}${_RED}ERROR: empty value for ${_YELLOW}${1}${_RED}.${_RESET}"
 		exit 1
 	fi
 }
 
 inspect_int() {
+	mode=$3
 	if ! [[ $(echo "$2" | grep -Eo '[0-9]+') == "${2}" ]]; then
-		echo -e "${_RED}ERROR: ${_YELLOW}${1}${_RESET}${_RED} takes integer for parameter (e.g. ${_YELLOW}${1} 10${_RED}).${_RESET}"
-		exit 1
-	elif [[ $(echo "${2}" | sed 's/\ //g') == "" ]]; then
-		echo -e "${_RED}ERROR: empty value for ${_YELLOW}${1}${_RED}.${_RESET}"
+		echo -e "${_RESET}${_RED}ERROR: ${_YELLOW}${1}${_RESET}${_RED} takes integer for parameter (e.g. ${_YELLOW}${1} 10${_RED}).${_RESET}"
+		if [[ "${mode}" == "from_args" ]]; then
+			exit 1
+		else
+			return 1
+		fi
+	fi
+	if [[ "${mode}" == "from_args" && $(echo "${2}" | sed 's/\ //g') == "" ]]; then
+		echo -e "${_RESET}${_RED}ERROR: empty value for ${_YELLOW}${1}${_RED}.${_RESET}"
 		exit 1
 	fi
 }
@@ -179,11 +208,15 @@ inspect_mac () {
 	# If while checking USER argument : exit 1
 	# Else, if reading a MAC file : return 1 for "bad MAC"
 	if ! [[ $(echo "$1" | grep -Eo "([0-9a-fA-F]{2}[-:]){$(( (max_mac_length / 2) - 1 ))}[0-9a-fA-F]{2}") == "${1}" ]]; then
-		if [[ ${mode} == "args" ]]; then
-			echo -e "${_RED}ERROR: invalid MAC format.${_RESET}"
-			echo -e "${_RED}Please use either ${_DIM}FORMAT_1${_RESET}${_RED} or ${_DIM}FORMAT_2${_RESET}${_RED} format.${_RESET}" | \
+		if [[ ${mode} == "from_args" || ${mode} == "from_interactive" ]]; then
+			echo -e "${_RESET}${_RED}ERROR: invalid MAC format.${_RESET}"
+			echo -e "${_RESET}${_RED}Please use either ${_DIM}FORMAT_1${_RESET}${_RED} or ${_DIM}FORMAT_2${_RESET}${_RED} format.${_RESET}" | \
 				sed -r 's/FORMAT_1/XX:XX:XX:XX:XX:XX/ ; s/FORMAT_2/XX-XX-XX-XX-XX-XX/'
-			exit 1
+			if [[ "${mode}" == "from_args" ]]; then
+				exit 1
+			else
+				return 1
+			fi
 		else
 			return 1
 		fi
@@ -359,16 +392,10 @@ read_mac_from_file() {
 	encoded_mac=$(echo $mac | sed 's/:/\%3A/g')
 }
 
+
 check_parameters() {
 	if [ "$avoid_parameters" = true ]; then
-		[[ -n ${request_delay} ]] || request_delay=$default_request_delay
-		[[ -n ${timebreak_duration} ]] || timebreak_duration=$default_timebreak_duration
-		[[ -n ${timeout} ]] || timeout=$default_timeout
-		if [[ -n ${range} ]]; then
-		#if [[ -n ${seq} ]]; then
-			[[ -n ${range_from} ]] || range_from=$default_first_mac
-			[[ -n ${range_to} ]] || range_to=$default_last_mac
-		fi
+		populate_necessary_values
 	fi
 
 	[[ -z ${request_delay+x} && \
@@ -380,142 +407,43 @@ check_parameters() {
 		read -p "${_BOLD}=>${_RESET} Adjust parameters? ${_BOLD}[y/N]${_RESET} " PARAMETERS
 
 	if [[ $(echo $PARAMETERS | grep -io "y") ]]; then
-		[[ -z ${request_delay+x} ]] && \
-			read -p " ${_BOLD}*${_RESET} Wait ${_GREEN}[X] ${_RESET}seconds between two requests ${_BOLD}[default:$default_request_delay]${_RESET} ${_BOLD}${_GREEN}" request_delay
-
-		[[ $request_delay == "" ]] && \
-			request_delay=$default_request_delay
-
-		[[ -z ${timebreak+x} ]] && \
-			read -p "${_RESET} ${_BOLD}*${_RESET} Make a break every ${_GREEN}[X]${_RESET} requests ${_BOLD}[$default_timebreak]${_RESET} ${_BOLD}${_GREEN}" timebreak
-
-		[[ $timebreak == "" ]] && \
-			timebreak=$default_timebreak && \
-			[[ $timebreak == "0" ]] && unset timebreak
-
-		[[ -z ${timebreak_duration+x} && $timebreak != "" ]] && \
-			read -p "${_RESET} ${_BOLD}*${_RESET} Break duration (seconds) ${_BOLD}[$default_timebreak_duration]${_RESET} ${_BOLD}${_GREEN}" timebreak_duration
-
-		[[ $timebreak_duration == "" ]] && \
-			timebreak_duration=$default_timebreak_duration
-
-		[[ -z ${stopping+x} ]] && \
-			read -p "${_RESET} ${_BOLD}*${_RESET} Stop McBash after ${_GREEN}[X]${_RESET} tested MAC addresses ${_BOLD}[$default_stopping]${_RESET} ${_BOLD}${_GREEN}" stopping
-
-		[[ $stopping == "" ]] && \
-			stopping=$default_stopping && \
-			[[ $stopping == "0" ]] && unset stopping
-
-		[[ -z ${timeout+x} ]] && \
-			read -p "${_RESET} ${_BOLD}*${_RESET} Consider request a timeout after ${_GREEN}[X]${_RESET} seconds ${_BOLD}[$default_timeout]${_RESET} ${_BOLD}${_GREEN}" timeout
-
-		[[ $timeout == "" ]] && timeout=$default_timeout
-
-		#[[ -z ${range+x} ]] && \
-		[[ -z ${seq+x} ]] && \
-			read -p "${_RESET} ${_BOLD}*${_RESET} Scan ${_GREEN}randomly [r]${_RESET} or ${_GREEN}sequentially [s]${_RESET} ${_BOLD}[r]${_RESET} ${_BOLD}${_GREEN}" mode
-		#[[ $(echo $mode | grep -io "s") ]] && range=true
-		[[ $(echo $mode | grep -io "s") ]] && seq=true
-
-		#[[ -z ${range+x} ]] && \
-		[[ -z ${seq+x} ]] && \
-			echo -e "${_RESET} ${_BOLD}*${_RESET} You have selected ${_GREEN}random mode${_RESET}"
-
-		if [[ -z ${range+x} && -z ${seq+x} && -z ${prefix} ]]; then
-			read -p "${_RESET} ${_BOLD}->${_RESET} Indicate MAC to scan prefix ${_BOLD}[$default_mac_prefix]${_RESET} ${_BOLD}${_GREEN}" prefix
-			if [[ ${prefix} == "" ]]; then
-				unset prefix
-			fi
-		fi
-
-		#[[ -n ${range} ]] && \
-		[[ -n ${seq} ]] && \
-			echo -e "${_RESET} ${_BOLD}*${_RESET} You have selected ${_GREEN}sequential mode${_RESET}" && \
-			range=true
-
-		[[ -n ${range} && -z ${range_from+x} ]] && \
-			# If already checked on that dns AND not '--no-checkpoint' : default_first_mac = last checked!
-			# + show a message
-			if [[ -f "${destination}/checkpoint_${name}" && -z ${no_checkpoint+x} ]]; then
-				checkpoint_mac=$(cat "${destination}/checkpoint_${name}")
-				read -p "${_RESET} ${_BOLD}->${_RESET} Checkpoint! Continue were scan previously stopped ? (${_GREEN}${checkpoint_mac}${_RESET}) ${_BOLD}[Y/n/reset]${_RESET} ${_BOLD}${_GREEN}" grab_checkpoint
-				if [[ $(echo $grab_checkpoint | grep -io "n") ]]; then
-					no_checkpoint=true
-					read -p "${_RESET} ${_BOLD}->${_RESET} Indicate first MAC to scan ${_BOLD}[$default_first_mac]${_RESET} ${_BOLD}${_GREEN}" first_mac
-				elif [[ $(echo $grab_checkpoint | grep -io "reset") ]]; then
-					# reset checkpoint
-					echo -e "${_RESET} ${_BOLD}*${_RESET} Checkpoint will be ${_GREEN}reset${_RESET}."
-					read -p "${_RESET} ${_BOLD}->${_RESET} Indicate first MAC to scan ${_BOLD}[$default_first_mac]${_RESET} ${_BOLD}${_GREEN}" first_mac
-				else
-					first_mac=${checkpoint_mac}
-				fi
-			else
-				read -p "${_RESET} ${_BOLD}->${_RESET} Indicate first MAC to scan ${_BOLD}[$default_first_mac]${_RESET} ${_BOLD}${_GREEN}" first_mac
-			fi
-
-		#[[ -z $first_mac == "" ]] && unset first_mac
-
-		[[ -z ${first_mac} ]] && first_mac=$default_first_mac
-
-		[[ -n ${first_mac} ]] && range_from=$first_mac
-
-		[[ -n ${range} && -z ${range_to+x} ]] && \
-			read -p "${_RESET} ${_BOLD}->${_RESET} Indicate last MAC to scan ${_BOLD}[$default_last_mac]${_RESET} ${_BOLD}${_GREEN}" last_mac
-
-		#[[ $last_mac == "" ]] && last_mac="$default_last_mac"
-
-		[[ -z ${last_mac} ]] && last_mac=$default_last_mac
-
-		[[ -n ${last_mac} ]] && range_to=$last_mac
-
-		#[[ -n ${keep_expired} ]] || \
-		#	read -p "${_RESET} ${_BOLD}*${_RESET} Store expired MAC addresses (tagged as such)? ${_BOLD}[y/N]${_RESET} " keep_expired
-
-		( [[ $keep_expired == "" || $(echo $keep_expired | grep -io "n") ]] ) && \
-			unset keep_expired
-
+		ask_request_delay
+		ask_timebreak
+		ask_timebreak_duration
+		ask_stopping
+		ask_timeout
+		ask_mode
+		ask_range
+		ask_keep_expired
 		echo " ${_RESET}"
+		#user_asks_parameters
 
 	elif [[ -n ${range} || -n ${range_from} || -n ${range_to} ]]; then
 		if [[ -f "${destination}/checkpoint_${name}" && -z ${no_checkpoint+x} && -z ${range_from+x} ]]; then
 			checkpoint_mac=$(cat "${destination}/checkpoint_${name}")
-			#echo "${_RESET} ${_BOLD}->${_RESET} ${_GREEN}Checkpoint detected!${_RESET} Starting from last MAC scanned : ${_GREEN}${checkpoint_mac}${_RESET}"
 			echo "${_RESET} ${_GREEN}Checkpoint detected!${_RESET} Starting from ${_GREEN}${checkpoint_mac}${_RESET} (last MAC scanned)"
 			range_from=${checkpoint_mac}
 		fi
-		[[ -n ${range_from} ]] || \
-			read -p "${_RESET} ${_BOLD}->${_RESET} Indicate first MAC to scan ${_BOLD}[$default_first_mac]${_RESET} ${_BOLD}${_GREEN}" first_mac
+		[[ -n ${range_from} ]] || ask_first_mac
+			#read -p "${_RESET} ${_BOLD}->${_RESET} Indicate first MAC to scan ${_BOLD}[$default_first_mac]${_RESET} ${_BOLD}${_GREEN}" first_mac
 		[[ -n ${range_from} ]] && first_mac=$range_from
-
-		#[[ $first_mac == "" ]] && unset first_mac
 		[[ -z ${first_mac} ]] && first_mac=$default_first_mac && range_from="$default_first_mac"
 		[[ -n ${first_mac} ]] && range_from=$first_mac
-
-		[[ -n ${range_to} ]] || read -p "${_RESET} ${_BOLD}->${_RESET} Indicate last MAC to scan ${_BOLD}[$default_last_mac]${_RESET} ${_BOLD}${_GREEN}" last_mac
+		[[ -n ${range_to} ]] || ask_last_mac
+			#read -p "${_RESET} ${_BOLD}->${_RESET} Indicate last MAC to scan ${_BOLD}[$default_last_mac]${_RESET} ${_BOLD}${_GREEN}" last_mac
 		[[ -n ${range_to} ]] && last_mac=$range_to
-
 		[[ -z $last_mac ]] && last_mac="$default_last_mac" && range_to="$default_last_mac"
 		[[ -n ${last_mac} ]] && range_to=$last_mac
-
 		[[ -n ${request_delay} ]] || request_delay=$default_request_delay
-
 		[[ -n ${timebreak} ]] || timebreak=$default_timebreak
-
 		[[ -n ${timebreak_duration} ]] || timebreak_duration=$default_timebreak_duration
-
 		[[ -n ${timeout} ]] || timeout=$default_timeout
 
-		#[[ -n ${range_from} ]] || range_from=$default_first_mac
-		#[[ -n ${range_to} ]] || range_to=$default_last_mac
 	else
 		[[ -n ${request_delay} ]] || request_delay=$default_request_delay
-
 		[[ -n ${timebreak} ]] || timebreak=$default_timebreak
-
 		[[ -n ${timebreak_duration} ]] || timebreak_duration=$default_timebreak_duration
-
 		[[ -n ${timeout} ]] || timeout=$default_timeout
-
 		if [[ -n ${range} || -n ${range_from} || -n ${range_to} ]]; then
 			range=true
 			if [[ -f "${destination}/checkpoint_${name}" && -z ${no_checkpoint+x} ]]; then
@@ -526,6 +454,170 @@ check_parameters() {
 			[[ -n ${range_to} ]] || range_to=$default_last_mac && last_mac=$default_last_mac
 		fi
 		return
+	fi
+}
+
+
+ask_request_delay() {
+	[[ -z ${request_delay+x} ]] && \
+		read -p " ${_BOLD}*${_RESET} Wait ${_GREEN}[X] ${_RESET}seconds between two requests ${_BOLD}[default:$default_request_delay]${_RESET} ${_BOLD}${_GREEN}" request_delay
+
+	if [[ $request_delay == "" ]]; then
+		request_delay=$default_request_delay
+	else
+		if ! inspect_float "--wait" $request_delay "from_interactive"; then
+			unset request_delay
+			ask_request_delay
+		fi
+	fi
+}
+
+ask_timebreak() {
+	[[ -z ${timebreak+x} ]] && \
+		read -p "${_RESET} ${_BOLD}*${_RESET} Make a break every ${_GREEN}[X]${_RESET} requests ${_BOLD}[$default_timebreak]${_RESET} ${_BOLD}${_GREEN}" timebreak
+
+	if [[ $timebreak == "" ]]; then
+		timebreak=$default_timebreak
+		[[ $timebreak == "0" ]]
+		unset timebreak
+	else
+		if ! inspect_int "--break" $timebreak "from_interactive"; then
+			unset timebreak
+			ask_timebreak
+		fi
+	fi
+}
+
+ask_timebreak_duration() {
+	[[ -z ${timebreak_duration+x} && $timebreak != "" ]] && \
+		read -p "${_RESET} ${_BOLD}*${_RESET} Break duration (seconds) ${_BOLD}[$default_timebreak_duration]${_RESET} ${_BOLD}${_GREEN}" timebreak_duration
+
+	if [[ $timebreak_duration == "" ]]; then
+		timebreak_duration=$default_timebreak_duration
+	else
+		if ! inspect_float "--pause-for" $timebreak_duration "from_interactive"; then
+			unset timebreak_duration
+			ask_timebreak_duration
+		fi
+	fi
+}
+
+ask_stopping() {
+	[[ -z ${stopping+x} ]] && \
+		read -p "${_RESET} ${_BOLD}*${_RESET} Stop McBash after ${_GREEN}[X]${_RESET} tested MAC addresses ${_BOLD}[$default_stopping]${_RESET} ${_BOLD}${_GREEN}" stopping
+
+	if [[ $stopping == "" ]]; then
+		stopping=$default_stopping
+		if [[ $stopping == "0" ]]; then
+			unset stopping
+		fi
+	else
+		if ! inspect_int "--stop" $stopping "from_interactive"; then
+			unset stopping
+			ask_stopping
+		fi
+	fi
+}
+
+ask_timeout() {
+	[[ -z ${timeout+x} ]] && \
+		read -p "${_RESET} ${_BOLD}*${_RESET} Consider request a timeout after ${_GREEN}[X]${_RESET} seconds ${_BOLD}[$default_timeout]${_RESET} ${_BOLD}${_GREEN}" timeout
+
+	if [[ $timeout == "" ]]; then
+		timeout=$default_timeout
+	else
+		if ! inspect_int "--timeout" $stopping "from_interactive"; then
+			unset timeout
+			ask_timeout
+		fi
+	fi
+}
+
+ask_mode() {
+	#[[ -z ${range+x} ]] && \
+	[[ -z ${seq+x} ]] && \
+		read -p "${_RESET} ${_BOLD}*${_RESET} Scan ${_GREEN}randomly [r]${_RESET} or ${_GREEN}sequentially [s]${_RESET} ${_BOLD}[r]${_RESET} ${_BOLD}${_GREEN}" mode
+	#[[ $(echo $mode | grep -io "s") ]] && range=true
+	[[ $(echo $mode | grep -io "s") ]] && seq=true
+
+	#[[ -z ${range+x} ]] && \
+	[[ -z ${seq+x} ]] && \
+		echo -e "${_RESET} ${_BOLD}*${_RESET} You have selected ${_GREEN}random mode${_RESET}"
+
+	if [[ -z ${range+x} && -z ${seq+x} && -z ${prefix} ]]; then
+		read -p "${_RESET} ${_BOLD}->${_RESET} Indicate MAC to scan prefix ${_BOLD}[$default_mac_prefix]${_RESET} ${_BOLD}${_GREEN}" prefix
+		if [[ ${prefix} == "" ]]; then
+			unset prefix
+		fi
+	fi
+
+	#[[ -n ${range} ]] && \
+	[[ -n ${seq} ]] && \
+		echo -e "${_RESET} ${_BOLD}*${_RESET} You have selected ${_GREEN}sequential mode${_RESET}" && \
+		range=true
+}
+
+ask_first_mac() {
+	read -p "${_RESET} ${_BOLD}->${_RESET} Indicate first MAC to scan ${_BOLD}[$default_first_mac]${_RESET} ${_BOLD}${_GREEN}" first_mac
+
+	if ! [[ "${first_mac}" == "" ]]; then
+		if ! inspect_mac $first_mac "from_interactive"; then
+			unset first_mac
+			ask_first_mac
+		fi
+	fi
+}
+
+ask_last_mac() {
+	read -p "${_RESET} ${_BOLD}->${_RESET} Indicate last MAC to scan ${_BOLD}[$default_last_mac]${_RESET} ${_BOLD}${_GREEN}" last_mac
+
+	if ! [[ "${last_mac}" == "" ]]; then
+		if ! inspect_mac $last_mac "from_interactive"; then
+			unset last_mac
+			ask_last_mac
+		fi
+	fi
+}
+
+ask_range() {
+	if [[ -n ${range} && -z ${range_from+x} ]]; then
+		if [[ -f "${destination}/checkpoint_${name}" && -z ${no_checkpoint+x} ]]; then
+			checkpoint_mac=$(cat "${destination}/checkpoint_${name}")
+			read -p "${_RESET} ${_BOLD}->${_RESET} Checkpoint! Continue were scan previously stopped ? (${_GREEN}${checkpoint_mac}${_RESET}) ${_BOLD}[Y/n/reset]${_RESET} ${_BOLD}${_GREEN}" grab_checkpoint
+			if [[ $(echo $grab_checkpoint | grep -io "n") ]]; then
+				no_checkpoint=true
+				ask_first_mac
+			elif [[ $(echo $grab_checkpoint | grep -io "reset") ]]; then
+				echo -e "${_RESET} ${_BOLD}*${_RESET} Checkpoint will be ${_GREEN}reset${_RESET}."
+				ask_first_mac
+			else
+				first_mac=${checkpoint_mac}
+			fi
+		else
+			ask_first_mac
+		fi
+	fi
+	[[ -z ${first_mac} ]] && first_mac=$default_first_mac
+	[[ -n ${first_mac} ]] && range_from=$first_mac
+	[[ -n ${range} && -z ${range_to+x} ]] && ask_last_mac
+	[[ -z ${last_mac} ]] && last_mac=$default_last_mac
+	[[ -n ${last_mac} ]] && range_to=$last_mac
+}
+
+ask_keep_expired() {
+	if [[ $keep_expired == "" || $(echo $keep_expired | grep -io "n") ]]; then
+		unset keep_expired
+	fi
+}
+
+populate_necessary_values() {
+	[[ -n ${request_delay} ]] || request_delay=$default_request_delay
+	[[ -n ${timebreak_duration} ]] || timebreak_duration=$default_timebreak_duration
+	[[ -n ${timeout} ]] || timeout=$default_timeout
+	if [[ -n ${range} ]]; then
+	#if [[ -n ${seq} ]]; then
+		[[ -n ${range_from} ]] || range_from=$default_first_mac
+		[[ -n ${range_to} ]] || range_to=$default_last_mac
 	fi
 }
 
@@ -635,6 +727,7 @@ random_user_agent() {
 	user_agent=$(echo ${list_user_agent[RANDOM%9]})
 }
 
+check_dependencies
 load_config_file
 locate_destination_folder
 read_args "$@"
@@ -665,4 +758,4 @@ done
 # 
 # dougy147 [2022]
 # https://github.com/dougy147/mcbash
-# last updated : 14sep2023
+# last updated : 23sep2023
