@@ -5,9 +5,8 @@ update_proxy() {
 	# Change current proxy
 	if [[ -n "${proxy_from_file}" ]]; then
 		proxy_from_file
-		#echo "proxy_url: $proxy_url"
 		proxy_url_option=$(echo "-x $proxy_url")
-		#echo "proxy_url_option : $proxy_url_option"
+		echo -e "${_ERASE}${_DIM}Rotated proxy to '${_BLUE}${proxy_url}${_RESET}${_DIM}'${_RESET}"
 	fi
 }
 
@@ -22,9 +21,7 @@ proxy_from_file() {
 		started_reading_from_proxy_file=true
 		current_proxy_line=0
 	fi
-	#echo B: $started_reading_from_proxy_file
 	current_proxy_line=$(( current_proxy_line + 1 ))
-	#echo $current_proxy_line
 	if [[ "${current_proxy_line}" -gt $(cat "${proxy_file}" | wc -l) ]]; then
 		current_proxy_line=1
 	fi

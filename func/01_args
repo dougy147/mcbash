@@ -4,6 +4,8 @@ read_args() {
 	args=("$@")
 	ELEMENTS=${#args[@]}
 	for (( i=0;i<$ELEMENTS;i++)); do
+		[[ $(echo ${args[${i}]}) == "--debug" ]] && \
+			debug=true
 		[[ $(echo ${args[${i}]}) == "--show-only-mac" ]] && \
 			only_outputs_mac=true
 		[[ $(echo ${args[${i}]}) == "-np" || \
