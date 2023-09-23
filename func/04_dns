@@ -9,5 +9,8 @@ dns_name() {
 	#dns=$(echo $dns | sed 's/\/$//') # if trailing "/" at the end of DNS, remove it
 	#name=$(echo $dns | sed 's/http:\/\///' | sed 's/://;s/\///')
 	name=$(echo $dns | sed "s/\/$// ; s/http:\/\/// ; s/:// ; s/\///")
-	inspect_dns "${dns}"
+	if ! inspect_dns "${dns}" "from_interactive"; then
+		unset dns
+		dns_name
+	fi
 }
