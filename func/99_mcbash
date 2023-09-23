@@ -1,5 +1,6 @@
 #!/bin/sh
 
+check_dependencies
 load_config_file
 locate_destination_folder
 read_args "$@"

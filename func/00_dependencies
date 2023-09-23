@@ -1,0 +1,12 @@
+#!/bin/sh
+
+check_dependencies() {
+	#dep=("curl" "echo" "tput")
+	dep=("curl")
+	for d in ${dep[@]}; do
+		if ! [[ $(which $d 2>/dev/null) ]]; then
+			echo -e "${_BLUE}${_BOLD}INFO: mcbash needs ${_YELLOW}${d}${_BLUE} to function correctly.\nPlease install it on your machine.${_RESET}"
+			exit 1
+		fi
+	done
+}
