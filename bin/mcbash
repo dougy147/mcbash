@@ -392,7 +392,6 @@ read_mac_from_file() {
 	encoded_mac=$(echo $mac | sed 's/:/\%3A/g')
 }
 
-
 check_parameters() {
 	if [ "$avoid_parameters" = true ]; then
 		populate_necessary_values
@@ -526,7 +525,7 @@ ask_timeout() {
 	if [[ $timeout == "" ]]; then
 		timeout=$default_timeout
 	else
-		if ! inspect_int "--timeout" $stopping "from_interactive"; then
+		if ! inspect_int "--timeout" $timeout "from_interactive"; then
 			unset timeout
 			ask_timeout
 		fi
@@ -726,6 +725,7 @@ random_user_agent() {
 		"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393")
 	user_agent=$(echo ${list_user_agent[RANDOM%9]})
 }
+
 
 check_dependencies
 load_config_file

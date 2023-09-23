@@ -145,7 +145,7 @@ ask_timeout() {
 	if [[ $timeout == "" ]]; then
 		timeout=$default_timeout
 	else
-		if ! inspect_int "--timeout" $stopping "from_interactive"; then
+		if ! inspect_int "--timeout" $timeout "from_interactive"; then
 			unset timeout
 			ask_timeout
 		fi
