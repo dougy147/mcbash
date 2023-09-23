@@ -1,4 +1,5 @@
 #!/bin/sh
+# Interactive mode
 
 check_parameters() {
 	if [ "$avoid_parameters" = true ]; then

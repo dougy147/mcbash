@@ -15,7 +15,7 @@ load_config_file() {
 		if [[ -f "${ALT_CONF_DEST}/mcbash.conf" ]]; then
 			source "${ALT_CONF_DEST}/mcbash.conf"
 		else
-			echo -e "Config file not found. This can cause weird behaviors.\nmcbash.conf should be placed here : $config_file"
+			echo -e "${_YELLOW}WARNING: Config file not found. This can cause weird behaviors.${_RESET}\n${_BLUE}mcbash.conf${_RESET}${_YELLOW} should be placed here : ${_BLUE}$config_file${_RESET}"
 		fi
 	fi
 }
