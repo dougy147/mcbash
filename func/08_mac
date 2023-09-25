@@ -92,3 +92,25 @@ read_mac_from_file() {
 	fi
 	encoded_mac=$(echo $mac | sed 's/:/\%3A/g')
 }
+
+generate_mac() {
+	if [[ -n ${read_from_file} ]]; then
+		read_mac_from_file
+	else
+		[[ -n ${seq} ]] && seq_mac
+		[[ -z ${seq+x} ]] && random_mac
+	fi
+}
+
+valid_mac_found() {
+	if [[ $valid_macs_number == 0 ]]; then
+		echo -e "\n$dns ($(date))\n" >> $destination/valid_macs_$name
+	fi
+	echo "$mac [$expiration_date]" >> $destination/valid_macs_$name
+	if [[ -n ${only_outputs_mac} ]]; then
+		echo $mac
+	else
+		echo -ne "\r${_BOLD}${_GREEN}[$item] $mac ${_RESET}${_RED}[$expiration_date] ${_RESET}\n"
+	fi
+	valid_macs_number=$(( $valid_macs_number + 1 ))
+}
