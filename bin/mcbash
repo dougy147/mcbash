@@ -31,7 +31,8 @@ read_args() {
 	ELEMENTS=${#args[@]}
 	for (( i=0;i<$ELEMENTS;i++)); do
 		[[ $(echo ${args[${i}]}) == "--debug" ]] && \
-			debug=true
+			debug=true && \
+			debug_verbose_curl="-vvvvvv"
 		[[ $(echo ${args[${i}]}) == "--show-only-mac" ]] && \
 			only_outputs_mac=true
 		[[ $(echo ${args[${i}]}) == "-np" || \
@@ -784,7 +785,7 @@ get_handshake() {
 	cookie="mac=$mac; stb_lang=en; timezone=Europe/Amsterdam; "
 	random_user_agent
 
-	handshake_token=$(curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Cookie: $(echo $cookie)" "$(echo $handshake_url)"); if ! check_curl_exit_code; then return 1; fi
+	handshake_token=$(curl $debug_verbose_curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Cookie: $(echo $cookie)" "$(echo $handshake_url)"); if ! check_curl_exit_code; then return 1; fi
 
 	if [[ -n ${debug} ]]; then
 		echo -e "\n---------------------------------\n\t${_YELLOW}Handshake token : ${_RESET}${_BLUE}${handshake_token:-Empty}${_RESET}"
@@ -806,12 +807,12 @@ get_handshake() {
 get_profile() {
 	authorization='Bearer '$(echo $handshake_token)
 	profile_url=$(echo $dns)'/portal.php?type=account_info&action=get_main_info&mac='$(echo $mac)
-	profile=$(curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $profile_url)"); if ! check_curl_exit_code; then return 1; fi
+	profile=$(curl $debug_verbose_curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $profile_url)"); if ! check_curl_exit_code; then return 1; fi
 
 	if [[ $profile == "" ]]; then
 		maybeGEN1portal=true
 		profile_url=$(echo $dns)'/portal.php?type=stb&action=get_profile&JsHttpRequest=1-xml='$(echo $mac)
-		profile=$(curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $profile_url)"); if ! check_curl_exit_code; then return 1; fi
+		profile=$(curl $debug_verbose_curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $profile_url)"); if ! check_curl_exit_code; then return 1; fi
 	fi
 
 	if [[ $profile == "" ]]; then
@@ -824,7 +825,7 @@ get_profile() {
 
 	if [[ -z ${maybeGEN1portal+x} ]]; then
 		account_url=$(echo $dns)'/portal.php?type=account_info&action=get_main_info&mac='$(echo $mac)
-		account=$(curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $account_url)"); if [ $? -eq 28 ]; then request_is_a_timeout && return; fi
+		account=$(curl $debug_verbose_curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $account_url)"); if [ $? -eq 28 ]; then request_is_a_timeout && return; fi
 		if ! [[ $account == "" ]]; then
 			if [[ -n ${debug} ]]; then
 				echo -e "${_YELLOW}ACCOUNT : ${_RESET}${_BLUE}${account}${_RESET}"
