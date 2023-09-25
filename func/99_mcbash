@@ -20,6 +20,6 @@ stty -echoctl # Hide ^C when pressing Ctrl+C
 # Let's go !
 while :
 do
-	handshaking
+	scanning
 	trap quit_mcbash SIGINT
 done
