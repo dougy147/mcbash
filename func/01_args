@@ -129,7 +129,8 @@ inspect_from_args() {
 inspect_dns() {
 	mode=$2
 	# Check if DNS is well formed URL or IP
-	if ! [[ $(echo "${1}" | grep -Eo '((https?|ftp)://)?([-a-zA-Z0-9]+\.)?[-a-zA-Z0-9]+\.[-a-zA-Z0-9]+((:)[0-9]{1,5})?(/.*)?') == "${1}" ||
+	#if ! [[ $(echo "${1}" | grep -Eo '((https?|ftp)://)?([-a-zA-Z0-9]+\.)?[-a-zA-Z0-9]+\.[-a-zA-Z0-9]+((:)[0-9]{1,5})?(/.*)?') == "${1}" ||
+	if ! [[ $(echo "${1}" | grep -Eo '((https?|ftp)://)?(.*:.*@)?([-a-zA-Z0-9]+\.)?[-a-zA-Z0-9]+\.[-a-zA-Z0-9]+((:)[0-9]{1,5})?(/.*)?') == "${1}" ||
 		$(echo "${1}" | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}((:)[0-9]{1,5})?(/.*)?') == "${1}" ]]; then
 		echo -e "${_RESET}${_RED}ERROR: invalid DNS format.${_RESET}"
 		if [[ "${mode}" == "from_args" ]]; then
