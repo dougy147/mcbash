@@ -164,7 +164,7 @@ get_profile() {
 
 	if [[ -z ${maybeGEN1portal+x} ]]; then
 		account_url=$(echo $dns)'/portal.php?type=account_info&action=get_main_info&mac='$(echo $mac)
-		account=$(curl $debug_verbose_curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $account_url)"); if [ $? -eq 28 ]; then request_is_a_timeout && return; fi
+		account=$(curl $debug_verbose_curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $account_url)"); if ! check_curl_exit_code; then return 1; fi
 		if ! [[ $account == "" ]]; then
 			if [[ -n ${debug} ]]; then
 				echo -e "${_YELLOW}ACCOUNT : ${_RESET}${_BLUE}${account}${_RESET}"
