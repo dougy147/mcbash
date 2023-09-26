@@ -720,7 +720,6 @@ handshake_token_is_empty() {
 
 
 check_if_timeout_limit() {
-	#if [[ -z "${proxy_from_file+x}" && $consecutive_timeout_number -ge $consecutive_timeout_limit ]]; then
 	if [[ -z "${proxy_from_file+x}" ]]; then
 		if [[ $consecutive_timeout_number -ge $consecutive_timeout_limit && \
 			$consecutive_timeout_limit -ne 0 ]]; then
@@ -736,28 +735,36 @@ check_if_timeout_limit() {
 
 last_request_failed() {
 	unset mac_not_changed
-	#if [[ -n "${proxy_from_file}" && $consecutive_timeout_number -ge $consecutive_timeout_limit ]]; then
 	if [[ -n "${proxy_from_file}" ]]; then
-		if [[ $consecutive_timeout_number -ge $consecutive_timeout_limit && \
-			$consecutive_timeout_limit -ne 0 ]]; then
+		if [[ $consecutive_timeout_number -ge $consecutive_timeout_limit && $consecutive_timeout_limit -ne 0 ]]; then
+			unset last_request_was_error
 			update_proxy
 			consecutive_timeout_number=0
 			total_timeout_number=0
-		elif [[ $total_timeout_number -ge $total_timeout_limit && \
-			$total_timeout_limit -ne 0 ]]; then
+			error_number=0
+		elif [[ $total_timeout_number -ge $total_timeout_limit && $total_timeout_limit -ne 0 ]]; then
+			unset last_request_was_error
 			update_proxy
 			consecutive_timeout_number=0
 			total_timeout_number=0
+			error_number=0
+		elif [[ -n ${last_request_was_error} ]]; then
+			unset last_request_was_error
+			update_proxy
+			consecutive_timeout_number=0
+			total_timeout_number=0
+			error_number=0
 		fi
+	#else
+	#	if [[ -n ${last_request_was_error} ]]; then
+	#		unset last_request_was_error
+	#		if [[ $error_number -ge $total_error_limit && $total_error_limit -ne 0 ]]; then
+	#			echo todo
+	#		fi
 	fi
 }
 
 request_is_a_timeout() {
-	consecutive_timeout_number=$(( $consecutive_timeout_number + 1 ))
-	total_timeout_number=$(( $total_timeout_number + 1 ))
-	#last_request_timedout=true
-	mac_not_changed=true
-	check_if_timeout_limit
 	if ! [[ -n ${only_outputs_mac} ]]; then
 		echo -ne "${_ERASE}${_BLUE}Timeout [$total_timeout_number] (consecutive:$consecutive_timeout_number). New attempt in $timebreak_duration seconds.${_RESET}"
 	fi
@@ -771,23 +778,31 @@ check_curl_exit_code() {
 	# Function that returns 1 if curl failed, else 0
 	curl_exit=$?
 	if [ $curl_exit -eq 28 ]; then
+		consecutive_timeout_number=$(( $consecutive_timeout_number + 1 ))
+		total_timeout_number=$(( $total_timeout_number + 1 ))
+		mac_not_changed=true
+		check_if_timeout_limit
 		request_is_a_timeout
 		return 1
-	elif [ $curl_exit -eq 5 ]; then
-		echo -e "\t${_DIM}curl could not resolve proxy.${_RESET}" # TODO
-		mac_not_changed=true
-		consecutive_timeout_number=$consecutive_timeout_limit
-		total_timeout_number=$total_timeout_limit
-		return 1
 	elif [ $curl_exit -ne 0 ]; then
-		echo -e "\t${_DIM}curl exit code : $curl_exit.${_RESET}" #TODO
+		if [ $curl_exit -eq 5 ]; then
+			if [[ -n "${debug}" ]]; then
+				echo -e "\t${_DIM}* Could not resolve proxy.${_RESET}"
+			fi
+		else
+			if [[ -n "${debug}" ]]; then
+				echo -e "\t${_DIM}* curl exit code : $curl_exit.${_RESET}"
+			fi
+		fi
 		mac_not_changed=true
-		consecutive_timeout_number=$consecutive_timeout_limit
-		total_timeout_number=$total_timeout_limit
+		last_request_was_error=true
+		error_number=$(( error_number + 1 ))
 		return 1
 	fi
 	return 0
 }
+
+
 
 get_handshake() {
 	handshake_url=$(echo $dns)'/portal.php?action=handshake&type=stb&token=&mac='$(echo $encoded_mac)
