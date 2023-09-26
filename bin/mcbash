@@ -723,7 +723,7 @@ check_if_timeout_limit() {
 	#if [[ -z "${proxy_from_file+x}" && $consecutive_timeout_number -ge $consecutive_timeout_limit ]]; then
 	if [[ -z "${proxy_from_file+x}" ]]; then
 		if [[ $consecutive_timeout_number -ge $consecutive_timeout_limit && \
-			$consecutive_timeout_limit ]]; then
+			$consecutive_timeout_limit -ne 0 ]]; then
 			echo -e "${_ERASE}${_YELLOW}Limit of consecutive timeouts allowed reached [$consecutive_timeout_number].${_RESET}" #TODO
 			exit 1
 		elif [[ $total_timeout_number -ge $total_timeout_limit &&\
