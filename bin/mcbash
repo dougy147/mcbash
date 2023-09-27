@@ -33,6 +33,9 @@ read_args() {
 		[[ $(echo ${args[${i}]}) == "--debug" ]] && \
 			debug=true && \
 			debug_verbose_curl="-vvvvvv"
+		[[ $(echo ${args[${i}]}) == "-EA" || \
+			$(echo ${args[${i}]}) == "--enhanced-auth" ]] && \
+			enhanced_auth=true
 		[[ $(echo ${args[${i}]}) == "--show-only-mac" ]] && \
 			only_outputs_mac=true
 		[[ $(echo ${args[${i}]}) == "-np" || \
@@ -163,7 +166,7 @@ inspect_dns() {
 	URL_IP="([0-9]{1,3}\.){3}[0-9]{1,3}"
 	URL_host_or_IP="($URL_host|$URL_IP)"
 	URL_port="(:[0-9]{1,5})?"
-	URL_path="(/([-a-zA-Z0-9]+(/)?)?*)?"
+	URL_path="(/([-_a-zA-Z0-9]+(/)?)?*)?"
 	URL_query_string="(\?.*)?"
 	URL_regexp=$(echo ${URL_protocol}${URL_user_information}${URL_host_or_IP}${URL_port}${URL_path}${URL_query_string})
 	if ! [[ $(echo "${1}" | grep -Eo "$URL_regexp") == "${1}" ]]; then #||
@@ -802,11 +805,25 @@ check_curl_exit_code() {
 	return 0
 }
 
+make_cookie() {
+	cookie="mac=$mac; stb_lang=en; timezone=Europe/Amsterdam; "
+	if [[ -n ${enhanced_auth} ]]; then
+		# generate Sn and DEViD
+		mac_sn=$(echo -n "${mac}" | tr 'a-z' 'A-Z' | md5sum | tr 'a-z' 'A-Z')
+		sn=${mac_sn:0:13}
+		mac_dev=$(echo -n "${mac}" | tr 'a-z' 'A-Z' | sha256sum | sed "s/\ .*//g" | tr 'a-z' 'A-Z')
+		device_id=$mac_dev
+		#device_id2=
+		#signature=
+		#stb_type=
+		cookie="mac=$mac; sn=$sn; device_id=$device_id; stb_lang=en; timezone=Europe/Amsterdam; "
+	fi
+}
 
 
 get_handshake() {
 	handshake_url=$(echo $dns)'/portal.php?action=handshake&type=stb&token=&mac='$(echo $encoded_mac)
-	cookie="mac=$mac; stb_lang=en; timezone=Europe/Amsterdam; "
+	make_cookie
 	random_user_agent
 
 	handshake_token=$(curl $debug_verbose_curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Cookie: $(echo $cookie)" "$(echo $handshake_url)"); if ! check_curl_exit_code; then return 1; fi
@@ -832,6 +849,13 @@ get_profile() {
 	authorization='Bearer '$(echo $handshake_token)
 	profile_url=$(echo $dns)'/portal.php?type=account_info&action=get_main_info&mac='$(echo $mac)
 	profile=$(curl $debug_verbose_curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $profile_url)"); if ! check_curl_exit_code; then return 1; fi
+
+	if [[ -n ${debug} ]]; then
+		full_profile_url=$(echo $dns)'/portal.php?type=stb&action=get_profile&JsHttpRequest=1-xml'
+		full_profile=$(curl $debug_verbose_curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $full_profile_url)"); if ! check_curl_exit_code; then return 1; fi
+		echo -e "${_YELLOW}FULL_PROFILE : ${_RESET}${_BLUE}${full_profile}${_RESET}"
+	fi
+
 
 	if [[ $profile == "" ]]; then
 		maybeGEN1portal=true

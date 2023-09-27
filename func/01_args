@@ -7,6 +7,9 @@ read_args() {
 		[[ $(echo ${args[${i}]}) == "--debug" ]] && \
 			debug=true && \
 			debug_verbose_curl="-vvvvvv"
+		[[ $(echo ${args[${i}]}) == "-EA" || \
+			$(echo ${args[${i}]}) == "--enhanced-auth" ]] && \
+			enhanced_auth=true
 		[[ $(echo ${args[${i}]}) == "--show-only-mac" ]] && \
 			only_outputs_mac=true
 		[[ $(echo ${args[${i}]}) == "-np" || \
@@ -137,7 +140,7 @@ inspect_dns() {
 	URL_IP="([0-9]{1,3}\.){3}[0-9]{1,3}"
 	URL_host_or_IP="($URL_host|$URL_IP)"
 	URL_port="(:[0-9]{1,5})?"
-	URL_path="(/([-a-zA-Z0-9]+(/)?)?*)?"
+	URL_path="(/([-_a-zA-Z0-9]+(/)?)?*)?"
 	URL_query_string="(\?.*)?"
 	URL_regexp=$(echo ${URL_protocol}${URL_user_information}${URL_host_or_IP}${URL_port}${URL_path}${URL_query_string})
 	if ! [[ $(echo "${1}" | grep -Eo "$URL_regexp") == "${1}" ]]; then #||
