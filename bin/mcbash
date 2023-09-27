@@ -17,11 +17,17 @@ _ERASE_UP="\r\033[1A" #Erase one line up
 
 check_dependencies() {
 	#dep=("curl" "echo" "tput")
-	dep=("curl")
+	dep=("curl") # mandatory dependencies
 	for d in ${dep[@]}; do
 		if ! [[ $(which $d 2>/dev/null) ]]; then
-			echo -e "${_BLUE}${_BOLD}INFO: mcbash needs ${_YELLOW}${d}${_BLUE} to function correctly.\nPlease install it on your machine.${_RESET}"
+			echo -e "${_RED}${_BOLD}ERROR: mcbash needs ${_YELLOW}${d}${_RED} to work properly.\nPlease install it on your machine.${_RESET}"
 			exit 1
+		fi
+	done
+	opt_dep=("md5sum" "sha256sum") # optional dependencies
+	for o in ${opt_dep[@]}; do
+		if ! [[ $(which $o 2>/dev/null) ]]; then
+			echo -e "${_YELLOW}${_BOLD}WARNING: mcbash could need optional dependency ${_RED}${o}${_YELLOW}. \nConsider installing it on your machine.${_RESET}"
 		fi
 	done
 }
@@ -289,7 +295,7 @@ dns_name() {
 	#[[ $(echo $dns | grep -o 'http://') = "" ]] && dns=$(echo 'http://'$dns)
 	#dns=$(echo $dns | sed 's/\/$//') # if trailing "/" at the end of DNS, remove it
 	#name=$(echo $dns | sed 's/http:\/\///' | sed 's/://;s/\///')
-	name=$(echo $dns | sed "s/\/$// ; s/http:\/\/// ; s/:// ; s/\///")
+	name=$(echo $dns | sed "s/\/$// ; s/http:\/\/// ; s/:// ; s/\///g")
 	if ! inspect_dns "${dns}" "from_interactive"; then
 		unset dns
 		dns_name
@@ -974,9 +980,11 @@ done
 # - tput : core/ncurses
 # - curl : core/curl
 # - echo : core/utils
+# - md5sum : core/utils
+# - sha256sum : core/utils
 
 
 # 
 # dougy147 [2022]
 # https://github.com/dougy147/mcbash
-# last updated : 23sep2023
+# last updated : 27sep2023
