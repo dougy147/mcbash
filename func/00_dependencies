@@ -2,10 +2,17 @@
 
 check_dependencies() {
 	#dep=("curl" "echo" "tput")
-	dep=("curl")
+	dep=("curl") # mandatory dependencies
 	for d in ${dep[@]}; do
 		if ! [[ $(which $d 2>/dev/null) ]]; then
-			echo -e "${_BLUE}${_BOLD}INFO: mcbash needs ${_YELLOW}${d}${_BLUE} to function correctly.\nPlease install it on your machine.${_RESET}"
+			echo -e "${_RED}${_BOLD}ERROR: mcbash needs ${_YELLOW}${d}${_RED} to work properly.\nPlease install it on your machine.${_RESET}"
+			exit 1
+		fi
+	done
+	opt_dep=("md5sum","sha256sum") # optional dependencies
+	for o in ${opt_dep[@]}; do
+		if ! [[ $(which $o 2>/dev/null) ]]; then
+			echo -e "${_YELLOW}${_BOLD}WARNING: mcbash could need optional dependency ${_RED}${o}${_YELLOW}. \nConsider installing it on your machine.${_RESET}"
 			exit 1
 		fi
 	done
