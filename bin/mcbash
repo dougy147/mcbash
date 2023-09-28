@@ -20,14 +20,14 @@ check_dependencies() {
 	dep=("curl") # mandatory dependencies
 	for d in ${dep[@]}; do
 		if ! [[ $(which $d 2>/dev/null) ]]; then
-			echo -e "${_RED}${_BOLD}ERROR: mcbash needs ${_YELLOW}${d}${_RED} to work properly.\nPlease install it on your machine.${_RESET}"
+			display_missing_mandatory_dependency
 			exit 1
 		fi
 	done
 	opt_dep=("md5sum" "sha256sum") # optional dependencies
 	for o in ${opt_dep[@]}; do
 		if ! [[ $(which $o 2>/dev/null) ]]; then
-			echo -e "${_YELLOW}${_BOLD}WARNING: mcbash could need optional dependency ${_RED}${o}${_YELLOW}. \nConsider installing it on your machine.${_RESET}"
+			display_missing_optional_dependency
 		fi
 	done
 }
@@ -259,16 +259,19 @@ checkpoint_load() {
 SERVER_URL_PROMPT="Server address : ${_BOLD}${_BLUE}"
 USER_PAUSE_PROMPT="${_BOLD}${_MAGENTA}Quit [Ctrl+C]  ${_RESET}-  ${_BOLD}${_BLUE}Resume [Enter]${_RESET} "
 ASK_ADJUST_PARAMETERS_PROMPT="${_BOLD}=>${_RESET} Adjust parameters? ${_BOLD}[y/N]${_RESET} "
-ASK_REQUEST_DELAY_PROMPT=" ${_BOLD}*${_RESET} Wait ${_GREEN}[X] ${_RESET}seconds between two requests ${_BOLD}[default:$default_request_delay]${_RESET} ${_BOLD}${_GREEN}"
-ASK_TIMEBREAK_PROMPT="${_RESET} ${_BOLD}*${_RESET} Make a break every ${_GREEN}[X]${_RESET} requests ${_BOLD}[$default_timebreak]${_RESET} ${_BOLD}${_GREEN}"
-ASK_TIMEBREAK_DURATION_PROMPT="${_RESET} ${_BOLD}*${_RESET} Break duration (seconds) ${_BOLD}[$default_timebreak_duration]${_RESET} ${_BOLD}${_GREEN}"
-ASK_STOPPING_PROMPT="${_RESET} ${_BOLD}*${_RESET} Stop McBash after ${_GREEN}[X]${_RESET} tested MAC addresses ${_BOLD}[$default_stopping]${_RESET} ${_BOLD}${_GREEN}"
-ASK_TIMEOUT_PROMPT="${_RESET} ${_BOLD}*${_RESET} Consider request a timeout after ${_GREEN}[X]${_RESET} seconds ${_BOLD}[$default_timeout]${_RESET} ${_BOLD}${_GREEN}"
-ASK_MODE_PROMPT="${_RESET} ${_BOLD}*${_RESET} Scan ${_GREEN}randomly [r]${_RESET} or ${_GREEN}sequentially [s]${_RESET} ${_BOLD}[r]${_RESET} ${_BOLD}${_GREEN}"
-ASK_MAC_PREFIX_PROMPT="${_RESET} ${_BOLD}->${_RESET} Indicate MAC to scan prefix ${_BOLD}[$default_mac_prefix]${_RESET} ${_BOLD}${_GREEN}"
-ASK_FIRST_MAC_PROMPT="${_RESET} ${_BOLD}->${_RESET} Indicate first MAC to scan ${_BOLD}[$default_first_mac]${_RESET} ${_BOLD}${_GREEN}"
-ASK_LAST_MAC_PROMPT="${_RESET} ${_BOLD}->${_RESET} Indicate last MAC to scan ${_BOLD}[$default_last_mac]${_RESET} ${_BOLD}${_GREEN}"
-ASK_CHECKPOINT_CONTINUE_OR_RESET_PROMPT="${_RESET} ${_BOLD}->${_RESET} Checkpoint! Continue were scan previously stopped ? (${_GREEN}${checkpoint_mac}${_RESET}) ${_BOLD}[Y/n/reset]${_RESET} ${_BOLD}${_GREEN}"
+
+load_special_prompts() {
+	ASK_REQUEST_DELAY_PROMPT=" ${_BOLD}*${_RESET} Wait ${_GREEN}[X] ${_RESET}seconds between two requests ${_BOLD}[default:$default_request_delay]${_RESET} ${_BOLD}${_GREEN}"
+	ASK_TIMEBREAK_PROMPT="${_RESET} ${_BOLD}*${_RESET} Make a break every ${_GREEN}[X]${_RESET} requests ${_BOLD}[$default_timebreak]${_RESET} ${_BOLD}${_GREEN}"
+	ASK_TIMEBREAK_DURATION_PROMPT="${_RESET} ${_BOLD}*${_RESET} Break duration (seconds) ${_BOLD}[$default_timebreak_duration]${_RESET} ${_BOLD}${_GREEN}"
+	ASK_STOPPING_PROMPT="${_RESET} ${_BOLD}*${_RESET} Stop McBash after ${_GREEN}[X]${_RESET} tested MAC addresses ${_BOLD}[$default_stopping]${_RESET} ${_BOLD}${_GREEN}"
+	ASK_TIMEOUT_PROMPT="${_RESET} ${_BOLD}*${_RESET} Consider request a timeout after ${_GREEN}[X]${_RESET} seconds ${_BOLD}[$default_timeout]${_RESET} ${_BOLD}${_GREEN}"
+	ASK_MODE_PROMPT="${_RESET} ${_BOLD}*${_RESET} Scan ${_GREEN}randomly [r]${_RESET} or ${_GREEN}sequentially [s]${_RESET} ${_BOLD}[r]${_RESET} ${_BOLD}${_GREEN}"
+	ASK_MAC_PREFIX_PROMPT="${_RESET} ${_BOLD}->${_RESET} Indicate MAC to scan prefix ${_BOLD}[$default_mac_prefix]${_RESET} ${_BOLD}${_GREEN}"
+	ASK_FIRST_MAC_PROMPT="${_RESET} ${_BOLD}->${_RESET} Indicate first MAC to scan ${_BOLD}[$default_first_mac]${_RESET} ${_BOLD}${_GREEN}"
+	ASK_LAST_MAC_PROMPT="${_RESET} ${_BOLD}->${_RESET} Indicate last MAC to scan ${_BOLD}[$default_last_mac]${_RESET} ${_BOLD}${_GREEN}"
+	ASK_CHECKPOINT_CONTINUE_OR_RESET_PROMPT="${_RESET} ${_BOLD}->${_RESET} Checkpoint! Continue were scan previously stopped ? (${_GREEN}${checkpoint_mac}${_RESET}) ${_BOLD}[Y/n/reset]${_RESET} ${_BOLD}${_GREEN}"
+}
 
 display_logo() {
 	echo ${_GREEN} " ░█▄▒▄█░▄▀▀░██▄▒▄▀▄░▄▀▀░█▄█ " ${_RESET} && \
@@ -459,6 +462,14 @@ display_mode_seq_selected() {
 
 display_checkpoint_reset() {
 	echo -e "${_RESET} ${_BOLD}*${_RESET} Checkpoint will be ${_GREEN}reset${_RESET}."
+}
+
+display_missing_mandatory_dependency() {
+	echo -e "${_RED}${_BOLD}ERROR: mcbash needs ${_YELLOW}${d}${_RED} to work properly.\nPlease install it on your machine.${_RESET}"
+}
+
+display_missing_optional_dependency() {
+	echo -e "${_YELLOW}${_BOLD}WARNING: mcbash could need optional dependency ${_RED}${o}${_YELLOW}. \nConsider installing it on your machine.${_RESET}"
 }
 
 random_mac() {
@@ -672,6 +683,7 @@ check_parameters() {
 
 ask_request_delay() {
 	[[ -z ${request_delay+x} ]] && \
+		load_special_prompts && \
 		read -p "${ASK_REQUEST_DELAY_PROMPT}" request_delay
 
 	if [[ $request_delay == "" ]]; then
@@ -686,6 +698,7 @@ ask_request_delay() {
 
 ask_timebreak() {
 	[[ -z ${timebreak+x} ]] && \
+		load_special_prompts && \
 		read -p "${ASK_TIMEBREAK_PROMPT}" timebreak
 
 	if [[ $timebreak == "" ]]; then
@@ -702,6 +715,7 @@ ask_timebreak() {
 
 ask_timebreak_duration() {
 	[[ -z ${timebreak_duration+x} && $timebreak != "" ]] && \
+		load_special_prompts && \
 		read -p "${ASK_TIMEBREAK_DURATION_PROMPT}" timebreak_duration
 
 	if [[ $timebreak_duration == "" ]]; then
@@ -716,6 +730,7 @@ ask_timebreak_duration() {
 
 ask_stopping() {
 	[[ -z ${stopping+x} ]] && \
+		load_special_prompts && \
 		read -p "${ASK_STOPPING_PROMPT}" stopping
 
 	if [[ $stopping == "" ]]; then
@@ -733,6 +748,7 @@ ask_stopping() {
 
 ask_timeout() {
 	[[ -z ${timeout+x} ]] && \
+		load_special_prompts && \
 		read -p "${ASK_TIMEOUT_PROMPT}" timeout
 
 	if [[ $timeout == "" ]]; then
@@ -748,6 +764,7 @@ ask_timeout() {
 ask_mode() {
 	#[[ -z ${range+x} ]] && \
 	[[ -z ${seq+x} ]] && \
+		load_special_prompts && \
 		read -p "${ASK_MODE_PROMPT}" mode
 	#[[ $(echo $mode | grep -io "s") ]] && range=true
 	[[ $(echo $mode | grep -io "s") ]] && seq=true
@@ -757,6 +774,7 @@ ask_mode() {
 		display_mode_random_selected
 
 	if [[ -z ${range+x} && -z ${seq+x} && -z ${prefix} ]]; then
+		load_special_prompts && \
 		read -p "${ASK_MAC_PREFIX_PROMPT}" prefix
 		if [[ ${prefix} == "" ]]; then
 			unset prefix
@@ -770,7 +788,8 @@ ask_mode() {
 }
 
 ask_first_mac() {
-	read -p "${ASK_FIRST_MAC_PROMP}" first_mac
+	load_special_prompts
+	read -p "${ASK_FIRST_MAC_PROMPT}" first_mac
 
 	if ! [[ "${first_mac}" == "" ]]; then
 		if ! inspect_mac $first_mac "from_interactive"; then
@@ -781,6 +800,7 @@ ask_first_mac() {
 }
 
 ask_last_mac() {
+	load_special_prompts
 	read -p "${ASK_LAST_MAC_PROMPT}" last_mac
 
 	if ! [[ "${last_mac}" == "" ]]; then

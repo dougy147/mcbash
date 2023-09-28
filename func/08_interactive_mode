@@ -83,6 +83,7 @@ check_parameters() {
 
 ask_request_delay() {
 	[[ -z ${request_delay+x} ]] && \
+		load_special_prompts && \
 		read -p "${ASK_REQUEST_DELAY_PROMPT}" request_delay
 
 	if [[ $request_delay == "" ]]; then
@@ -97,6 +98,7 @@ ask_request_delay() {
 
 ask_timebreak() {
 	[[ -z ${timebreak+x} ]] && \
+		load_special_prompts && \
 		read -p "${ASK_TIMEBREAK_PROMPT}" timebreak
 
 	if [[ $timebreak == "" ]]; then
@@ -113,6 +115,7 @@ ask_timebreak() {
 
 ask_timebreak_duration() {
 	[[ -z ${timebreak_duration+x} && $timebreak != "" ]] && \
+		load_special_prompts && \
 		read -p "${ASK_TIMEBREAK_DURATION_PROMPT}" timebreak_duration
 
 	if [[ $timebreak_duration == "" ]]; then
@@ -127,6 +130,7 @@ ask_timebreak_duration() {
 
 ask_stopping() {
 	[[ -z ${stopping+x} ]] && \
+		load_special_prompts && \
 		read -p "${ASK_STOPPING_PROMPT}" stopping
 
 	if [[ $stopping == "" ]]; then
@@ -144,6 +148,7 @@ ask_stopping() {
 
 ask_timeout() {
 	[[ -z ${timeout+x} ]] && \
+		load_special_prompts && \
 		read -p "${ASK_TIMEOUT_PROMPT}" timeout
 
 	if [[ $timeout == "" ]]; then
@@ -159,6 +164,7 @@ ask_timeout() {
 ask_mode() {
 	#[[ -z ${range+x} ]] && \
 	[[ -z ${seq+x} ]] && \
+		load_special_prompts && \
 		read -p "${ASK_MODE_PROMPT}" mode
 	#[[ $(echo $mode | grep -io "s") ]] && range=true
 	[[ $(echo $mode | grep -io "s") ]] && seq=true
@@ -168,6 +174,7 @@ ask_mode() {
 		display_mode_random_selected
 
 	if [[ -z ${range+x} && -z ${seq+x} && -z ${prefix} ]]; then
+		load_special_prompts && \
 		read -p "${ASK_MAC_PREFIX_PROMPT}" prefix
 		if [[ ${prefix} == "" ]]; then
 			unset prefix
@@ -181,7 +188,8 @@ ask_mode() {
 }
 
 ask_first_mac() {
-	read -p "${ASK_FIRST_MAC_PROMP}" first_mac
+	load_special_prompts
+	read -p "${ASK_FIRST_MAC_PROMPT}" first_mac
 
 	if ! [[ "${first_mac}" == "" ]]; then
 		if ! inspect_mac $first_mac "from_interactive"; then
@@ -192,6 +200,7 @@ ask_first_mac() {
 }
 
 ask_last_mac() {
+	load_special_prompts
 	read -p "${ASK_LAST_MAC_PROMPT}" last_mac
 
 	if ! [[ "${last_mac}" == "" ]]; then
