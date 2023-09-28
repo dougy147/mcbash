@@ -15,7 +15,7 @@ display_help() {
 	\n -b ${_BLUE}X${_RESET} : Make a break every ${_BLUE}X${_RESET} requests \
 	\n -d ${_BLUE}X${_RESET} : Break or timeout duration (${_BLUE}X${_RESET} seconds) \
 	\n -t ${_BLUE}X${_RESET} : Consider request a timeout after a delay of ${_BLUE}X${_RESET} seconds \
-	\n -s ${_BLUE}X${_RESET} : Stop McBash after ${_BLUE}X${_RESET} tested MAC addresses \
+	\n -s ${_BLUE}X${_RESET} : Stop mcbash after ${_BLUE}X${_RESET} tested MAC addresses \
 	\n --seq : Scan MAC addresses sequentially \
 	\n --mac-file ${_BLUE}FILE${_RESET} : Scan MAC addresses from a file \
 	\n -np : Use default parameters \
@@ -113,11 +113,11 @@ display_mac_no_account() {
 }
 
 display_timeout_consecutive_limit() {
-	echo -e "${_ERASE}${_YELLOW}Limit of consecutive timeouts allowed reached [$consecutive_timeout_number].${_RESET}" #TODO
+	echo -e "${_ERASE}${_YELLOW}Limit of consecutive timeouts allowed reached [$consecutive_timeout_number].${_RESET}"
 }
 
 display_timeout_total_limit() {
-	echo -e "${_ERASE}${_YELLOW}Limit of total timeouts allowed reached [$total_timeout_number].${_RESET}" #TODO
+	echo -e "${_ERASE}${_YELLOW}Limit of total timeouts allowed reached [$total_timeout_number].${_RESET}"
 }
 
 display_timeout_pausing() {
@@ -180,3 +180,6 @@ display_erase_4_up() {
 	echo -ne "${_ERASE_UP}\033[0K$@${_ERASE_UP}\033[0K$@${_ERASE_UP}\033[0K$@${_ERASE_UP}\033[0K$@"
 }
 
+display_checkpoint_detected_and_loaded() {
+	echo "${_RESET} ${_GREEN}Checkpoint detected!${_RESET} Starting from ${_GREEN}${checkpoint_mac}${_RESET} (last MAC scanned)"
+}

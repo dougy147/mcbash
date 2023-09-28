@@ -3,6 +3,12 @@
 
 check_parameters() {
 	if [ "$avoid_parameters" = true ]; then
+		if [[ -n ${seq} && -z ${no_checkpoint+x} && -z ${range_from+x} ]]; then
+			if [[ -f "${destination}/checkpoint_${name}" ]]; then
+				checkpoint_load
+				display_checkpoint_detected_and_loaded
+			fi
+		fi
 		populate_necessary_values
 	fi
 
@@ -11,7 +17,6 @@ check_parameters() {
 		-z ${timebreak_duration+x} && \
 		-z ${stopping+x} && \
 		-z ${timeout+x} ]] && \
-		#-z ${keep_expired+x} ]] && \
 		read -p "${_BOLD}=>${_RESET} Adjust parameters? ${_BOLD}[y/N]${_RESET} " PARAMETERS
 
 	if [[ $(echo $PARAMETERS | grep -io "y") ]]; then
@@ -28,17 +33,14 @@ check_parameters() {
 
 	elif [[ -n ${range} || -n ${range_from} || -n ${range_to} ]]; then
 		if [[ -f "${destination}/checkpoint_${name}" && -z ${no_checkpoint+x} && -z ${range_from+x} ]]; then
-			checkpoint_mac=$(cat "${destination}/checkpoint_${name}")
-			echo "${_RESET} ${_GREEN}Checkpoint detected!${_RESET} Starting from ${_GREEN}${checkpoint_mac}${_RESET} (last MAC scanned)"
-			range_from=${checkpoint_mac}
+			checkpoint_load
+			display_checkpoint_detected_and_loaded
 		fi
 		[[ -n ${range_from} ]] || ask_first_mac
-			#read -p "${_RESET} ${_BOLD}->${_RESET} Indicate first MAC to scan ${_BOLD}[$default_first_mac]${_RESET} ${_BOLD}${_GREEN}" first_mac
 		[[ -n ${range_from} ]] && first_mac=$range_from
 		[[ -z ${first_mac} ]] && first_mac=$default_first_mac && range_from="$default_first_mac"
 		[[ -n ${first_mac} ]] && range_from=$first_mac
 		[[ -n ${range_to} ]] || ask_last_mac
-			#read -p "${_RESET} ${_BOLD}->${_RESET} Indicate last MAC to scan ${_BOLD}[$default_last_mac]${_RESET} ${_BOLD}${_GREEN}" last_mac
 		[[ -n ${range_to} ]] && last_mac=$range_to
 		[[ -z $last_mac ]] && last_mac="$default_last_mac" && range_to="$default_last_mac"
 		[[ -n ${last_mac} ]] && range_to=$last_mac
@@ -55,8 +57,10 @@ check_parameters() {
 		if [[ -n ${range} || -n ${range_from} || -n ${range_to} ]]; then
 			range=true
 			if [[ -f "${destination}/checkpoint_${name}" && -z ${no_checkpoint+x} ]]; then
-				checkpoint_mac=$(cat "${destination}/checkpoint_${name}")
-				default_first_mac=${checkpoint_mac}
+				#checkpoint_mac=$(cat "${destination}/checkpoint_${name}")
+				#default_first_mac=${checkpoint_mac}
+				checkpoint_load
+				display_checkpoint_detected_and_loaded
 			fi
 			[[ -n ${range_from} ]] || range_from=$default_first_mac && first_mac=$default_first_mac
 			[[ -n ${range_to} ]] || range_to=$default_last_mac && last_mac=$default_last_mac

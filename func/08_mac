@@ -41,8 +41,9 @@ seq_mac() {
 	[[ -z ${first_mac+x} ]] && first_mac="$default_first_mac" && mac=$(echo $first_mac) && return # user first value of the MAC
 	[[ $item == 1 ]] && mac=$(echo $first_mac) && return
 
+	# Save checkpoint
 	# if not '--no-checkpoint', save that MAC in checkpoint file
-	[[ -z ${no_checkpoint+x} ]] && echo "${first_mac}" > "${destination}/checkpoint_${name}"
+	[[ -z ${no_checkpoint+x} ]] && echo "${mac}" > "${destination}/checkpoint_${name}"
 
 	new_mac=$(echo $first_mac)
 	mac_simple=$(echo $new_mac |  tr '[:lower:]' '[:upper:]' | tr -d ':') && \
