@@ -2,6 +2,17 @@
 
 SERVER_URL_PROMPT="Server address : ${_BOLD}${_BLUE}"
 USER_PAUSE_PROMPT="${_BOLD}${_MAGENTA}Quit [Ctrl+C]  ${_RESET}-  ${_BOLD}${_BLUE}Resume [Enter]${_RESET} "
+ASK_ADJUST_PARAMETERS_PROMPT="${_BOLD}=>${_RESET} Adjust parameters? ${_BOLD}[y/N]${_RESET} "
+ASK_REQUEST_DELAY_PROMPT=" ${_BOLD}*${_RESET} Wait ${_GREEN}[X] ${_RESET}seconds between two requests ${_BOLD}[default:$default_request_delay]${_RESET} ${_BOLD}${_GREEN}"
+ASK_TIMEBREAK_PROMPT="${_RESET} ${_BOLD}*${_RESET} Make a break every ${_GREEN}[X]${_RESET} requests ${_BOLD}[$default_timebreak]${_RESET} ${_BOLD}${_GREEN}"
+ASK_TIMEBREAK_DURATION_PROMPT="${_RESET} ${_BOLD}*${_RESET} Break duration (seconds) ${_BOLD}[$default_timebreak_duration]${_RESET} ${_BOLD}${_GREEN}"
+ASK_STOPPING_PROMPT="${_RESET} ${_BOLD}*${_RESET} Stop McBash after ${_GREEN}[X]${_RESET} tested MAC addresses ${_BOLD}[$default_stopping]${_RESET} ${_BOLD}${_GREEN}"
+ASK_TIMEOUT_PROMPT="${_RESET} ${_BOLD}*${_RESET} Consider request a timeout after ${_GREEN}[X]${_RESET} seconds ${_BOLD}[$default_timeout]${_RESET} ${_BOLD}${_GREEN}"
+ASK_MODE_PROMPT="${_RESET} ${_BOLD}*${_RESET} Scan ${_GREEN}randomly [r]${_RESET} or ${_GREEN}sequentially [s]${_RESET} ${_BOLD}[r]${_RESET} ${_BOLD}${_GREEN}"
+ASK_MAC_PREFIX_PROMPT="${_RESET} ${_BOLD}->${_RESET} Indicate MAC to scan prefix ${_BOLD}[$default_mac_prefix]${_RESET} ${_BOLD}${_GREEN}"
+ASK_FIRST_MAC_PROMPT="${_RESET} ${_BOLD}->${_RESET} Indicate first MAC to scan ${_BOLD}[$default_first_mac]${_RESET} ${_BOLD}${_GREEN}"
+ASK_LAST_MAC_PROMPT="${_RESET} ${_BOLD}->${_RESET} Indicate last MAC to scan ${_BOLD}[$default_last_mac]${_RESET} ${_BOLD}${_GREEN}"
+ASK_CHECKPOINT_CONTINUE_OR_RESET_PROMPT="${_RESET} ${_BOLD}->${_RESET} Checkpoint! Continue were scan previously stopped ? (${_GREEN}${checkpoint_mac}${_RESET}) ${_BOLD}[Y/n/reset]${_RESET} ${_BOLD}${_GREEN}"
 
 display_logo() {
 	echo ${_GREEN} " ░█▄▒▄█░▄▀▀░██▄▒▄▀▄░▄▀▀░█▄█ " ${_RESET} && \
@@ -182,4 +193,16 @@ display_erase_4_up() {
 
 display_checkpoint_detected_and_loaded() {
 	echo "${_RESET} ${_GREEN}Checkpoint detected!${_RESET} Starting from ${_GREEN}${checkpoint_mac}${_RESET} (last MAC scanned)"
+}
+
+display_mode_random_selected() {
+	echo -e "${_RESET} ${_BOLD}*${_RESET} You have selected ${_GREEN}random mode${_RESET}"
+}
+
+display_mode_seq_selected() {
+	echo -e "${_RESET} ${_BOLD}*${_RESET} You have selected ${_GREEN}sequential mode${_RESET}"
+}
+
+display_checkpoint_reset() {
+	echo -e "${_RESET} ${_BOLD}*${_RESET} Checkpoint will be ${_GREEN}reset${_RESET}."
 }
