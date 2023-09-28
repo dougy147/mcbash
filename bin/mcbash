@@ -815,6 +815,7 @@ ask_range() {
 	if [[ -n ${range} && -z ${range_from+x} ]]; then
 		if [[ -f "${destination}/checkpoint_${name}" && -z ${no_checkpoint+x} ]]; then
 			checkpoint_mac=$(cat "${destination}/checkpoint_${name}")
+			load_special_prompts
 			read -p "${ASK_CHECKPOINT_CONTINUE_OR_RESET_PROMPT}" grab_checkpoint
 			if [[ $(echo $grab_checkpoint | grep -io "n") ]]; then
 				no_checkpoint=true
