@@ -6,7 +6,7 @@ update_proxy() {
 	if [[ -n "${proxy_from_file}" ]]; then
 		proxy_from_file
 		proxy_url_option=$(echo "-x $proxy_url")
-		echo -e "${_ERASE}${_DIM}Rotated proxy to '${_BLUE}${proxy_url}${_RESET}${_DIM}'${_RESET}"
+		display_proxy_rotation
 	fi
 }
 

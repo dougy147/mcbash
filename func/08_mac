@@ -34,9 +34,10 @@ random_mac() {
 
 # Check MAC one by one from --range-from to --range-to.
 seq_mac() {
-	[[ -n ${last_mac_reached} ]] && \
-		( [[ -n ${only_outputs_mac} ]] || echo "${_BOLD}${_CYAN}Range fullfiled${_RESET}" ) && \
+	if [[ -n ${last_mac_reached} ]]; then
+		( [[ -n ${only_outputs_mac} ]] || display_range_fulfilled )
 		exit 0
+	fi
 	[[ -z ${first_mac+x} ]] && first_mac="$default_first_mac" && mac=$(echo $first_mac) && return # user first value of the MAC
 	[[ $item == 1 ]] && mac=$(echo $first_mac) && return
 
@@ -80,7 +81,7 @@ read_mac_from_file() {
 		max_number_of_lines_to_read=$(cat "$file_to_read_mac_from" | wc -l)
 	fi
 	if [[ $line_to_read -gt $max_number_of_lines_to_read ]]; then
-		echo -e "\n${_YELLOW}End of MAC file.${_RESET}"
+		display_end_of_mac_file
 		exit 0
 	fi
 	line_to_read=$(( line_to_read + 1 ))
@@ -108,9 +109,35 @@ valid_mac_found() {
 	fi
 	echo "$mac [$expiration_date]" >> $destination/valid_macs_$name
 	if [[ -n ${only_outputs_mac} ]]; then
-		echo $mac
+		display_raw_mac
 	else
-		echo -ne "\r${_BOLD}${_GREEN}[$item] $mac ${_RESET}${_RED}[$expiration_date] ${_RESET}\n"
+		display_formatted_mac
 	fi
 	valid_macs_number=$(( $valid_macs_number + 1 ))
 }
+
+inspect_mac () {
+	mode=$2
+	# If while checking USER argument : exit 1
+	# Else, if reading a MAC file : return 1 for "bad MAC"
+	if ! [[ $(echo "${1}" | grep -Eo "([0-9a-fA-F]{2}[-:]){$(( (max_mac_length / 2) - 1 ))}[0-9a-fA-F]{2}") == "${1}" ]]; then
+		if [[ "${mode}" == "from_args" || "${mode}" == "from_interactive" ]]; then
+			display_bad_mac_format
+			if [[ "${mode}" == "from_args" ]]; then
+				exit 1
+			else
+				return 1
+			fi
+		else
+			return 1
+		fi
+	fi
+}
+
+inspect_mac_file() {
+	if ! [[ -f $(realpath "${1}") ]]; then
+		display_bad_mac_file "${1}"
+		exit 1
+	fi
+}
+

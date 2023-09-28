@@ -1,5 +1,182 @@
 #!/bin/sh
 
-scanning_text() {
-	echo "${_BOLD}=> ${_RESET}Scan @ ${_BOLD}${_BLUE}$dns${_RESET} ${_GREEN}[$request_delay seconds/request]${_RESET}"
+SERVER_URL_PROMPT="Server address : ${_BOLD}${_BLUE}"
+USER_PAUSE_PROMPT="${_BOLD}${_MAGENTA}Quit [Ctrl+C]  ${_RESET}-  ${_BOLD}${_BLUE}Resume [Enter]${_RESET} "
+
+display_logo() {
+	echo ${_GREEN} " ░█▄▒▄█░▄▀▀░██▄▒▄▀▄░▄▀▀░█▄█ " ${_RESET} && \
+	echo ${_GREEN} " ░█▒▀▒█░▀▄▄▒█▄█░█▀█▒▄██▒█▒█ " ${_RESET}
 }
+
+display_help() {
+	echo -e "${_BOLD}Help menu :${_RESET} \
+	\n -u ${_BLUE}URL:port${_RESET} : Server ${_BLUE}URL/IP${_RESET} and ${_BLUE}port (optional)${_RESET} \
+	\n -w ${_BLUE}X${_RESET} : Wait ${_BLUE}X${_RESET} seconds between each requests \
+	\n -b ${_BLUE}X${_RESET} : Make a break every ${_BLUE}X${_RESET} requests \
+	\n -d ${_BLUE}X${_RESET} : Break or timeout duration (${_BLUE}X${_RESET} seconds) \
+	\n -t ${_BLUE}X${_RESET} : Consider request a timeout after a delay of ${_BLUE}X${_RESET} seconds \
+	\n -s ${_BLUE}X${_RESET} : Stop McBash after ${_BLUE}X${_RESET} tested MAC addresses \
+	\n --seq : Scan MAC addresses sequentially \
+	\n --mac-file ${_BLUE}FILE${_RESET} : Scan MAC addresses from a file \
+	\n -np : Use default parameters \
+	\n man mcbash : Look up the manual for more tweaks (proxy support, shell scripts call, etc.)\
+	\n \
+	\n ${_BOLD}Example ${_RESET}: mcbash -u my-dns.com:8080 -w 1.5 -b 10 -d 3 -s 150 -t 2 -k \
+	\n Set your default parameters inside this file : \"$HOME/.config/mcbash/mcbash.conf\"\
+	\n MACs are stored here : \"${destination}\"\
+	"
+}
+
+scanning_text() {
+	echo "${_BOLD}=> ${_RESET}Scan @ ${_BOLD}${_BLUE}${dns}${_RESET} ${_GREEN}[$request_delay s/request]${_RESET}"
+}
+
+display_range_fulfilled() {
+	echo "${_BOLD}${_CYAN}Range fulfilled${_RESET}"
+}
+
+display_end_of_mac_file() {
+	echo -e "\n${_YELLOW}End of MAC file.${_RESET}"
+}
+
+display_raw_mac() {
+	echo $mac
+}
+
+display_formatted_mac() {
+	echo -ne "\r${_BOLD}${_GREEN}[$item] $mac ${_RESET}${_RED}[$expiration_date] ${_RESET}\n"
+}
+
+display_problem_inspecting_arguments() {
+	echo "${_RED}${_BOLD}Something went wrong inspecting arguments.${_RESET}"
+}
+
+display_bad_float() {
+	echo -e "${_RESET}${_RED}ERROR: ${_YELLOW}${1}${_RESET}${_RED} takes float or integer for parameter (e.g. ${_YELLOW}${1} 1.5${_RED}).${_RESET}"
+}
+
+display_bad_int() {
+	echo -e "${_RESET}${_RED}ERROR: ${_YELLOW}${1}${_RESET}${_RED} takes integer for parameter (e.g. ${_YELLOW}${1} 10${_RED}).${_RESET}"
+}
+
+display_bad_dns() {
+	echo -e "${_RESET}${_RED}ERROR: invalid DNS format.${_RESET}"
+}
+
+display_bad_mac_file() {
+	echo -e "${_RED}ERROR: file ${_YELLOW}${1}${_RED} does not exist.${_RESET}"
+}
+
+#display_bad_proxy_file() {
+#}
+
+display_empty_value() {
+	echo -e "${_RESET}${_RED}ERROR: empty value for ${_YELLOW}${1}${_RED}.${_RESET}"
+}
+
+display_config_file_not_found() {
+	echo -e "${_YELLOW}WARNING: Config file not found. This can cause weird behaviors.${_RESET}\n${_BLUE}mcbash.conf${_RESET}${_YELLOW} should be placed here : ${_BLUE}$config_file${_RESET}"
+}
+
+display_cannot_create_saving_dir() {
+	echo -e "${_BLUE}Can't create saving directory to $destination.\nPlease be sure you have permissions.\nValid MAC addresses will not be stored.${_RESET}"
+}
+
+display_empty_dns() {
+	if [[ "${1}" == "from_args" ]]; then
+		echo -ne "${_RED}ERROR: Empty URL.\nYou need to set a server address [ex: ${0} -u my-fakedns.bla:8080]${_RESET}"
+	else
+		echo -ne "\r${_RED}Empty URL. Please set a server address [ex: my-fakedns.bla:8080]${_RESET}\n"
+	fi
+}
+
+display_bad_mac_format() {
+	echo -e "${_RESET}${_RED}ERROR: invalid MAC format.${_RESET}"
+	echo -e "${_RESET}${_RED}Please use either ${_DIM}FORMAT_1${_RESET}${_RED} or ${_DIM}FORMAT_2${_RESET}${_RED} format.${_RESET}" | sed -r 's/FORMAT_1/XX:XX:XX:XX:XX:XX/ ; s/FORMAT_2/XX-XX-XX-XX-XX-XX/'
+}
+
+display_proxy_rotation() {
+	echo -e "${_ERASE}${_DIM}Rotated proxy to '${_BLUE}${proxy_url}${_RESET}${_DIM}'${_RESET}"
+}
+
+display_valid_out_of_tested() {
+	echo "${_BOLD}${_CYAN}$valid_macs_number valid out of $item MACs.${_RESET}"
+	#echo ${_GREEN}"$valid_macs_number valid for $(( $item - 1 )) tested." ${_RESET}
+}
+
+display_pausing_auto() {
+	echo -ne ${_BLUE}"\r[$item] $mac ${_RESET}${_DIM}${_CYAN}--- Pausing for $timebreak_duration seconds..."${_RESET}
+}
+
+display_mac_no_account() {
+	echo -ne "${_ERASE}$@${_YELLOW}[$item]${_RESET} ${_RED}$mac ${_RESET}"
+}
+
+display_timeout_consecutive_limit() {
+	echo -e "${_ERASE}${_YELLOW}Limit of consecutive timeouts allowed reached [$consecutive_timeout_number].${_RESET}" #TODO
+}
+
+display_timeout_total_limit() {
+	echo -e "${_ERASE}${_YELLOW}Limit of total timeouts allowed reached [$total_timeout_number].${_RESET}" #TODO
+}
+
+display_timeout_pausing() {
+	echo -ne "${_ERASE}${_BLUE}Timeout [$total_timeout_number] (consecutive:$consecutive_timeout_number). New attempt in $timebreak_duration seconds.${_RESET}"
+}
+
+display_timeout_new_attempt() {
+	echo -ne "${_ERASE}${_ERASE}${_BLUE}New attempt...${_RESET}"
+}
+
+display_curl_could_not_resolve_proxy() {
+	echo -e "\t${_DIM}* Could not resolve proxy.${_RESET}"
+}
+
+display_curl_exit_code() {
+	echo -e "\t${_DIM}* curl exit code : $curl_exit.${_RESET}"
+}
+
+display_debug_token() {
+	echo -e "\n---------------------------------\n\t${_YELLOW}Handshake token : ${_RESET}${_BLUE}${handshake_token:-Empty}${_RESET}"
+}
+
+display_debug_full_profile() {
+	echo -e "${_YELLOW}FULL_PROFILE : ${_RESET}${_BLUE}${full_profile}${_RESET}"
+}
+
+display_debug_account() {
+	echo -e "${_YELLOW}ACCOUNT : ${_RESET}${_BLUE}${account}${_RESET}"
+}
+
+display_debug_profile1() {
+	echo -e "${_YELLOW}PROFILE1 : ${_RESET}${_BLUE}${profile}${_RESET}"
+}
+
+display_debug_profile2() {
+	echo -e "${_YELLOW}PROFILE2 : ${_RESET}${_BLUE}${profile}${_RESET}"
+}
+
+display_debug_exp_date() {
+	echo -e "${_YELLOW}EXP_DATE : ${_RESET}${_BLUE}${expiration_date}${_RESET}"
+}
+
+display_mac_expired() {
+	echo -ne "\r${_YELLOW}[$item]${_RESET} ${_BOLD}${_RED}$mac [expired] ${_RESET}"
+}
+
+display_pausing_user() {
+	echo ${_CYAN}--- You have paused mcbash. What to do ? ---${_RESET}
+}
+
+display_destination_file_saved() {
+	echo ${_GREEN}"File saved => $destination/valid_macs_$name"${_RESET}
+}
+
+display_erase_3_up() {
+	echo -ne "${_ERASE_UP}\033[0K$@${_ERASE_UP}\033[0K$@${_ERASE_UP}\033[0K$@"
+}
+
+display_erase_4_up() {
+	echo -ne "${_ERASE_UP}\033[0K$@${_ERASE_UP}\033[0K$@${_ERASE_UP}\033[0K$@${_ERASE_UP}\033[0K$@"
+}
+
