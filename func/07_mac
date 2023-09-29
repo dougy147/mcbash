@@ -13,8 +13,10 @@ random_mac() {
 	suffix=""
 	for (( i=0;i<${missing_mac_values};i++ )); do
 		#suffix=$(echo $suffix)$(echo ${a[RANDOM%16]})
-		random_number=$(echo "$(od -An -N4 -tu4 /dev/random) % 16" | bc) 2>/dev/null
-		if [[ -z "${random_number+x}" ]]; then
+		random_number=$(echo "$(od -An -N4 -tu4 /dev/random) % 16" | bc 2>/dev/null) 2>/dev/null
+		if [[ -z "${random_number+x}" || \
+			! $(which od 2>/dev/null) || \
+			! $(which bc 2>/dev/null) ]]; then
 			suffix=$(echo $suffix)$(echo ${a[RANDOM%16]})
 		else
 			suffix=$(echo $suffix)$(echo ${a[${random_number}]})
