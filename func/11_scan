@@ -220,9 +220,9 @@ get_exp_date() {
 			echo -ne "\r${_YELLOW}[$item]${_RESET} ${_BOLD}${_RED}$mac [expired] ${_RESET}\n"
 		fi
 		if [[ $valid_macs_number == 0 ]]; then
-			echo -e "\n$dns ($(date))\n" >> $destination/valid_macs_$name
+			write_date_before_mac
 		fi
-		echo "$mac [expired]" >> $destination/valid_macs_$name
+		write_expired_mac
 		return 1
 	fi
 }

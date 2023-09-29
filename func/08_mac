@@ -110,13 +110,33 @@ generate_mac() {
 
 valid_mac_found() {
 	if [[ $valid_macs_number == 0 ]]; then
-		echo -e "\n$dns ($(date))\n" >> $destination/valid_macs_$name
+		write_date_before_mac
 	fi
-	echo "$mac [$expiration_date]" >> $destination/valid_macs_$name
+	write_valid_mac
 	if [[ -n ${only_outputs_mac} ]]; then
 		echo $mac
 	else
 		echo -ne "\r${_BOLD}${_GREEN}[$item] $mac ${_RESET}${_RED}[$expiration_date] ${_RESET}\n"
 	fi
 	valid_macs_number=$(( $valid_macs_number + 1 ))
+}
+
+write_date_before_mac() {
+	echo -e "\n$dns ($(date))\n" >> $destination/valid_macs_$name
+}
+
+write_valid_mac() {
+	echo "$mac [$expiration_date]" >> $destination/valid_macs_$name
+	if [[ -n "${enhanced_auth}" ]]; then
+		echo -e "\t-> SN: ${sn}" >> $destination/valid_macs_$name
+		echo -e "\t-> Device_ID1: ${device_id}" >> $destination/valid_macs_$name
+	fi
+}
+
+write_expired_mac() {
+	echo "$mac [expired]" >> $destination/valid_macs_$name
+	if [[ -n "${enhanced_auth}" ]]; then
+		echo -e "\t-> SN: ${sn}" >> $destination/valid_macs_$name
+		echo -e "\t-> DevID1: ${device_id}" >> $destination/valid_macs_$name
+	fi
 }
