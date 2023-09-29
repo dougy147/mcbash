@@ -3,6 +3,12 @@
 
 check_parameters() {
 	if [ "$avoid_parameters" = true ]; then
+		if [[ -n ${seq} && -z ${no_checkpoint+x} && -z ${range_from+x} ]]; then
+			if [[ -f "${destination}/checkpoint_${name}" ]]; then
+				checkpoint_load
+				display_checkpoint_detected_and_loaded
+			fi
+		fi
 		populate_necessary_values
 	fi
 
@@ -11,8 +17,7 @@ check_parameters() {
 		-z ${timebreak_duration+x} && \
 		-z ${stopping+x} && \
 		-z ${timeout+x} ]] && \
-		#-z ${keep_expired+x} ]] && \
-		read -p "${_BOLD}=>${_RESET} Adjust parameters? ${_BOLD}[y/N]${_RESET} " PARAMETERS
+		read -p "${ASK_ADJUST_PARAMETERS_PROMPT}" PARAMETERS
 
 	if [[ $(echo $PARAMETERS | grep -io "y") ]]; then
 		ask_request_delay
@@ -28,17 +33,14 @@ check_parameters() {
 
 	elif [[ -n ${range} || -n ${range_from} || -n ${range_to} ]]; then
 		if [[ -f "${destination}/checkpoint_${name}" && -z ${no_checkpoint+x} && -z ${range_from+x} ]]; then
-			checkpoint_mac=$(cat "${destination}/checkpoint_${name}")
-			echo "${_RESET} ${_GREEN}Checkpoint detected!${_RESET} Starting from ${_GREEN}${checkpoint_mac}${_RESET} (last MAC scanned)"
-			range_from=${checkpoint_mac}
+			checkpoint_load
+			display_checkpoint_detected_and_loaded
 		fi
 		[[ -n ${range_from} ]] || ask_first_mac
-			#read -p "${_RESET} ${_BOLD}->${_RESET} Indicate first MAC to scan ${_BOLD}[$default_first_mac]${_RESET} ${_BOLD}${_GREEN}" first_mac
 		[[ -n ${range_from} ]] && first_mac=$range_from
 		[[ -z ${first_mac} ]] && first_mac=$default_first_mac && range_from="$default_first_mac"
 		[[ -n ${first_mac} ]] && range_from=$first_mac
 		[[ -n ${range_to} ]] || ask_last_mac
-			#read -p "${_RESET} ${_BOLD}->${_RESET} Indicate last MAC to scan ${_BOLD}[$default_last_mac]${_RESET} ${_BOLD}${_GREEN}" last_mac
 		[[ -n ${range_to} ]] && last_mac=$range_to
 		[[ -z $last_mac ]] && last_mac="$default_last_mac" && range_to="$default_last_mac"
 		[[ -n ${last_mac} ]] && range_to=$last_mac
@@ -55,8 +57,10 @@ check_parameters() {
 		if [[ -n ${range} || -n ${range_from} || -n ${range_to} ]]; then
 			range=true
 			if [[ -f "${destination}/checkpoint_${name}" && -z ${no_checkpoint+x} ]]; then
-				checkpoint_mac=$(cat "${destination}/checkpoint_${name}")
-				default_first_mac=${checkpoint_mac}
+				#checkpoint_mac=$(cat "${destination}/checkpoint_${name}")
+				#default_first_mac=${checkpoint_mac}
+				checkpoint_load
+				display_checkpoint_detected_and_loaded
 			fi
 			[[ -n ${range_from} ]] || range_from=$default_first_mac && first_mac=$default_first_mac
 			[[ -n ${range_to} ]] || range_to=$default_last_mac && last_mac=$default_last_mac
@@ -79,7 +83,8 @@ check_parameters() {
 
 ask_request_delay() {
 	[[ -z ${request_delay+x} ]] && \
-		read -p " ${_BOLD}*${_RESET} Wait ${_GREEN}[X] ${_RESET}seconds between two requests ${_BOLD}[default:$default_request_delay]${_RESET} ${_BOLD}${_GREEN}" request_delay
+		load_special_prompts && \
+		read -p "${ASK_REQUEST_DELAY_PROMPT}" request_delay
 
 	if [[ $request_delay == "" ]]; then
 		request_delay=$default_request_delay
@@ -93,7 +98,8 @@ ask_request_delay() {
 
 ask_timebreak() {
 	[[ -z ${timebreak+x} ]] && \
-		read -p "${_RESET} ${_BOLD}*${_RESET} Make a break every ${_GREEN}[X]${_RESET} requests ${_BOLD}[$default_timebreak]${_RESET} ${_BOLD}${_GREEN}" timebreak
+		load_special_prompts && \
+		read -p "${ASK_TIMEBREAK_PROMPT}" timebreak
 
 	if [[ $timebreak == "" ]]; then
 		timebreak=$default_timebreak
@@ -109,7 +115,8 @@ ask_timebreak() {
 
 ask_timebreak_duration() {
 	[[ -z ${timebreak_duration+x} && $timebreak != "" ]] && \
-		read -p "${_RESET} ${_BOLD}*${_RESET} Break duration (seconds) ${_BOLD}[$default_timebreak_duration]${_RESET} ${_BOLD}${_GREEN}" timebreak_duration
+		load_special_prompts && \
+		read -p "${ASK_TIMEBREAK_DURATION_PROMPT}" timebreak_duration
 
 	if [[ $timebreak_duration == "" ]]; then
 		timebreak_duration=$default_timebreak_duration
@@ -123,7 +130,8 @@ ask_timebreak_duration() {
 
 ask_stopping() {
 	[[ -z ${stopping+x} ]] && \
-		read -p "${_RESET} ${_BOLD}*${_RESET} Stop McBash after ${_GREEN}[X]${_RESET} tested MAC addresses ${_BOLD}[$default_stopping]${_RESET} ${_BOLD}${_GREEN}" stopping
+		load_special_prompts && \
+		read -p "${ASK_STOPPING_PROMPT}" stopping
 
 	if [[ $stopping == "" ]]; then
 		stopping=$default_stopping
@@ -140,7 +148,8 @@ ask_stopping() {
 
 ask_timeout() {
 	[[ -z ${timeout+x} ]] && \
-		read -p "${_RESET} ${_BOLD}*${_RESET} Consider request a timeout after ${_GREEN}[X]${_RESET} seconds ${_BOLD}[$default_timeout]${_RESET} ${_BOLD}${_GREEN}" timeout
+		load_special_prompts && \
+		read -p "${ASK_TIMEOUT_PROMPT}" timeout
 
 	if [[ $timeout == "" ]]; then
 		timeout=$default_timeout
@@ -155,16 +164,18 @@ ask_timeout() {
 ask_mode() {
 	#[[ -z ${range+x} ]] && \
 	[[ -z ${seq+x} ]] && \
-		read -p "${_RESET} ${_BOLD}*${_RESET} Scan ${_GREEN}randomly [r]${_RESET} or ${_GREEN}sequentially [s]${_RESET} ${_BOLD}[r]${_RESET} ${_BOLD}${_GREEN}" mode
+		load_special_prompts && \
+		read -p "${ASK_MODE_PROMPT}" mode
 	#[[ $(echo $mode | grep -io "s") ]] && range=true
 	[[ $(echo $mode | grep -io "s") ]] && seq=true
 
 	#[[ -z ${range+x} ]] && \
 	[[ -z ${seq+x} ]] && \
-		echo -e "${_RESET} ${_BOLD}*${_RESET} You have selected ${_GREEN}random mode${_RESET}"
+		display_mode_random_selected
 
 	if [[ -z ${range+x} && -z ${seq+x} && -z ${prefix} ]]; then
-		read -p "${_RESET} ${_BOLD}->${_RESET} Indicate MAC to scan prefix ${_BOLD}[$default_mac_prefix]${_RESET} ${_BOLD}${_GREEN}" prefix
+		load_special_prompts && \
+		read -p "${ASK_MAC_PREFIX_PROMPT}" prefix
 		if [[ ${prefix} == "" ]]; then
 			unset prefix
 		fi
@@ -172,12 +183,13 @@ ask_mode() {
 
 	#[[ -n ${range} ]] && \
 	[[ -n ${seq} ]] && \
-		echo -e "${_RESET} ${_BOLD}*${_RESET} You have selected ${_GREEN}sequential mode${_RESET}" && \
+		display_mode_seq_selected && \
 		range=true
 }
 
 ask_first_mac() {
-	read -p "${_RESET} ${_BOLD}->${_RESET} Indicate first MAC to scan ${_BOLD}[$default_first_mac]${_RESET} ${_BOLD}${_GREEN}" first_mac
+	load_special_prompts
+	read -p "${ASK_FIRST_MAC_PROMPT}" first_mac
 
 	if ! [[ "${first_mac}" == "" ]]; then
 		if ! inspect_mac $first_mac "from_interactive"; then
@@ -188,7 +200,8 @@ ask_first_mac() {
 }
 
 ask_last_mac() {
-	read -p "${_RESET} ${_BOLD}->${_RESET} Indicate last MAC to scan ${_BOLD}[$default_last_mac]${_RESET} ${_BOLD}${_GREEN}" last_mac
+	load_special_prompts
+	read -p "${ASK_LAST_MAC_PROMPT}" last_mac
 
 	if ! [[ "${last_mac}" == "" ]]; then
 		if ! inspect_mac $last_mac "from_interactive"; then
@@ -202,12 +215,13 @@ ask_range() {
 	if [[ -n ${range} && -z ${range_from+x} ]]; then
 		if [[ -f "${destination}/checkpoint_${name}" && -z ${no_checkpoint+x} ]]; then
 			checkpoint_mac=$(cat "${destination}/checkpoint_${name}")
-			read -p "${_RESET} ${_BOLD}->${_RESET} Checkpoint! Continue were scan previously stopped ? (${_GREEN}${checkpoint_mac}${_RESET}) ${_BOLD}[Y/n/reset]${_RESET} ${_BOLD}${_GREEN}" grab_checkpoint
+			load_special_prompts
+			read -p "${ASK_CHECKPOINT_CONTINUE_OR_RESET_PROMPT}" grab_checkpoint
 			if [[ $(echo $grab_checkpoint | grep -io "n") ]]; then
 				no_checkpoint=true
 				ask_first_mac
 			elif [[ $(echo $grab_checkpoint | grep -io "reset") ]]; then
-				echo -e "${_RESET} ${_BOLD}*${_RESET} Checkpoint will be ${_GREEN}reset${_RESET}."
+				display_checkpoint_reset
 				ask_first_mac
 			else
 				first_mac=${checkpoint_mac}
@@ -239,4 +253,22 @@ populate_necessary_values() {
 		[[ -n ${range_from} ]] || range_from=$default_first_mac
 		[[ -n ${range_to} ]] || range_to=$default_last_mac
 	fi
+}
+
+quit_mcbash() {
+	[[ -n ${only_outputs_mac} ]] && exit 0
+	echo ""
+	#[[ $valid_macs_number != 0 ]] && echo ${_GREEN}"$valid_macs_number valid for $(( $item - 1 )) tested." ${_RESET}
+	[[ $valid_macs_number != 0 ]] && display_valid_out_of_tested
+	display_pausing_user
+	trap - SIGINT
+	#read -p "${_BOLD}${_MAGENTA}Quit [Ctrl+C]  ${_RESET}-  ${_BOLD}${_BLUE}Resume [Enter]${_RESET} " quit_mc
+	read -p "${USER_PAUSE_PROMPT}" quit_mc
+	( [[ $(echo $quit_mc | grep -io "y") ]] && \
+		if [ $valid_macs_number != 0 ]; then
+			display_destination_file_saved
+		fi && \
+			exit 0 ) ||
+			( ( [[ $valid_macs_number != 0 ]] && display_erase_4_up ) || \
+			display_erase_3_up )
 }

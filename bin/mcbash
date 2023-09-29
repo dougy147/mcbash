@@ -20,14 +20,14 @@ check_dependencies() {
 	dep=("curl") # mandatory dependencies
 	for d in ${dep[@]}; do
 		if ! [[ $(which $d 2>/dev/null) ]]; then
-			echo -e "${_RED}${_BOLD}ERROR: mcbash needs ${_YELLOW}${d}${_RED} to work properly.\nPlease install it on your machine.${_RESET}"
+			display_missing_mandatory_dependency
 			exit 1
 		fi
 	done
 	opt_dep=("md5sum" "sha256sum" "od") # optional dependencies
 	for o in ${opt_dep[@]}; do
 		if ! [[ $(which $o 2>/dev/null) ]]; then
-			echo -e "${_YELLOW}${_BOLD}WARNING: mcbash could need optional dependency ${_RED}${o}${_YELLOW}. \nConsider installing it on your machine.${_RESET}"
+			display_missing_optional_dependency
 		fi
 	done
 }
@@ -128,22 +128,8 @@ read_args() {
 		#[[ $(echo ${args[${i}]}) == "--rm-checkpoint" ]] && \
 		#	echo "Remove checkpoint file for ${dns} ?" && exit 0
 		[[ $(echo ${args[${i}]}) == "-h" || $(echo ${args[${i}]}) == "--help" ]] && \
-			echo -e "${_BOLD}Help menu :${_RESET} \
-			\n -u ${_BLUE}URL:port${_RESET} : Server ${_BLUE}URL/IP${_RESET} and ${_BLUE}port (optional)${_RESET} \
-			\n -w ${_BLUE}X${_RESET} : Wait ${_BLUE}X${_RESET} seconds between each requests \
-			\n -b ${_BLUE}X${_RESET} : Make a break every ${_BLUE}X${_RESET} requests \
-			\n -d ${_BLUE}X${_RESET} : Break or timeout duration (${_BLUE}X${_RESET} seconds) \
-			\n -t ${_BLUE}X${_RESET} : Consider request a timeout after a delay of ${_BLUE}X${_RESET} seconds \
-			\n -s ${_BLUE}X${_RESET} : Stop McBash after ${_BLUE}X${_RESET} tested MAC addresses \
-			\n --seq : Scan MAC addresses sequentially \
-			\n --mac-file ${_BLUE}FILE${_RESET} : Scan MAC addresses from a file \
-			\n -np : Use default parameters \
-			\n man mcbash : Look up the manual for more tweaks (proxy support, shell scripts call, etc.)\
-			\n \
-			\n ${_BOLD}Example ${_RESET}: mcbash -u my-dns.com:8080 -w 1.5 -b 10 -d 3 -s 150 -t 2 -k \
-			\n Set your default parameters inside this file : \"$HOME/.config/mcbash/mcbash.conf\"\
-			\n MACs are stored here : \"${destination}\"\
-			" && exit 0
+			display_help && \
+			exit 0
 	done
 }
 
@@ -158,45 +144,15 @@ inspect_from_args() {
 		"--from"|"-F"|"--to"|"-L") inspect_mac "${2}" "from_args";; # is it a well formed mac
 		#"--prefix") inspect_mac_prefix "${2}";;
 		"--mac-file") inspect_mac_file "${2}" "from_args";;
-		*) echo "${_RED}${_BOLD}Something went wrong inspecting arguments.${_RESET}";;
+		*) display_problem_inspecting_arguments ;;
 	esac
 }
 
-inspect_dns() {
-	mode=$2
-	# Check if DNS is well formed URL or IP
-	#if ! [[ $(echo "${1}" | grep -Eo '((https?|ftp)://)?(.*:.*@)?([-a-zA-Z0-9]+\.)?[-a-zA-Z0-9]+\.[-a-zA-Z0-9]+((:)[0-9]{1,5})?(/.*)?') == "${1}" ||
-	URL_protocol="((https?|ftp)://)?"
-	URL_user_information="(.*:.*@)?"
-	URL_host="([-a-zA-Z0-9]+\.)?{1,2}[-a-zA-Z0-9]+\.[a-zA-Z0-9]{2,6}"
-	URL_IP="([0-9]{1,3}\.){3}[0-9]{1,3}"
-	URL_host_or_IP="($URL_host|$URL_IP)"
-	URL_port="(:[0-9]{1,5})?"
-	URL_path="(/([-_a-zA-Z0-9]+(/)?)?*)?"
-	URL_query_string="(\?.*)?"
-	URL_regexp=$(echo ${URL_protocol}${URL_user_information}${URL_host_or_IP}${URL_port}${URL_path}${URL_query_string})
-	if ! [[ $(echo "${1}" | grep -Eo "$URL_regexp") == "${1}" ]]; then #||
-		#$(echo "${1}" | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}((:)[0-9]{1,5})?(/.*)?') == "${1}" ]]; then
-		echo -e "${_RESET}${_RED}ERROR: invalid DNS format.${_RESET}"
-		if [[ "${mode}" == "from_args" ]]; then
-			exit 1
-		else
-			return 1
-		fi
-	elif [[ $(echo "${1}" | sed 's/\ //g') == "" ]]; then
-		echo -e "${_RESET}${_RED}ERROR: empty DNS.${_RESET}"
-		if [[ "${mode}" == "from_args" ]]; then
-			exit 1
-		else
-			return 1
-		fi
-	fi
-}
 
 inspect_float() {
 	mode=$3
 	if ! [[ $(echo "$2" | grep -Eo '([0-9]+)?(\.)?[0-9]+') == "${2}" ]]; then
-		echo -e "${_RESET}${_RED}ERROR: ${_YELLOW}${1}${_RESET}${_RED} takes float or integer for parameter (e.g. ${_YELLOW}${1} 1.5${_RED}).${_RESET}"
+		display_bad_float "${1}"
 		if [[ "${mode}" == "from_args" ]]; then
 			exit 1
 		else
@@ -204,7 +160,7 @@ inspect_float() {
 		fi
 	fi
 	if [[ "${mode}" == "from_args" && $(echo "${2}" | sed 's/\ //g') == "" ]]; then
-		echo -e "${_RESET}${_RED}ERROR: empty value for ${_YELLOW}${1}${_RED}.${_RESET}"
+		display_empty_value "${1}"
 		exit 1
 	fi
 }
@@ -212,7 +168,7 @@ inspect_float() {
 inspect_int() {
 	mode=$3
 	if ! [[ $(echo "$2" | grep -Eo '[0-9]+') == "${2}" ]]; then
-		echo -e "${_RESET}${_RED}ERROR: ${_YELLOW}${1}${_RESET}${_RED} takes integer for parameter (e.g. ${_YELLOW}${1} 10${_RED}).${_RESET}"
+		display_bad_int "${1}"
 		if [[ "${mode}" == "from_args" ]]; then
 			exit 1
 		else
@@ -220,47 +176,10 @@ inspect_int() {
 		fi
 	fi
 	if [[ "${mode}" == "from_args" && $(echo "${2}" | sed 's/\ //g') == "" ]]; then
-		echo -e "${_RESET}${_RED}ERROR: empty value for ${_YELLOW}${1}${_RED}.${_RESET}"
+		display_empty_value "${1}"
 		exit 1
 	fi
 }
-
-inspect_mac () {
-	mode=$2
-	# If while checking USER argument : exit 1
-	# Else, if reading a MAC file : return 1 for "bad MAC"
-	if ! [[ $(echo "$1" | grep -Eo "([0-9a-fA-F]{2}[-:]){$(( (max_mac_length / 2) - 1 ))}[0-9a-fA-F]{2}") == "${1}" ]]; then
-		if [[ ${mode} == "from_args" || ${mode} == "from_interactive" ]]; then
-			echo -e "${_RESET}${_RED}ERROR: invalid MAC format.${_RESET}"
-			echo -e "${_RESET}${_RED}Please use either ${_DIM}FORMAT_1${_RESET}${_RED} or ${_DIM}FORMAT_2${_RESET}${_RED} format.${_RESET}" | \
-				sed -r 's/FORMAT_1/XX:XX:XX:XX:XX:XX/ ; s/FORMAT_2/XX-XX-XX-XX-XX-XX/'
-			if [[ "${mode}" == "from_args" ]]; then
-				exit 1
-			else
-				return 1
-			fi
-		else
-			return 1
-		fi
-	fi
-}
-
-inspect_mac_file() {
-	if ! [[ -f $(realpath "${1}") ]]; then
-		echo -e "${_RED}ERROR: file ${_YELLOW}${1}${_RED} does not exist.${_RESET}"
-		exit 1
-	fi
-}
-
-
-
-
-
-
-
-
-
-
 
 load_config_file() {
 	config_file="${CONF_DEST}/mcbash.conf"
@@ -277,54 +196,280 @@ load_config_file() {
 		if [[ -f "${ALT_CONF_DEST}/mcbash.conf" ]]; then
 			source "${ALT_CONF_DEST}/mcbash.conf"
 		else
-			echo -e "${_YELLOW}WARNING: Config file not found. This can cause weird behaviors.${_RESET}\n${_BLUE}mcbash.conf${_RESET}${_YELLOW} should be placed here : ${_BLUE}$config_file${_RESET}"
+			display_config_file_not_found
 		fi
 	fi
 }
 
 locate_destination_folder() {
 	[ -d $destination ] || mkdir -p "$destination" &> /dev/null || \
-		echo -e "${_BLUE}Can't create saving directory to $destination.\nPlease be sure you have permissions.\nValid MAC addresses will not be stored.${_RESET}"
+		display_cannot_create_saving_dir
 }
 
 dns_name() {
-	[[ -z ${dns+x} ]] && read -p "Server address : "${_BOLD}${_BLUE} dns
-	[[ -n ${only_outputs_mac} ]] && tput sgr0 # can't place _RESET here due to last 'read' command. Help?
+	[[ -z "${dns+x}" ]] && read -p "${SERVER_URL_PROMPT}" dns
+	[[ -n "${only_outputs_mac}" ]] && tput sgr0 # can't place _RESET here due to last 'read' command. Help?
 	#tput sgr0 # can't place _RESET here due to last 'read' command. Help?
-	[[ $dns = "" ]] && unset dns && echo -ne "\r${_RED}You need to indicate a server address [ex: my-fakedns.org:8080]${_RESET}\n" && dns_name
-	#[[ $(echo $dns | grep -o 'http://') = "" ]] && dns=$(echo 'http://'$dns)
-	#dns=$(echo $dns | sed 's/\/$//') # if trailing "/" at the end of DNS, remove it
-	#name=$(echo $dns | sed 's/http:\/\///' | sed 's/://;s/\///')
-	name=$(echo $dns | sed "s/\/$// ; s/http:\/\/// ; s/:// ; s/\///g")
+	[[ "${dns}" = "" ]] && unset dns && display_empty_dns && dns_name
+	name=$(echo "${dns}" | sed "s/\/$// ; s/http:\/\/// ; s/:// ; s/\///g")
 	if ! inspect_dns "${dns}" "from_interactive"; then
 		unset dns
 		dns_name
 	fi
 }
 
-quit_mcbash() {
-	[[ -n ${only_outputs_mac} ]] && exit 0
-	echo ""
-	[[ $valid_macs_number != 0 ]] && echo ${_GREEN}"$valid_macs_number valid for $(( $item - 1 )) tested." ${_RESET}
-	echo ${_CYAN}--- You have paused mcbash. What to do ? ---${_RESET}
-	trap - SIGINT
-	read -p "${_BOLD}${_MAGENTA}Quit [Ctrl+C]  ${_RESET}-  ${_BOLD}${_BLUE}Resume [Enter]${_RESET} " quit_mc
-	( [[ $(echo $quit_mc | grep -io "y") ]] && \
-		if [ $valid_macs_number != 0 ]; then
-			echo ${_GREEN}"File saved => $destination/valid_macs_$name"${_RESET}
-		fi && \
-			exit 0 ) ||
-			( ( [[ $valid_macs_number != 0 ]] && echo -ne "${_ERASE_UP}\033[0K$@${_ERASE_UP}\033[0K$@${_ERASE_UP}\033[0K$@${_ERASE_UP}\033[0K$@" ) || \
-			echo -ne "${_ERASE_UP}\033[0K$@${_ERASE_UP}\033[0K$@${_ERASE_UP}\033[0K$@" )
+
+inspect_dns() {
+	mode=$2
+	# Check if DNS is well formed URL or IP
+	#if ! [[ $(echo "${1}" | grep -Eo '((https?|ftp)://)?(.*:.*@)?([-a-zA-Z0-9]+\.)?[-a-zA-Z0-9]+\.[-a-zA-Z0-9]+((:)[0-9]{1,5})?(/.*)?') == "${1}" ||
+	URL_protocol="((https?|ftp)://)?"
+	URL_user_information="(.*:.*@)?"
+	URL_host="([-a-zA-Z0-9]+\.)?{1,2}[-a-zA-Z0-9]+\.[a-zA-Z0-9]{2,6}"
+	URL_IP="([0-9]{1,3}\.){3}[0-9]{1,3}"
+	URL_host_or_IP="($URL_host|$URL_IP)"
+	URL_port="(:[0-9]{1,5})?"
+	URL_path="(/([-_a-zA-Z0-9]+(/)?)?*)?"
+	URL_query_string="(\?.*)?"
+	URL_regexp=$(echo ${URL_protocol}${URL_user_information}${URL_host_or_IP}${URL_port}${URL_path}${URL_query_string})
+	if ! [[ $(echo "${1}" | grep -Eo "$URL_regexp") == "${1}" ]]; then
+		display_bad_dns
+		if [[ "${mode}" == "from_args" ]]; then
+			exit 1
+		else
+			return 1
+		fi
+	elif [[ $(echo "${1}" | sed 's/\ //g') == "" ]]; then
+		display_empty_dns "${mode}"
+		if [[ "${mode}" == "from_args" ]]; then
+			exit 1
+		else
+			return 1
+		fi
+	fi
 }
 
-scanning_text() {
-	echo "${_BOLD}=> ${_RESET}Scan @ ${_BOLD}${_BLUE}$dns${_RESET} ${_GREEN}[$request_delay seconds/request]${_RESET}"
+checkpoint_load() {
+	checkpoint_mac=$(cat "${destination}/checkpoint_${name}")
+	range_from=${checkpoint_mac}
+	default_first_mac=${checkpoint_mac}
+}
+
+
+SERVER_URL_PROMPT="Server address : ${_BOLD}${_BLUE}"
+USER_PAUSE_PROMPT="${_BOLD}${_MAGENTA}Quit [Ctrl+C]  ${_RESET}-  ${_BOLD}${_BLUE}Resume [Enter]${_RESET} "
+ASK_ADJUST_PARAMETERS_PROMPT="${_BOLD}=>${_RESET} Adjust parameters? ${_BOLD}[y/N]${_RESET} "
+
+load_special_prompts() {
+	ASK_REQUEST_DELAY_PROMPT=" ${_BOLD}*${_RESET} Wait ${_GREEN}[X] ${_RESET}seconds between two requests ${_BOLD}[default:$default_request_delay]${_RESET} ${_BOLD}${_GREEN}"
+	ASK_TIMEBREAK_PROMPT="${_RESET} ${_BOLD}*${_RESET} Make a break every ${_GREEN}[X]${_RESET} requests ${_BOLD}[$default_timebreak]${_RESET} ${_BOLD}${_GREEN}"
+	ASK_TIMEBREAK_DURATION_PROMPT="${_RESET} ${_BOLD}*${_RESET} Break duration (seconds) ${_BOLD}[$default_timebreak_duration]${_RESET} ${_BOLD}${_GREEN}"
+	ASK_STOPPING_PROMPT="${_RESET} ${_BOLD}*${_RESET} Stop McBash after ${_GREEN}[X]${_RESET} tested MAC addresses ${_BOLD}[$default_stopping]${_RESET} ${_BOLD}${_GREEN}"
+	ASK_TIMEOUT_PROMPT="${_RESET} ${_BOLD}*${_RESET} Consider request a timeout after ${_GREEN}[X]${_RESET} seconds ${_BOLD}[$default_timeout]${_RESET} ${_BOLD}${_GREEN}"
+	ASK_MODE_PROMPT="${_RESET} ${_BOLD}*${_RESET} Scan ${_GREEN}randomly [r]${_RESET} or ${_GREEN}sequentially [s]${_RESET} ${_BOLD}[r]${_RESET} ${_BOLD}${_GREEN}"
+	ASK_MAC_PREFIX_PROMPT="${_RESET} ${_BOLD}->${_RESET} Indicate MAC to scan prefix ${_BOLD}[$default_mac_prefix]${_RESET} ${_BOLD}${_GREEN}"
+	ASK_FIRST_MAC_PROMPT="${_RESET} ${_BOLD}->${_RESET} Indicate first MAC to scan ${_BOLD}[$default_first_mac]${_RESET} ${_BOLD}${_GREEN}"
+	ASK_LAST_MAC_PROMPT="${_RESET} ${_BOLD}->${_RESET} Indicate last MAC to scan ${_BOLD}[$default_last_mac]${_RESET} ${_BOLD}${_GREEN}"
+	ASK_CHECKPOINT_CONTINUE_OR_RESET_PROMPT="${_RESET} ${_BOLD}->${_RESET} Checkpoint! Continue were scan previously stopped ? (${_GREEN}${checkpoint_mac}${_RESET}) ${_BOLD}[Y/n/reset]${_RESET} ${_BOLD}${_GREEN}"
 }
 
 display_logo() {
 	echo ${_GREEN} " ░█▄▒▄█░▄▀▀░██▄▒▄▀▄░▄▀▀░█▄█ " ${_RESET} && \
 	echo ${_GREEN} " ░█▒▀▒█░▀▄▄▒█▄█░█▀█▒▄██▒█▒█ " ${_RESET}
+}
+
+display_help() {
+	echo -e "${_BOLD}Help menu :${_RESET} \
+	\n -u ${_BLUE}URL:port${_RESET} : Server ${_BLUE}URL/IP${_RESET} and ${_BLUE}port (optional)${_RESET} \
+	\n -w ${_BLUE}X${_RESET} : Wait ${_BLUE}X${_RESET} seconds between each requests \
+	\n -b ${_BLUE}X${_RESET} : Make a break every ${_BLUE}X${_RESET} requests \
+	\n -d ${_BLUE}X${_RESET} : Break or timeout duration (${_BLUE}X${_RESET} seconds) \
+	\n -t ${_BLUE}X${_RESET} : Consider request a timeout after a delay of ${_BLUE}X${_RESET} seconds \
+	\n -s ${_BLUE}X${_RESET} : Stop mcbash after ${_BLUE}X${_RESET} tested MAC addresses \
+	\n --seq : Scan MAC addresses sequentially \
+	\n --mac-file ${_BLUE}FILE${_RESET} : Scan MAC addresses from a file \
+	\n -np : Use default parameters \
+	\n man mcbash : Look up the manual for more tweaks (proxy support, shell scripts call, etc.)\
+	\n \
+	\n ${_BOLD}Example ${_RESET}: mcbash -u my-dns.com:8080 -w 1.5 -b 10 -d 3 -s 150 -t 2 -k \
+	\n Set your default parameters inside this file : \"$HOME/.config/mcbash/mcbash.conf\"\
+	\n MACs are stored here : \"${destination}\"\
+	"
+}
+
+scanning_text() {
+	echo "${_BOLD}=> ${_RESET}Scan @ ${_BOLD}${_BLUE}${dns}${_RESET} ${_GREEN}[$request_delay s/request]${_RESET}"
+}
+
+display_range_fulfilled() {
+	echo "${_BOLD}${_CYAN}Range fulfilled${_RESET}"
+}
+
+display_end_of_mac_file() {
+	echo -e "\n${_YELLOW}End of MAC file.${_RESET}"
+}
+
+display_raw_mac() {
+	echo $mac
+}
+
+display_formatted_mac() {
+	echo -ne "\r${_BOLD}${_GREEN}[$item] $mac ${_RESET}${_RED}[$expiration_date] ${_RESET}\n"
+}
+
+display_problem_inspecting_arguments() {
+	echo "${_RED}${_BOLD}Something went wrong inspecting arguments.${_RESET}"
+}
+
+display_bad_float() {
+	echo -e "${_RESET}${_RED}ERROR: ${_YELLOW}${1}${_RESET}${_RED} takes float or integer for parameter (e.g. ${_YELLOW}${1} 1.5${_RED}).${_RESET}"
+}
+
+display_bad_int() {
+	echo -e "${_RESET}${_RED}ERROR: ${_YELLOW}${1}${_RESET}${_RED} takes integer for parameter (e.g. ${_YELLOW}${1} 10${_RED}).${_RESET}"
+}
+
+display_bad_dns() {
+	echo -e "${_RESET}${_RED}ERROR: invalid DNS format.${_RESET}"
+}
+
+display_bad_mac_file() {
+	echo -e "${_RED}ERROR: file ${_YELLOW}${1}${_RED} does not exist.${_RESET}"
+}
+
+
+display_empty_value() {
+	echo -e "${_RESET}${_RED}ERROR: empty value for ${_YELLOW}${1}${_RED}.${_RESET}"
+}
+
+display_config_file_not_found() {
+	echo -e "${_YELLOW}WARNING: Config file not found. This can cause weird behaviors.${_RESET}\n${_BLUE}mcbash.conf${_RESET}${_YELLOW} should be placed here : ${_BLUE}$config_file${_RESET}"
+}
+
+display_cannot_create_saving_dir() {
+	echo -e "${_BLUE}Can't create saving directory to $destination.\nPlease be sure you have permissions.\nValid MAC addresses will not be stored.${_RESET}"
+}
+
+display_empty_dns() {
+	if [[ "${1}" == "from_args" ]]; then
+		echo -ne "${_RED}ERROR: Empty URL.\nYou need to set a server address [ex: ${0} -u my-fakedns.bla:8080]${_RESET}"
+	else
+		echo -ne "\r${_RED}Empty URL. Please set a server address [ex: my-fakedns.bla:8080]${_RESET}\n"
+	fi
+}
+
+display_bad_mac_format() {
+	echo -e "${_RESET}${_RED}ERROR: invalid MAC format.${_RESET}"
+	echo -e "${_RESET}${_RED}Please use either ${_DIM}FORMAT_1${_RESET}${_RED} or ${_DIM}FORMAT_2${_RESET}${_RED} format.${_RESET}" | sed -r 's/FORMAT_1/XX:XX:XX:XX:XX:XX/ ; s/FORMAT_2/XX-XX-XX-XX-XX-XX/'
+}
+
+display_proxy_rotation() {
+	echo -e "${_ERASE}${_DIM}Rotated proxy to '${_BLUE}${proxy_url}${_RESET}${_DIM}'${_RESET}"
+}
+
+display_valid_out_of_tested() {
+	echo "${_BOLD}${_CYAN}$valid_macs_number valid out of $item MACs.${_RESET}"
+	#echo ${_GREEN}"$valid_macs_number valid for $(( $item - 1 )) tested." ${_RESET}
+}
+
+display_pausing_auto() {
+	echo -ne ${_BLUE}"\r[$item] $mac ${_RESET}${_DIM}${_CYAN}--- Pausing for $timebreak_duration seconds..."${_RESET}
+}
+
+display_mac_no_account() {
+	echo -ne "${_ERASE}$@${_YELLOW}[$item]${_RESET} ${_RED}$mac ${_RESET}"
+}
+
+display_timeout_consecutive_limit() {
+	echo -e "${_ERASE}${_YELLOW}Limit of consecutive timeouts allowed reached [$consecutive_timeout_number].${_RESET}"
+}
+
+display_timeout_total_limit() {
+	echo -e "${_ERASE}${_YELLOW}Limit of total timeouts allowed reached [$total_timeout_number].${_RESET}"
+}
+
+display_timeout_pausing() {
+	echo -ne "${_ERASE}${_BLUE}Timeout [$total_timeout_number] (consecutive:$consecutive_timeout_number). New attempt in $timebreak_duration seconds.${_RESET}"
+}
+
+display_timeout_new_attempt() {
+	echo -ne "${_ERASE}${_ERASE}${_BLUE}New attempt...${_RESET}"
+}
+
+display_curl_could_not_resolve_proxy() {
+	echo -e "\t${_DIM}* Could not resolve proxy.${_RESET}"
+}
+
+display_curl_exit_code() {
+	echo -e "\t${_DIM}* curl exit code : $curl_exit.${_RESET}"
+}
+
+display_debug_token() {
+	echo -e "\n---------------------------------\n\t${_YELLOW}Handshake token : ${_RESET}${_BLUE}${handshake_token:-Empty}${_RESET}"
+}
+
+display_debug_full_profile() {
+	echo -e "${_YELLOW}FULL_PROFILE : ${_RESET}${_BLUE}${full_profile}${_RESET}"
+}
+
+display_debug_account() {
+	echo -e "${_YELLOW}ACCOUNT : ${_RESET}${_BLUE}${account}${_RESET}"
+}
+
+display_debug_profile1() {
+	echo -e "${_YELLOW}PROFILE1 : ${_RESET}${_BLUE}${profile}${_RESET}"
+}
+
+display_debug_profile2() {
+	echo -e "${_YELLOW}PROFILE2 : ${_RESET}${_BLUE}${profile}${_RESET}"
+}
+
+display_debug_exp_date() {
+	echo -e "${_YELLOW}EXP_DATE : ${_RESET}${_BLUE}${expiration_date}${_RESET}"
+}
+
+display_mac_expired() {
+	echo -ne "\r${_YELLOW}[$item]${_RESET} ${_BOLD}${_RED}$mac [expired] ${_RESET}"
+}
+
+display_pausing_user() {
+	echo ${_CYAN}--- You have paused mcbash. What to do ? ---${_RESET}
+}
+
+display_destination_file_saved() {
+	echo ${_GREEN}"File saved => $destination/valid_macs_$name"${_RESET}
+}
+
+display_erase_3_up() {
+	echo -ne "${_ERASE_UP}\033[0K$@${_ERASE_UP}\033[0K$@${_ERASE_UP}\033[0K$@"
+}
+
+display_erase_4_up() {
+	echo -ne "${_ERASE_UP}\033[0K$@${_ERASE_UP}\033[0K$@${_ERASE_UP}\033[0K$@${_ERASE_UP}\033[0K$@"
+}
+
+display_checkpoint_detected_and_loaded() {
+	echo "${_RESET} ${_GREEN}Checkpoint detected!${_RESET} Starting from ${_GREEN}${checkpoint_mac}${_RESET} (last MAC scanned)"
+}
+
+display_mode_random_selected() {
+	echo -e "${_RESET} ${_BOLD}*${_RESET} You have selected ${_GREEN}random mode${_RESET}"
+}
+
+display_mode_seq_selected() {
+	echo -e "${_RESET} ${_BOLD}*${_RESET} You have selected ${_GREEN}sequential mode${_RESET}"
+}
+
+display_checkpoint_reset() {
+	echo -e "${_RESET} ${_BOLD}*${_RESET} Checkpoint will be ${_GREEN}reset${_RESET}."
+}
+
+display_missing_mandatory_dependency() {
+	echo -e "${_RED}${_BOLD}ERROR: mcbash needs ${_YELLOW}${d}${_RED} to work properly.\nPlease install it on your machine.${_RESET}"
+}
+
+display_missing_optional_dependency() {
+	echo -e "${_YELLOW}${_BOLD}WARNING: mcbash could need optional dependency ${_RED}${o}${_YELLOW}. \nConsider installing it on your machine.${_RESET}"
 }
 
 random_mac() {
@@ -365,14 +510,16 @@ random_mac() {
 }
 
 seq_mac() {
-	[[ -n ${last_mac_reached} ]] && \
-		( [[ -n ${only_outputs_mac} ]] || echo "${_BOLD}${_CYAN}Range fullfiled${_RESET}" ) && \
+	if [[ -n ${last_mac_reached} ]]; then
+		( [[ -n ${only_outputs_mac} ]] || display_range_fulfilled )
 		exit 0
+	fi
 	[[ -z ${first_mac+x} ]] && first_mac="$default_first_mac" && mac=$(echo $first_mac) && return # user first value of the MAC
 	[[ $item == 1 ]] && mac=$(echo $first_mac) && return
 
+	# Save checkpoint
 	# if not '--no-checkpoint', save that MAC in checkpoint file
-	[[ -z ${no_checkpoint+x} ]] && echo "${first_mac}" > "${destination}/checkpoint_${name}"
+	[[ -z ${no_checkpoint+x} ]] && echo "${mac}" > "${destination}/checkpoint_${name}"
 
 	new_mac=$(echo $first_mac)
 	mac_simple=$(echo $new_mac |  tr '[:lower:]' '[:upper:]' | tr -d ':') && \
@@ -410,7 +557,7 @@ read_mac_from_file() {
 		max_number_of_lines_to_read=$(cat "$file_to_read_mac_from" | wc -l)
 	fi
 	if [[ $line_to_read -gt $max_number_of_lines_to_read ]]; then
-		echo -e "\n${_YELLOW}End of MAC file.${_RESET}"
+		display_end_of_mac_file
 		exit 0
 	fi
 	line_to_read=$(( line_to_read + 1 ))
@@ -438,9 +585,9 @@ valid_mac_found() {
 	fi
 	write_valid_mac
 	if [[ -n ${only_outputs_mac} ]]; then
-		echo $mac
+		display_raw_mac
 	else
-		echo -ne "\r${_BOLD}${_GREEN}[$item] $mac ${_RESET}${_RED}[$expiration_date] ${_RESET}\n"
+		display_formatted_mac
 	fi
 	valid_macs_number=$(( $valid_macs_number + 1 ))
 }
@@ -465,8 +612,41 @@ write_expired_mac() {
 	fi
 }
 
+inspect_mac () {
+	mode=$2
+	# If while checking USER argument : exit 1
+	# Else, if reading a MAC file : return 1 for "bad MAC"
+	if ! [[ $(echo "${1}" | grep -Eo "([0-9a-fA-F]{2}[-:]){$(( (max_mac_length / 2) - 1 ))}[0-9a-fA-F]{2}") == "${1}" ]]; then
+		if [[ "${mode}" == "from_args" || "${mode}" == "from_interactive" ]]; then
+			display_bad_mac_format
+			if [[ "${mode}" == "from_args" ]]; then
+				exit 1
+			else
+				return 1
+			fi
+		else
+			return 1
+		fi
+	fi
+}
+
+inspect_mac_file() {
+	if ! [[ -f $(realpath "${1}") ]]; then
+		display_bad_mac_file "${1}"
+		exit 1
+	fi
+}
+
+
+
 check_parameters() {
 	if [ "$avoid_parameters" = true ]; then
+		if [[ -n ${seq} && -z ${no_checkpoint+x} && -z ${range_from+x} ]]; then
+			if [[ -f "${destination}/checkpoint_${name}" ]]; then
+				checkpoint_load
+				display_checkpoint_detected_and_loaded
+			fi
+		fi
 		populate_necessary_values
 	fi
 
@@ -475,8 +655,7 @@ check_parameters() {
 		-z ${timebreak_duration+x} && \
 		-z ${stopping+x} && \
 		-z ${timeout+x} ]] && \
-		#-z ${keep_expired+x} ]] && \
-		read -p "${_BOLD}=>${_RESET} Adjust parameters? ${_BOLD}[y/N]${_RESET} " PARAMETERS
+		read -p "${ASK_ADJUST_PARAMETERS_PROMPT}" PARAMETERS
 
 	if [[ $(echo $PARAMETERS | grep -io "y") ]]; then
 		ask_request_delay
@@ -492,17 +671,14 @@ check_parameters() {
 
 	elif [[ -n ${range} || -n ${range_from} || -n ${range_to} ]]; then
 		if [[ -f "${destination}/checkpoint_${name}" && -z ${no_checkpoint+x} && -z ${range_from+x} ]]; then
-			checkpoint_mac=$(cat "${destination}/checkpoint_${name}")
-			echo "${_RESET} ${_GREEN}Checkpoint detected!${_RESET} Starting from ${_GREEN}${checkpoint_mac}${_RESET} (last MAC scanned)"
-			range_from=${checkpoint_mac}
+			checkpoint_load
+			display_checkpoint_detected_and_loaded
 		fi
 		[[ -n ${range_from} ]] || ask_first_mac
-			#read -p "${_RESET} ${_BOLD}->${_RESET} Indicate first MAC to scan ${_BOLD}[$default_first_mac]${_RESET} ${_BOLD}${_GREEN}" first_mac
 		[[ -n ${range_from} ]] && first_mac=$range_from
 		[[ -z ${first_mac} ]] && first_mac=$default_first_mac && range_from="$default_first_mac"
 		[[ -n ${first_mac} ]] && range_from=$first_mac
 		[[ -n ${range_to} ]] || ask_last_mac
-			#read -p "${_RESET} ${_BOLD}->${_RESET} Indicate last MAC to scan ${_BOLD}[$default_last_mac]${_RESET} ${_BOLD}${_GREEN}" last_mac
 		[[ -n ${range_to} ]] && last_mac=$range_to
 		[[ -z $last_mac ]] && last_mac="$default_last_mac" && range_to="$default_last_mac"
 		[[ -n ${last_mac} ]] && range_to=$last_mac
@@ -519,8 +695,10 @@ check_parameters() {
 		if [[ -n ${range} || -n ${range_from} || -n ${range_to} ]]; then
 			range=true
 			if [[ -f "${destination}/checkpoint_${name}" && -z ${no_checkpoint+x} ]]; then
-				checkpoint_mac=$(cat "${destination}/checkpoint_${name}")
-				default_first_mac=${checkpoint_mac}
+				#checkpoint_mac=$(cat "${destination}/checkpoint_${name}")
+				#default_first_mac=${checkpoint_mac}
+				checkpoint_load
+				display_checkpoint_detected_and_loaded
 			fi
 			[[ -n ${range_from} ]] || range_from=$default_first_mac && first_mac=$default_first_mac
 			[[ -n ${range_to} ]] || range_to=$default_last_mac && last_mac=$default_last_mac
@@ -532,7 +710,8 @@ check_parameters() {
 
 ask_request_delay() {
 	[[ -z ${request_delay+x} ]] && \
-		read -p " ${_BOLD}*${_RESET} Wait ${_GREEN}[X] ${_RESET}seconds between two requests ${_BOLD}[default:$default_request_delay]${_RESET} ${_BOLD}${_GREEN}" request_delay
+		load_special_prompts && \
+		read -p "${ASK_REQUEST_DELAY_PROMPT}" request_delay
 
 	if [[ $request_delay == "" ]]; then
 		request_delay=$default_request_delay
@@ -546,7 +725,8 @@ ask_request_delay() {
 
 ask_timebreak() {
 	[[ -z ${timebreak+x} ]] && \
-		read -p "${_RESET} ${_BOLD}*${_RESET} Make a break every ${_GREEN}[X]${_RESET} requests ${_BOLD}[$default_timebreak]${_RESET} ${_BOLD}${_GREEN}" timebreak
+		load_special_prompts && \
+		read -p "${ASK_TIMEBREAK_PROMPT}" timebreak
 
 	if [[ $timebreak == "" ]]; then
 		timebreak=$default_timebreak
@@ -562,7 +742,8 @@ ask_timebreak() {
 
 ask_timebreak_duration() {
 	[[ -z ${timebreak_duration+x} && $timebreak != "" ]] && \
-		read -p "${_RESET} ${_BOLD}*${_RESET} Break duration (seconds) ${_BOLD}[$default_timebreak_duration]${_RESET} ${_BOLD}${_GREEN}" timebreak_duration
+		load_special_prompts && \
+		read -p "${ASK_TIMEBREAK_DURATION_PROMPT}" timebreak_duration
 
 	if [[ $timebreak_duration == "" ]]; then
 		timebreak_duration=$default_timebreak_duration
@@ -576,7 +757,8 @@ ask_timebreak_duration() {
 
 ask_stopping() {
 	[[ -z ${stopping+x} ]] && \
-		read -p "${_RESET} ${_BOLD}*${_RESET} Stop McBash after ${_GREEN}[X]${_RESET} tested MAC addresses ${_BOLD}[$default_stopping]${_RESET} ${_BOLD}${_GREEN}" stopping
+		load_special_prompts && \
+		read -p "${ASK_STOPPING_PROMPT}" stopping
 
 	if [[ $stopping == "" ]]; then
 		stopping=$default_stopping
@@ -593,7 +775,8 @@ ask_stopping() {
 
 ask_timeout() {
 	[[ -z ${timeout+x} ]] && \
-		read -p "${_RESET} ${_BOLD}*${_RESET} Consider request a timeout after ${_GREEN}[X]${_RESET} seconds ${_BOLD}[$default_timeout]${_RESET} ${_BOLD}${_GREEN}" timeout
+		load_special_prompts && \
+		read -p "${ASK_TIMEOUT_PROMPT}" timeout
 
 	if [[ $timeout == "" ]]; then
 		timeout=$default_timeout
@@ -608,16 +791,18 @@ ask_timeout() {
 ask_mode() {
 	#[[ -z ${range+x} ]] && \
 	[[ -z ${seq+x} ]] && \
-		read -p "${_RESET} ${_BOLD}*${_RESET} Scan ${_GREEN}randomly [r]${_RESET} or ${_GREEN}sequentially [s]${_RESET} ${_BOLD}[r]${_RESET} ${_BOLD}${_GREEN}" mode
+		load_special_prompts && \
+		read -p "${ASK_MODE_PROMPT}" mode
 	#[[ $(echo $mode | grep -io "s") ]] && range=true
 	[[ $(echo $mode | grep -io "s") ]] && seq=true
 
 	#[[ -z ${range+x} ]] && \
 	[[ -z ${seq+x} ]] && \
-		echo -e "${_RESET} ${_BOLD}*${_RESET} You have selected ${_GREEN}random mode${_RESET}"
+		display_mode_random_selected
 
 	if [[ -z ${range+x} && -z ${seq+x} && -z ${prefix} ]]; then
-		read -p "${_RESET} ${_BOLD}->${_RESET} Indicate MAC to scan prefix ${_BOLD}[$default_mac_prefix]${_RESET} ${_BOLD}${_GREEN}" prefix
+		load_special_prompts && \
+		read -p "${ASK_MAC_PREFIX_PROMPT}" prefix
 		if [[ ${prefix} == "" ]]; then
 			unset prefix
 		fi
@@ -625,12 +810,13 @@ ask_mode() {
 
 	#[[ -n ${range} ]] && \
 	[[ -n ${seq} ]] && \
-		echo -e "${_RESET} ${_BOLD}*${_RESET} You have selected ${_GREEN}sequential mode${_RESET}" && \
+		display_mode_seq_selected && \
 		range=true
 }
 
 ask_first_mac() {
-	read -p "${_RESET} ${_BOLD}->${_RESET} Indicate first MAC to scan ${_BOLD}[$default_first_mac]${_RESET} ${_BOLD}${_GREEN}" first_mac
+	load_special_prompts
+	read -p "${ASK_FIRST_MAC_PROMPT}" first_mac
 
 	if ! [[ "${first_mac}" == "" ]]; then
 		if ! inspect_mac $first_mac "from_interactive"; then
@@ -641,7 +827,8 @@ ask_first_mac() {
 }
 
 ask_last_mac() {
-	read -p "${_RESET} ${_BOLD}->${_RESET} Indicate last MAC to scan ${_BOLD}[$default_last_mac]${_RESET} ${_BOLD}${_GREEN}" last_mac
+	load_special_prompts
+	read -p "${ASK_LAST_MAC_PROMPT}" last_mac
 
 	if ! [[ "${last_mac}" == "" ]]; then
 		if ! inspect_mac $last_mac "from_interactive"; then
@@ -655,12 +842,13 @@ ask_range() {
 	if [[ -n ${range} && -z ${range_from+x} ]]; then
 		if [[ -f "${destination}/checkpoint_${name}" && -z ${no_checkpoint+x} ]]; then
 			checkpoint_mac=$(cat "${destination}/checkpoint_${name}")
-			read -p "${_RESET} ${_BOLD}->${_RESET} Checkpoint! Continue were scan previously stopped ? (${_GREEN}${checkpoint_mac}${_RESET}) ${_BOLD}[Y/n/reset]${_RESET} ${_BOLD}${_GREEN}" grab_checkpoint
+			load_special_prompts
+			read -p "${ASK_CHECKPOINT_CONTINUE_OR_RESET_PROMPT}" grab_checkpoint
 			if [[ $(echo $grab_checkpoint | grep -io "n") ]]; then
 				no_checkpoint=true
 				ask_first_mac
 			elif [[ $(echo $grab_checkpoint | grep -io "reset") ]]; then
-				echo -e "${_RESET} ${_BOLD}*${_RESET} Checkpoint will be ${_GREEN}reset${_RESET}."
+				display_checkpoint_reset
 				ask_first_mac
 			else
 				first_mac=${checkpoint_mac}
@@ -694,13 +882,31 @@ populate_necessary_values() {
 	fi
 }
 
+quit_mcbash() {
+	[[ -n ${only_outputs_mac} ]] && exit 0
+	echo ""
+	#[[ $valid_macs_number != 0 ]] && echo ${_GREEN}"$valid_macs_number valid for $(( $item - 1 )) tested." ${_RESET}
+	[[ $valid_macs_number != 0 ]] && display_valid_out_of_tested
+	display_pausing_user
+	trap - SIGINT
+	#read -p "${_BOLD}${_MAGENTA}Quit [Ctrl+C]  ${_RESET}-  ${_BOLD}${_BLUE}Resume [Enter]${_RESET} " quit_mc
+	read -p "${USER_PAUSE_PROMPT}" quit_mc
+	( [[ $(echo $quit_mc | grep -io "y") ]] && \
+		if [ $valid_macs_number != 0 ]; then
+			display_destination_file_saved
+		fi && \
+			exit 0 ) ||
+			( ( [[ $valid_macs_number != 0 ]] && display_erase_4_up ) || \
+			display_erase_3_up )
+}
+
 
 update_proxy() {
 	# Change current proxy
 	if [[ -n "${proxy_from_file}" ]]; then
 		proxy_from_file
 		proxy_url_option=$(echo "-x $proxy_url")
-		echo -e "${_ERASE}${_DIM}Rotated proxy to '${_BLUE}${proxy_url}${_RESET}${_DIM}'${_RESET}"
+		display_proxy_rotation
 	fi
 }
 
@@ -725,7 +931,7 @@ proxy_from_file() {
 check_if_time_to_stop() {
 	if [[ -n ${stopping} && $item -eq $stopping ]]; then
 		if ! [[ -n ${only_outputs_mac} ]]; then
-			echo "${_BOLD}${_CYAN}$valid_macs_number valid out of $item MACs.${_RESET}"
+			display_valid_out_of_tested
 		fi
 		exit 0
 	fi
@@ -734,7 +940,7 @@ check_if_time_to_stop() {
 check_if_timebreak() {
 	if [[ ${timebreak} -ne 0 && $(expr $(( $item )) % $timebreak ) == 0 ]]; then
 		if [[ -z ${only_outputs_mac+x} ]]; then
-			echo -ne ${_BLUE}"\r[$item] $mac ${_RESET}${_DIM}${_CYAN}--- Pausing for $timebreak_duration seconds..."${_RESET}
+			display_pausing_auto
 		fi
 		sleep $timebreak_duration
 	else
@@ -746,7 +952,7 @@ check_if_timebreak() {
 handshake_token_is_empty() {
 	if [[ $handshake_token = "" || $(echo $handshake_token | grep null) ]]; then
 		if ! [[ -n ${only_outputs_mac} ]]; then
-			echo -ne "${_ERASE}$@${_YELLOW}[$item]${_RESET} ${_RED}$mac ${_RESET}"
+			display_mac_no_account
 		fi
 		return 0
 	fi
@@ -758,11 +964,11 @@ check_if_timeout_limit() {
 	if [[ -z "${proxy_from_file+x}" ]]; then
 		if [[ $consecutive_timeout_number -ge $consecutive_timeout_limit && \
 			$consecutive_timeout_limit -ne 0 ]]; then
-			echo -e "${_ERASE}${_YELLOW}Limit of consecutive timeouts allowed reached [$consecutive_timeout_number].${_RESET}" #TODO
+			display_timeout_consecutive_limit
 			exit 1
 		elif [[ $total_timeout_number -ge $total_timeout_limit &&\
 			$total_timeout_limit -ne 0 ]]; then
-			echo -e "${_ERASE}${_YELLOW}Limit of total timeouts allowed reached [$total_timeout_number].${_RESET}" #TODO
+			display_timeout_total_limit
 			exit 1
 		fi
 	fi
@@ -801,11 +1007,11 @@ last_request_failed() {
 
 request_is_a_timeout() {
 	if ! [[ -n ${only_outputs_mac} ]]; then
-		echo -ne "${_ERASE}${_BLUE}Timeout [$total_timeout_number] (consecutive:$consecutive_timeout_number). New attempt in $timebreak_duration seconds.${_RESET}"
+		display_timeout_pausing
 	fi
 	sleep $timebreak_duration
 	if ! [[ -n ${only_outputs_mac} ]]; then
-		echo -ne "${_ERASE}${_ERASE}${_BLUE}New attempt...${_RESET}"
+		display_timeout_new_attempt
 	fi
 }
 
@@ -822,11 +1028,11 @@ check_curl_exit_code() {
 	elif [ $curl_exit -ne 0 ]; then
 		if [ $curl_exit -eq 5 ]; then
 			if [[ -n "${debug}" ]]; then
-				echo -e "\t${_DIM}* Could not resolve proxy.${_RESET}"
+				display_curl_could_not_resolve_proxy
 			fi
 		else
 			if [[ -n "${debug}" ]]; then
-				echo -e "\t${_DIM}* curl exit code : $curl_exit.${_RESET}"
+				display_curl_exit_code
 			fi
 		fi
 		mac_not_changed=true
@@ -861,7 +1067,7 @@ get_handshake() {
 	handshake_token=$(curl $debug_verbose_curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Cookie: $(echo $cookie)" "$(echo $handshake_url)"); if ! check_curl_exit_code; then return 1; fi
 
 	if [[ -n ${debug} ]]; then
-		echo -e "\n---------------------------------\n\t${_YELLOW}Handshake token : ${_RESET}${_BLUE}${handshake_token:-Empty}${_RESET}"
+		display_debug_token
 	fi
 
 	if [[ $(echo "$handshake_token" | grep -Eio "error code|unauthorized|502 bad gateway|maximum number of open connections reached|just a moment|500 internal server error|error|blocked") ]]; then
@@ -886,7 +1092,7 @@ get_profile() {
 	if [[ -n ${debug} ]]; then
 		full_profile_url=$(echo $dns)'/portal.php?type=stb&action=get_profile&JsHttpRequest=1-xml'
 		full_profile=$(curl $debug_verbose_curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $full_profile_url)"); if ! check_curl_exit_code; then return 1; fi
-		echo -e "${_YELLOW}FULL_PROFILE : ${_RESET}${_BLUE}${full_profile}${_RESET}"
+		display_debug_full_profile
 	fi
 
 
@@ -899,7 +1105,7 @@ get_profile() {
 	if [[ $profile == "" ]]; then
 		unset maybeGEN1portal
 		if ! [[ -n ${only_outputs_mac} ]]; then
-			echo -ne "${_ERASE}$@${_YELLOW}[$item]${_RESET} ${_RED}$mac ${_RESET}"
+			display_mac_no_account
 		fi
 		return 1 # test
 	fi
@@ -909,15 +1115,15 @@ get_profile() {
 		account=$(curl $debug_verbose_curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $account_url)"); if ! check_curl_exit_code; then return 1; fi
 		if ! [[ $account == "" ]]; then
 			if [[ -n ${debug} ]]; then
-				echo -e "${_YELLOW}ACCOUNT : ${_RESET}${_BLUE}${account}${_RESET}"
-				echo -e "${_YELLOW}PROFILE1 : ${_RESET}${_BLUE}${profile}${_RESET}"
+				display_debug_account
+				display_debug_profile1
 			fi
 			profile=$account
 		fi
 	fi
 
 	if [[ -n ${debug} ]]; then
-		echo -e "${_YELLOW}PROFILE2 : ${_RESET}${_BLUE}${profile}${_RESET}"
+		display_debug_profile2
 	fi
 }
 
@@ -925,19 +1131,20 @@ get_exp_date() {
 	expiration_date=$(echo $profile | grep -o "\"phone\":\".*\"" | sed 's/\"phone\":\"//' | sed 's/\".*//')
 
 	if [[ -n ${debug} ]]; then
-		echo -e "${_YELLOW}EXP_DATE : ${_RESET}${_BLUE}${expiration_date}${_RESET}"
+		display_debug_exp_date
 	fi
 
 	if [[ -z ${expiration_date} && -z ${keep_expired+x} ]]; then
 		if ! [[ -n ${only_outputs_mac} ]]; then
-			echo -ne "\r${_YELLOW}[$item]${_RESET} ${_BOLD}${_RED}$mac [expired] ${_RESET}"
+			display_mac_expired
 		fi
 		return 1
 	fi
 
 	if [[ -z ${expiration_date} && -n ${keep_expired} ]]; then
 		if ! [[ -n ${only_outputs_mac} ]]; then
-			echo -ne "\r${_YELLOW}[$item]${_RESET} ${_BOLD}${_RED}$mac [expired] ${_RESET}\n"
+			display_mac_expired
+			echo -ne "\n"
 		fi
 		if [[ $valid_macs_number == 0 ]]; then
 			write_date_before_mac

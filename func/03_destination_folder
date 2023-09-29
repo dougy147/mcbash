@@ -2,5 +2,5 @@
 
 locate_destination_folder() {
 	[ -d $destination ] || mkdir -p "$destination" &> /dev/null || \
-		echo -e "${_BLUE}Can't create saving directory to $destination.\nPlease be sure you have permissions.\nValid MAC addresses will not be stored.${_RESET}"
+		display_cannot_create_saving_dir
 }
