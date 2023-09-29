@@ -338,7 +338,13 @@ random_mac() {
 	missing_mac_values=$(( max_mac_length - number_chars_prefix ))
 	suffix=""
 	for (( i=0;i<${missing_mac_values};i++ )); do
-		suffix=$(echo $suffix)$(echo ${a[RANDOM%16]})
+		#suffix=$(echo $suffix)$(echo ${a[RANDOM%16]})
+		random_number=$(echo "$(od -An -N4 -tu4 /dev/random) % 16" | bc) 2>/dev/null
+		if [[ -z "${random_number+x}" ]]; then
+			suffix=$(echo $suffix)$(echo ${a[RANDOM%16]})
+		else
+			suffix=$(echo $suffix)$(echo ${a[${random_number}]})
+		fi
 	done
 	mac_without_colon=$(echo $mac_prefix | sed 's/://g')$(echo $suffix)
 	new_mac=$(echo $mac_without_colon | sed -r 's/.{2}/&:/g ; s/:$//')

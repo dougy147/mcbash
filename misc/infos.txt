@@ -4,6 +4,7 @@ Dependencies :  NAME : PACKAGE TO INSTALL
 		 - echo : core/utils
 		 - md5sum : core/utils
 		 - sha256sum : core/utils
+		 - od : core/utils
 
 dougy147 [2022]
 https://github.com/dougy147/mcbash

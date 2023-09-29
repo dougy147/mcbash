@@ -9,7 +9,7 @@ check_dependencies() {
 			exit 1
 		fi
 	done
-	opt_dep=("md5sum" "sha256sum") # optional dependencies
+	opt_dep=("md5sum" "sha256sum" "od") # optional dependencies
 	for o in ${opt_dep[@]}; do
 		if ! [[ $(which $o 2>/dev/null) ]]; then
 			echo -e "${_YELLOW}${_BOLD}WARNING: mcbash could need optional dependency ${_RED}${o}${_YELLOW}. \nConsider installing it on your machine.${_RESET}"
