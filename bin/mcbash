@@ -838,8 +838,9 @@ get_handshake() {
 		echo -e "\n---------------------------------\n\t${_YELLOW}Handshake token : ${_RESET}${_BLUE}${handshake_token:-Empty}${_RESET}"
 	fi
 
-	if [[ $(echo "$handshake_token" | grep -Eio "error code|unauthorized|502 bad gateway|maximum number of open connections reached|just a moment|500 internal server error|error") ]]; then
+	if [[ $(echo "$handshake_token" | grep -Eio "error code|unauthorized|502 bad gateway|maximum number of open connections reached|just a moment|500 internal server error|error|blocked") ]]; then
 		#echo "contains error"
+		last_request_was_error=true
 		mac_not_changed=true
 		return 1
 	fi
