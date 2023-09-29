@@ -19,7 +19,7 @@ sudo make install
 
 ### Docker
 
-```bas
+```bash
 git clone https://github.com/dougy147/mcbash
 cd ./mcbash
 docker-compose up -d
@@ -36,17 +36,18 @@ As servers may differ in the way they handle requests, one need to adapt. The ke
 
 ### Requests
 
-| Option                    | Functionality                                                |
-|---------------------------|--------------------------------------------------------------|
-| **`-u`**, `--url`         | Server's URL/IP                                              |
-| **`-w`**, `--wait`        | Wait **X** seconds between each requests                     |
-| **`-b`**, `--break`       | Make a break every **X** requests                            |
-| **`-d`**, `--pause-for`   | Break duration (in seconds)                                  |
-| **`-s`**, `--stop`        | Stop McBash after **X** tested MACs                          |
-| **`-t`**, `--timeout`     | Consider request a timeout after **X** seconds               |
-| **`-P`**, `--proxy`       | Set the proxy URL (any authentication method supported)      |
-| **`-pu`**, `--proxy-user` | Set your proxy credentials `user:password`                   |
-| `--proxy-file`            | Read proxy IPs from a file. Rotation when request timeout    |
+| Option                       | Functionality                                                |
+|------------------------------|--------------------------------------------------------------|
+| **`-u`**, `--url`            | Server's URL/IP                                              |
+| **`-w`**, `--wait`           | Wait **X** seconds between each requests                     |
+| **`-b`**, `--break`          | Make a break every **X** requests                            |
+| **`-d`**, `--pause-for`      | Break duration (in seconds)                                  |
+| **`-s`**, `--stop`           | Stop McBash after **X** tested MACs                          |
+| **`-t`**, `--timeout`        | Consider request a timeout after **X** seconds               |
+| **`-P`**, `--proxy`          | Set the proxy URL (any authentication method supported)      |
+| **`-pu`**, `--proxy-user`    | Set your proxy credentials `user:password`                   |
+| `--proxy-file`               | Read proxy IPs from a file. Rotation when request timeout    |
+| **`-EA`**, `--enhanced-auth` | Add SN and DevID1 to GET request (and save them if match)    |
 
 ### Scan mode
 
