@@ -7,7 +7,7 @@ If you twist it hard enough, `mcbash` will stand for Yet Another MAC Scanner.
 ## Quick start
 
 ```console
-$ wget https://raw.githubusercontent.com/dougy147/mcbash/refs/heads/main/bin/mcbash
+$ wget https://raw.githubusercontent.com/dougy147/mcbash/refs/heads/master/bin/mcbash
 $ chmod +x ./mcbash
 $ ./mcbash
 ```
