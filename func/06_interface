@@ -35,14 +35,14 @@ display_help() {
 	\n -np : Use default parameters \
 	\n man mcbash : Look up the manual for more tweaks (proxy support, shell scripts call, etc.)\
 	\n \
-	\n ${_BOLD}Example ${_RESET}: mcbash -u my-dns.com:8080 -w 1.5 -b 10 -d 3 -s 150 -t 2 -k \
+	\n ${_BOLD}Example ${_RESET}: mcbash -u my-URL.com:8080 -w 1.5 -b 10 -d 3 -s 150 -t 2 -k \
 	\n Set your default parameters inside this file : \"$HOME/.config/mcbash/mcbash.conf\"\
 	\n MACs are stored here : \"${destination}\"\
 	"
 }
 
 scanning_text() {
-	echo "${_BOLD}=> ${_RESET}Scan @ ${_BOLD}${_BLUE}${dns}${_RESET} ${_GREEN}[$request_delay s/request]${_RESET}"
+	echo "${_BOLD}=> ${_RESET}Scan @ ${_BOLD}${_BLUE}${URL}${_RESET} ${_GREEN}[$request_delay s/request]${_RESET}"
 }
 
 display_range_fulfilled() {
@@ -73,7 +73,7 @@ display_bad_int() {
 	echo -e "${_RESET}${_RED}ERROR: ${_YELLOW}${1}${_RESET}${_RED} takes integer for parameter (e.g. ${_YELLOW}${1} 10${_RED}).${_RESET}"
 }
 
-display_bad_dns() {
+display_bad_URL() {
 	echo -e "${_RESET}${_RED}ERROR: invalid DNS format.${_RESET}"
 }
 
@@ -89,18 +89,18 @@ display_empty_value() {
 }
 
 display_config_file_not_found() {
-	echo -e "${_YELLOW}WARNING: Config file not found. This can cause weird behaviors.${_RESET}\n${_BLUE}mcbash.conf${_RESET}${_YELLOW} should be placed here : ${_BLUE}$config_file${_RESET}"
+	echo -e "${_YELLOW}WARNING: Config file not found. This can cause weird behaviors.${_RESET}\n${_BLUE}mcbash.conf${_RESET}${_YELLOW} should be placed here : ${_BLUE}$CONFIG_FILE${_RESET}"
 }
 
 display_cannot_create_saving_dir() {
 	echo -e "${_BLUE}Can't create saving directory to $destination.\nPlease be sure you have permissions.\nValid MAC addresses will not be stored.${_RESET}"
 }
 
-display_empty_dns() {
+display_empty_URL() {
 	if [[ "${1}" == "from_args" ]]; then
-		echo -ne "${_RED}ERROR: Empty URL.\nYou need to set a server address [ex: ${0} -u my-fakedns.bla:8080]${_RESET}"
+		echo -ne "${_RED}ERROR: Empty URL.\nYou need to set a server address [ex: ${0} -u my-fakeURL.bla:8080]${_RESET}"
 	else
-		echo -ne "\r${_RED}Empty URL. Please set a server address [ex: my-fakedns.bla:8080]${_RESET}\n"
+		echo -ne "\r${_RED}Empty URL. Please set a server address [ex: my-fakeURL.bla:8080]${_RESET}\n"
 	fi
 }
 
@@ -183,7 +183,7 @@ display_pausing_user() {
 }
 
 display_destination_file_saved() {
-	echo ${_GREEN}"File saved => $destination/valid_macs_$name"${_RESET}
+	echo ${_GREEN}"File saved => $destination/valid_macs_$SCANNED_URL"${_RESET}
 }
 
 display_erase_3_up() {

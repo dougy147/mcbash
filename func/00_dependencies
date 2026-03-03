@@ -1,18 +1,19 @@
 #!/bin/sh
 
 check_dependencies() {
-	#dep=("curl" "echo" "tput")
-	dep=("curl") # mandatory dependencies
-	for d in ${dep[@]}; do
-		if ! [[ $(which $d 2>/dev/null) ]]; then
-			display_missing_mandatory_dependency
-			exit 1
-		fi
-	done
-	opt_dep=("md5sum" "sha256sum" "od" "bc") # optional dependencies
-	for o in ${opt_dep[@]}; do
-		if ! [[ $(which $o 2>/dev/null) ]]; then
-			display_missing_optional_dependency
-		fi
-	done
+    local dep opt_dep d o
+    declare -a dep=(curl) # mandatory dependencies
+    for d in ${dep[@]}; do
+        if ! which $d >/dev/null 2>&1; then
+            display_missing_mandatory_dependency
+            exit 1
+        fi
+    done
+    declare -a opt_dep=(md5sum sha256sum od bc) # optional dependencies
+    for o in ${opt_dep[@]}; do
+        if ! which $o >/dev/null 2>&1; then
+            display_missing_optional_dependency
+        fi
+    done
 }
+

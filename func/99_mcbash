@@ -7,7 +7,7 @@ read_args "$@"
 
 [[ -n ${only_outputs_mac} ]] || display_logo
 
-dns_name
+URL_name
 check_parameters
 
 [[ -n ${only_outputs_mac} ]] || scanning_text
@@ -20,6 +20,6 @@ stty -echoctl # Hide ^C when pressing Ctrl+C
 # Let's go !
 while :
 do
-	scanning
-	trap quit_mcbash SIGINT
+    scanning
+    trap quit_mcbash SIGINT
 done

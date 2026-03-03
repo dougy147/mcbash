@@ -2,273 +2,231 @@
 # Interactive mode
 
 check_parameters() {
-	if [ "$avoid_parameters" = true ]; then
-		if [[ -n ${seq} && -z ${no_checkpoint+x} && -z ${range_from+x} ]]; then
-			if [[ -f "${destination}/checkpoint_${name}" ]]; then
-				checkpoint_load
-				display_checkpoint_detected_and_loaded
-			fi
-		fi
-		populate_necessary_values
-	fi
+    if [ "$avoid_parameters" = true ]; then
+        if [[ -n ${seq} && -z ${no_checkpoint+x} && -z ${range_from+x} ]]; then
+            if [[ -f "${destination}/checkpoint_$SCANNED_URL" ]]; then
+                checkpoint_load
+                display_checkpoint_detected_and_loaded
+            fi
+        fi
+        populate_necessary_values
+    fi
 
-	[[ -z ${request_delay+x} && \
-		-z ${timebreak+x} && \
-		-z ${timebreak_duration+x} && \
-		-z ${stopping+x} && \
-		-z ${timeout+x} ]] && \
-		read -p "${ASK_ADJUST_PARAMETERS_PROMPT}" PARAMETERS
+    [[ -z ${request_delay+x} && \
+        -z ${timebreak+x} && \
+        -z ${timebreak_duration+x} && \
+        -z ${stopping+x} && \
+        -z ${timeout+x} ]] && \
+        read -p "${ASK_ADJUST_PARAMETERS_PROMPT}" PARAMETERS
 
-	if [[ $(echo $PARAMETERS | grep -io "y") ]]; then
-		ask_request_delay
-		ask_timebreak
-		ask_timebreak_duration
-		ask_stopping
-		ask_timeout
-		ask_mode
-		ask_range
-		ask_keep_expired
-		echo " ${_RESET}"
-		#user_asks_parameters
+    if [[ $PARAMETERS =~ [yY] ]]; then
+        ask_request_delay
+        ask_timebreak
+        ask_timebreak_duration
+        ask_stopping
+        ask_timeout
+        ask_mode
+        ask_range
+        ask_keep_expired
+        echo " ${_RESET}"
+        #user_asks_parameters
 
-	elif [[ -n ${range} || -n ${range_from} || -n ${range_to} ]]; then
-		if [[ -f "${destination}/checkpoint_${name}" && -z ${no_checkpoint+x} && -z ${range_from+x} ]]; then
-			checkpoint_load
-			display_checkpoint_detected_and_loaded
-		fi
-		[[ -n ${range_from} ]] || ask_first_mac
-		[[ -n ${range_from} ]] && first_mac=$range_from
-		[[ -z ${first_mac} ]] && first_mac=$default_first_mac && range_from="$default_first_mac"
-		[[ -n ${first_mac} ]] && range_from=$first_mac
-		[[ -n ${range_to} ]] || ask_last_mac
-		[[ -n ${range_to} ]] && last_mac=$range_to
-		[[ -z $last_mac ]] && last_mac="$default_last_mac" && range_to="$default_last_mac"
-		[[ -n ${last_mac} ]] && range_to=$last_mac
-		[[ -n ${request_delay} ]] || request_delay=$default_request_delay
-		[[ -n ${timebreak} ]] || timebreak=$default_timebreak
-		[[ -n ${timebreak_duration} ]] || timebreak_duration=$default_timebreak_duration
-		[[ -n ${timeout} ]] || timeout=$default_timeout
+    elif [[ -n ${range} || -n ${range_from} || -n ${range_to} ]]; then
+        if [[ -f "${destination}/checkpoint_$SCANNED_URL" && -z ${no_checkpoint+x} && -z ${range_from+x} ]]; then
+            checkpoint_load
+            display_checkpoint_detected_and_loaded
+        fi
+        [[ -n ${range_from}         ]] || ask_first_mac
+        [[ -n ${range_from}         ]] && first_mac=$range_from
+        [[ -z ${first_mac}          ]] && first_mac=$default_first_mac && range_from="$default_first_mac"
+        [[ -n ${first_mac}          ]] && range_from=$first_mac
+        [[ -n ${range_to}           ]] || ask_last_mac
+        [[ -n ${range_to}           ]] && last_mac=$range_to
+        [[ -z $last_mac             ]] && last_mac="$default_last_mac" && range_to="$default_last_mac"
+        [[ -n ${last_mac}           ]] && range_to=$last_mac
+        [[ -n ${request_delay}      ]] || request_delay=$default_request_delay
+        [[ -n ${timebreak}          ]] || timebreak=$default_timebreak
+        [[ -n ${timebreak_duration} ]] || timebreak_duration=$default_timebreak_duration
+        [[ -n ${timeout}            ]] || timeout=$default_timeout
 
-	else
-		[[ -n ${request_delay} ]] || request_delay=$default_request_delay
-		[[ -n ${timebreak} ]] || timebreak=$default_timebreak
-		[[ -n ${timebreak_duration} ]] || timebreak_duration=$default_timebreak_duration
-		[[ -n ${timeout} ]] || timeout=$default_timeout
-		if [[ -n ${range} || -n ${range_from} || -n ${range_to} ]]; then
-			range=true
-			if [[ -f "${destination}/checkpoint_${name}" && -z ${no_checkpoint+x} ]]; then
-				#checkpoint_mac=$(cat "${destination}/checkpoint_${name}")
-				#default_first_mac=${checkpoint_mac}
-				checkpoint_load
-				display_checkpoint_detected_and_loaded
-			fi
-			[[ -n ${range_from} ]] || range_from=$default_first_mac && first_mac=$default_first_mac
-			[[ -n ${range_to} ]] || range_to=$default_last_mac && last_mac=$default_last_mac
-		fi
-		return
-	fi
+    else
+        [[ -n ${request_delay}      ]] || request_delay=$default_request_delay
+        [[ -n ${timebreak}          ]] || timebreak=$default_timebreak
+        [[ -n ${timebreak_duration} ]] || timebreak_duration=$default_timebreak_duration
+        [[ -n ${timeout}            ]] || timeout=$default_timeout
+        if [[ -n ${range} || -n ${range_from} || -n ${range_to} ]]; then
+            range=true
+            if [[ -f "${destination}/checkpoint_$SCANNED_URL" && -z ${no_checkpoint+x} ]]; then
+                checkpoint_load
+                display_checkpoint_detected_and_loaded
+            fi
+            [[ -n ${range_from} ]] || range_from=$default_first_mac && first_mac=$default_first_mac
+            [[ -n ${range_to} ]] || range_to=$default_last_mac && last_mac=$default_last_mac
+        fi
+        return
+    fi
 }
 
-#user_asks_parameters() {
-#	ask_request_delay
-#	ask_timebreak
-#	ask_timebreak_duration
-#	ask_stopping
-#	ask_timeout
-#	ask_mode
-#	ask_range
-#	ask_keep_expired
-#	echo " ${_RESET}"
-#}
-
 ask_request_delay() {
-	[[ -z ${request_delay+x} ]] && \
-		load_special_prompts && \
-		read -p "${ASK_REQUEST_DELAY_PROMPT}" request_delay
+    [[ -z ${request_delay+x} ]] && load_special_prompts && read -p "${ASK_REQUEST_DELAY_PROMPT}" request_delay
 
-	if [[ $request_delay == "" ]]; then
-		request_delay=$default_request_delay
-	else
-		if ! inspect_float "--wait" $request_delay "from_interactive"; then
-			unset request_delay
-			ask_request_delay
-		fi
-	fi
+    if [[ $request_delay == "" ]]; then
+        request_delay=$default_request_delay
+    else
+        if ! inspect_float "--wait" $request_delay "from_interactive"; then
+            unset request_delay
+            ask_request_delay
+        fi
+    fi
 }
 
 ask_timebreak() {
-	[[ -z ${timebreak+x} ]] && \
-		load_special_prompts && \
-		read -p "${ASK_TIMEBREAK_PROMPT}" timebreak
+    [[ -z ${timebreak+x} ]] && load_special_prompts && read -p "${ASK_TIMEBREAK_PROMPT}" timebreak
 
-	if [[ $timebreak == "" ]]; then
-		timebreak=$default_timebreak
-		[[ $timebreak == "0" ]]
-		unset timebreak
-	else
-		if ! inspect_int "--break" $timebreak "from_interactive"; then
-			unset timebreak
-			ask_timebreak
-		fi
-	fi
+    if [[ $timebreak == "" ]]; then
+        timebreak=$default_timebreak
+        [[ $timebreak == "0" ]]
+        unset timebreak
+    else
+        if ! inspect_int "--break" $timebreak "from_interactive"; then
+            unset timebreak
+            ask_timebreak
+        fi
+    fi
 }
 
 ask_timebreak_duration() {
-	[[ -z ${timebreak_duration+x} && $timebreak != "" ]] && \
-		load_special_prompts && \
-		read -p "${ASK_TIMEBREAK_DURATION_PROMPT}" timebreak_duration
+    [[ -z ${timebreak_duration+x} && $timebreak != "" ]] && load_special_prompts && read -p "${ASK_TIMEBREAK_DURATION_PROMPT}" timebreak_duration
 
-	if [[ $timebreak_duration == "" ]]; then
-		timebreak_duration=$default_timebreak_duration
-	else
-		if ! inspect_float "--pause-for" $timebreak_duration "from_interactive"; then
-			unset timebreak_duration
-			ask_timebreak_duration
-		fi
-	fi
+    if [[ $timebreak_duration == "" ]]; then
+        timebreak_duration=$default_timebreak_duration
+    else
+        if ! inspect_float "--pause-for" $timebreak_duration "from_interactive"; then
+            unset timebreak_duration
+            ask_timebreak_duration
+        fi
+    fi
 }
 
 ask_stopping() {
-	[[ -z ${stopping+x} ]] && \
-		load_special_prompts && \
-		read -p "${ASK_STOPPING_PROMPT}" stopping
+    [[ -z ${stopping+x} ]] && load_special_prompts && read -p "${ASK_STOPPING_PROMPT}" stopping
 
-	if [[ $stopping == "" ]]; then
-		stopping=$default_stopping
-		if [[ $stopping == "0" ]]; then
-			unset stopping
-		fi
-	else
-		if ! inspect_int "--stop" $stopping "from_interactive"; then
-			unset stopping
-			ask_stopping
-		fi
-	fi
+    if [[ $stopping == "" ]]; then
+        stopping=$default_stopping
+        if [[ $stopping == "0" ]]; then
+            unset stopping
+        fi
+    else
+        if ! inspect_int "--stop" $stopping "from_interactive"; then
+            unset stopping
+            ask_stopping
+        fi
+    fi
 }
 
 ask_timeout() {
-	[[ -z ${timeout+x} ]] && \
-		load_special_prompts && \
-		read -p "${ASK_TIMEOUT_PROMPT}" timeout
+    [[ -z ${timeout+x} ]] && load_special_prompts && read -p "${ASK_TIMEOUT_PROMPT}" timeout
 
-	if [[ $timeout == "" ]]; then
-		timeout=$default_timeout
-	else
-		if ! inspect_float "--timeout" $timeout "from_interactive"; then
-			unset timeout
-			ask_timeout
-		fi
-	fi
+    if [[ $timeout == "" ]]; then
+        timeout=$default_timeout
+    else
+        if ! inspect_float "--timeout" $timeout "from_interactive"; then
+            unset timeout
+            ask_timeout
+        fi
+    fi
 }
 
 ask_mode() {
-	#[[ -z ${range+x} ]] && \
-	[[ -z ${seq+x} ]] && \
-		load_special_prompts && \
-		read -p "${ASK_MODE_PROMPT}" mode
-	#[[ $(echo $mode | grep -io "s") ]] && range=true
-	[[ $(echo $mode | grep -io "s") ]] && seq=true
+    [[ -z ${seq+x} ]] && load_special_prompts && read -p "${ASK_MODE_PROMPT}" mode
+    [[ $mode =~ [sS] ]] && seq=true
 
-	#[[ -z ${range+x} ]] && \
-	[[ -z ${seq+x} ]] && \
-		display_mode_random_selected
+    [[ -z ${seq+x} ]] && display_mode_random_selected
 
-	if [[ -z ${range+x} && -z ${seq+x} && -z ${prefix} ]]; then
-		load_special_prompts && \
-		read -p "${ASK_MAC_PREFIX_PROMPT}" prefix
-		if [[ ${prefix} == "" ]]; then
-			unset prefix
-		fi
-	fi
+    if [[ -z ${range+x} && -z ${seq+x} && -z ${prefix} ]]; then
+        load_special_prompts && read -p "${ASK_MAC_PREFIX_PROMPT}" prefix
+        if [[ ${prefix} == "" ]]; then
+            unset prefix
+        fi
+    fi
 
-	#[[ -n ${range} ]] && \
-	[[ -n ${seq} ]] && \
-		display_mode_seq_selected && \
-		range=true
+    [[ -n ${seq} ]] && display_mode_seq_selected && range=true
 }
 
 ask_first_mac() {
-	load_special_prompts
-	read -p "${ASK_FIRST_MAC_PROMPT}" first_mac
+    load_special_prompts
+    read -p "${ASK_FIRST_MAC_PROMPT}" first_mac
 
-	if ! [[ "${first_mac}" == "" ]]; then
-		if ! inspect_mac $first_mac "from_interactive"; then
-			unset first_mac
-			ask_first_mac
-		fi
-	fi
+    if ! [[ "${first_mac}" == "" ]]; then
+        if ! inspect_mac $first_mac "from_interactive"; then
+            unset first_mac
+            ask_first_mac
+        fi
+    fi
 }
 
 ask_last_mac() {
-	load_special_prompts
-	read -p "${ASK_LAST_MAC_PROMPT}" last_mac
+    load_special_prompts
+    read -p "${ASK_LAST_MAC_PROMPT}" last_mac
 
-	if ! [[ "${last_mac}" == "" ]]; then
-		if ! inspect_mac $last_mac "from_interactive"; then
-			unset last_mac
-			ask_last_mac
-		fi
-	fi
+    if ! [[ "${last_mac}" == "" ]]; then
+        if ! inspect_mac $last_mac "from_interactive"; then
+            unset last_mac
+            ask_last_mac
+        fi
+    fi
 }
 
 ask_range() {
-	if [[ -n ${range} && -z ${range_from+x} ]]; then
-		if [[ -f "${destination}/checkpoint_${name}" && -z ${no_checkpoint+x} ]]; then
-			checkpoint_mac=$(cat "${destination}/checkpoint_${name}")
-			load_special_prompts
-			read -p "${ASK_CHECKPOINT_CONTINUE_OR_RESET_PROMPT}" grab_checkpoint
-			if [[ $(echo $grab_checkpoint | grep -io "n") ]]; then
-				no_checkpoint=true
-				ask_first_mac
-			elif [[ $(echo $grab_checkpoint | grep -io "reset") ]]; then
-				display_checkpoint_reset
-				ask_first_mac
-			else
-				first_mac=${checkpoint_mac}
-			fi
-		else
-			ask_first_mac
-		fi
-	fi
-	[[ -n ${range_from} ]] && first_mac=$range_from
-	[[ -z ${first_mac} ]] && first_mac=$default_first_mac
-	[[ -n ${first_mac} ]] && range_from=$first_mac
-	[[ -n ${range} && -z ${range_to+x} ]] && ask_last_mac
-	[[ -z ${last_mac} ]] && last_mac=$default_last_mac
-	[[ -n ${last_mac} ]] && range_to=$last_mac
+    if [[ -n ${range} && -z ${range_from+x} ]]; then
+        if [[ -f "${destination}/checkpoint_$SCANNED_URL" && -z ${no_checkpoint+x} ]]; then
+            checkpoint_mac=$(cat "${destination}/checkpoint_$SCANNED_URL")
+            load_special_prompts
+            read -p "${ASK_CHECKPOINT_CONTINUE_OR_RESET_PROMPT}" grab_checkpoint
+            if [[ $grab_checkpoint =~ [nN] ]]; then
+                no_checkpoint=true
+                ask_first_mac
+            elif [[ ${grab_checkpoint,,} =~ reset ]]; then
+                display_checkpoint_reset
+                ask_first_mac
+            else
+                first_mac=${checkpoint_mac}
+            fi
+        else
+            ask_first_mac
+        fi
+    fi
+    [[ -n ${range_from} ]]                && first_mac=$range_from
+    [[ -z ${first_mac}  ]]                && first_mac=$default_first_mac
+    [[ -n ${first_mac}  ]]                && range_from=$first_mac
+    [[ -n ${range} && -z ${range_to+x} ]] && ask_last_mac
+    [[ -z ${last_mac}   ]]                && last_mac=$default_last_mac
+    [[ -n ${last_mac}   ]]                && range_to=$last_mac
 }
 
 ask_keep_expired() {
-	if [[ $keep_expired == "" || $(echo $keep_expired | grep -io "n") ]]; then
-		unset keep_expired
-	fi
+    if [[ $keep_expired == "" || $keep_expired =~ [nN] ]]; then
+        unset keep_expired
+    fi
 }
 
 populate_necessary_values() {
-	[[ -n ${request_delay} ]] || request_delay=$default_request_delay
-	[[ -n ${timebreak_duration} ]] || timebreak_duration=$default_timebreak_duration
-	[[ -n ${timeout} ]] || timeout=$default_timeout
-	if [[ -n ${range} ]]; then
-	#if [[ -n ${seq} ]]; then
-		[[ -n ${range_from} ]] || range_from=$default_first_mac
-		[[ -n ${range_to} ]] || range_to=$default_last_mac
-	fi
+    [[ -n ${request_delay}      ]] || request_delay=$default_request_delay
+    [[ -n ${timebreak_duration} ]] || timebreak_duration=$default_timebreak_duration
+    [[ -n ${timeout}            ]] || timeout=$default_timeout
+    if [[ -n ${range} ]]; then
+        [[ -n ${range_from} ]] || range_from=$default_first_mac
+        [[ -n ${range_to}   ]] || range_to=$default_last_mac
+    fi
 }
 
 quit_mcbash() {
-	[[ -n ${only_outputs_mac} ]] && exit 0
-	echo ""
-	#[[ $valid_macs_number != 0 ]] && echo ${_GREEN}"$valid_macs_number valid for $(( $item - 1 )) tested." ${_RESET}
-	[[ $valid_macs_number != 0 ]] && display_valid_out_of_tested
-	display_pausing_user
-	trap - SIGINT
-	#read -p "${_BOLD}${_MAGENTA}Quit [Ctrl+C]  ${_RESET}-  ${_BOLD}${_BLUE}Resume [Enter]${_RESET} " quit_mc
-	read -p "${USER_PAUSE_PROMPT}" quit_mc
-	( [[ $(echo $quit_mc | grep -io "y") ]] && \
-		if [ $valid_macs_number != 0 ]; then
-			display_destination_file_saved
-		fi && \
-			exit 0 ) ||
-			( ( [[ $valid_macs_number != 0 ]] && display_erase_4_up ) || \
-			display_erase_3_up )
+    [[ -n ${only_outputs_mac} ]] && exit 0
+    echo ""
+    [[ $valid_macs_number != 0 ]] && display_valid_out_of_tested
+    display_pausing_user
+    trap - SIGINT
+    read -p "${USER_PAUSE_PROMPT}" quit_mc
+    ( [[ ${quit_mc,,} =~ y ]] && if [ $valid_macs_number != 0 ]; then display_destination_file_saved; fi && exit 0 ) || \
+        ( ( [[ $valid_macs_number != 0 ]] && display_erase_4_up ) || display_erase_3_up )
 }

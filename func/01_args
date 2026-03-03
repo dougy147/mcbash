@@ -1,150 +1,145 @@
 #!/bin/sh
 
 read_args() {
-	args=("$@")
-	ELEMENTS=${#args[@]}
-	for (( i=0;i<$ELEMENTS;i++)); do
-		[[ $(echo ${args[${i}]}) == "--debug" ]] && \
-			debug=true && \
-			debug_verbose_curl="-vvvvvv"
-		[[ $(echo ${args[${i}]}) == "-EA" || \
-			$(echo ${args[${i}]}) == "--enhanced-auth" ]] && \
-			enhanced_auth=true
-		[[ $(echo ${args[${i}]}) == "--show-only-mac" ]] && \
-			only_outputs_mac=true
-		[[ $(echo ${args[${i}]}) == "-np" || \
-			$(echo ${args[${i}]}) == "--default" ]] && \
-			avoid_parameters=true
-		[[ $(echo ${args[${i}]}) == "-u" || \
-			$(echo ${args[${i}]}) == "--url" ]] && \
-			argument_dns=$(( i + 1 )) && \
-			dns=${args[${argument_dns}]} && \
-			inspect_from_args "--url" "${dns}"
-		[[ $(echo ${args[${i}]}) == "-w" || \
-			$(echo ${args[${i}]}) == "--wait" ]] && \
-			argument_request_delay=$(( i + 1 )) && \
-			request_delay=${args[${argument_request_delay}]} && \
-			inspect_from_args "--wait" "${request_delay}"
-		[[ $(echo ${args[${i}]}) == "-t" || \
-			$(echo ${args[${i}]}) == "--timeout" ]] && \
-			argument_timeout=$(( i + 1 )) && \
-			timeout=${args[${argument_timeout}]} && \
-			inspect_from_args "--timeout" "${timeout}"
-		[[ $(echo ${args[${i}]}) == "-b" || \
-			$(echo ${args[${i}]}) == "--break" ]] && \
-			argument_timebreak=$(( i + 1 )) && \
-			timebreak=${args[${argument_timebreak}]} && \
-			inspect_from_args "--break" "${timebreak}"
-		[[ $(echo ${args[${i}]}) == "-d" || \
-			$(echo ${args[${i}]}) == "--pause-for" ]] && \
-			argument_timebreak_duration=$(( i + 1 )) && \
-			timebreak_duration=${args[${argument_timebreak_duration}]} && \
-			inspect_from_args "--pause-for" "${timebreak_duration}"
-		[[ $(echo ${args[${i}]}) == "-s" || \
-			$(echo ${args[${i}]}) == "--stop" ]] && \
-			argument_stop=$(( i + 1 )) && \
-			stopping=${args[${argument_stop}]} && \
-			inspect_from_args "--stop" "${stopping}"
-		[[ $(echo ${args[${i}]}) == "-k" || \
-			$(echo ${args[${i}]}) == "--keep" ]] && \
-			argument_keep_expired=$(( i + 1 )) && \
-			keep_expired=${args[${argument_keep_expired}]}
-		[[ $(echo ${args[${i}]}) == "--range" ]] && \
-			range=true
-		[[ $(echo ${args[${i}]}) == "--seq" ]] && \
-			seq=true && \
-			range=true
-		[[ $(echo ${args[${i}]}) == "-F" || \
-			$(echo ${args[${i}]}) == "--from" ]] && \
-			range=true && \
-			argument_range_from=$(( i + 1 )) && \
-			range_from=${args[${argument_range_from}]} && \
-			inspect_from_args "--from" "${range_from}"
-		[[ $(echo ${args[${i}]}) == "-L" ||
-			$(echo ${args[${i}]}) == "--to" ]] && \
-			range=true && \
-			argument_range_to=$(( i + 1 )) && \
-			range_to=${args[${argument_range_to}]} && \
-			inspect_from_args "--to" "${range_to}"
-		[[ $(echo ${args[${i}]}) == "-P" ||
-			$(echo ${args[${i}]}) == "--proxy" ]] && \
-			argument_proxy_url=$(( i + 1 )) && \
-			proxy_url=${args[${argument_proxy_url}]} && \
-			proxy_url_option=$(echo "-x $proxy_url")
-		[[ $(echo ${args[${i}]}) == "-pu" ||
-			$(echo ${args[${i}]}) == "--proxy-user" ]] && \
-			argument_proxy_user=$(( i + 1 )) && \
-			proxy_user=${args[${argument_proxy_user}]} && \
-			proxy_user_option=$(echo "--proxy-anyauth --proxy-user $proxy_user")
-		[[ $(echo ${args[${i}]}) == "--proxy-file" ]] && \
-			proxy_from_file=true && \
-			argument_proxy_file=$(( i + 1 )) && \
-			proxy_file=${args[${argument_proxy_file}]} && \
-			update_proxy
-		[[ $(echo ${args[${i}]}) == "--no-checkpoint" ]] && \
-			no_checkpoint=true
-		[[ $(echo ${args[${i}]}) == "--prefix" ]] && \
-			set_prefix=true && \
-			argument_set_prefix=$(( i + 1 )) && \
-			prefix=${args[${argument_set_prefix}]} #&& \
-			#inspect_from_args "--prefix" "${prefix}"
-		[[ $(echo ${args[${i}]}) == "--mac-file" ]] && \
-			read_from_file=true && \
-			argument_read_from_file=$(( i + 1 )) && \
-			file_to_read_mac_from=${args[${argument_read_from_file}]} && \
-			inspect_from_args "--mac-file" "${file_to_read_mac_from}"
-		#[[ $(echo ${args[${i}]}) == "--rm-checkpoint" ]] && \
-		#	echo "Remove checkpoint file for ${dns} ?" && exit 0
-		[[ $(echo ${args[${i}]}) == "-h" || $(echo ${args[${i}]}) == "--help" ]] && \
-			display_help && \
-			exit 0
-	done
+    local args
+    declare -a args=("$@")
+    for ((i=0;i<${#args[@]};i++)); do
+        case "${args[i]}" in
+            --debug)
+                debug=true
+                debug_verbose_curl=-vvvvvv
+                ;;
+            -EA|--enhanced-auth)
+                enhanced_auth=true
+                ;;
+            --show-only-mac)
+                only_outputs_mac=true
+                ;;
+            -np|--default)
+                avoid_parameters=true
+                ;;
+            -u|--url)
+                URL="${args[i+1]}"
+                inspect_from_args --url "${URL}"
+                ;;
+            -w|--wait)
+                request_delay=${args[i+1]}
+                inspect_from_args --wait ${request_delay}
+                ;;
+            -t|--timeout)
+                timeout=${args[i+1]}
+                inspect_from_args --timeout ${timeout}
+                ;;
+            -b|--break)
+                timebreak=${args[i+1]}
+                inspect_from_args --break ${timebreak}
+                ;;
+            -d|--pause-for)
+                timebreak_duration=${args[i+1]}
+                inspect_from_args --pause-for ${timebreak_duration}
+                ;;
+            -s|--stop)
+                stopping=${args[i+1]}
+                inspect_from_args --stop ${stopping}
+                ;;
+            -k|--keep)
+                keep_expired=${args[i+1]}
+                ;;
+            --range)
+                range=true
+                ;;
+            --seq)
+                seq=true
+                range=true
+                ;;
+            -F|--from)
+                range=true
+                range_from=${args[i+1]}
+                inspect_from_args --from ${range_from}
+                ;;
+            -L|--to)
+                range=true
+                range_to=${args[i+1]}
+                inspect_from_args --to ${range_to}
+                ;;
+            -P|--proxy)
+                proxy_url=${args[i+1]}
+                proxy_url_option="-x $proxy_url"
+                ;;
+            -pu|--proxy-user)
+                proxy_user=${args[i+1]}
+                proxy_user_option="--proxy-anyauth --proxy-user $proxy_user"
+                ;;
+            --proxy-file)
+                proxy_from_file=true
+                proxy_file=${args[i+1]}
+                update_proxy
+                ;;
+            --no-checkpoint)
+                no_checkpoint=true
+                ;;
+            --prefix)
+                prefix=${args[i+1]}
+                ;;
+            --mac-file)
+                read_from_file=true
+                file_to_read_mac_from="${args[i+1]}"
+                inspect_from_args --mac-file "$file_to_read_mac_from"
+                ;;
+            -h|--help)
+                display_help
+                exit 0
+                ;;
+        esac
+    done
 }
 
 inspect_from_args() {
-	case "${1}" in
-		"--url"|"-u"|"dns") inspect_dns "${2}" "from_args";;
-		"--wait"|"-w"|"delay") inspect_float "${1}" "${2}" "from_args";;
-		"--timeout"|"-t"|"timeout") inspect_float "${1}" "${2}" "from_args";;
-		"--break"|"-b"|"break") inspect_int "${1}" "${2}" "from_args";;
-		"--pause-for"|"-d"|"break_duration") inspect_float "${1}" "${2}" "from_args";;
-		"--stop"|"-s"|"stop") inspect_int "${1}" "${2}" "from_args";;
-		"--from"|"-F"|"--to"|"-L") inspect_mac "${2}" "from_args";; # is it a well formed mac
-		#"--prefix") inspect_mac_prefix "${2}";;
-		"--mac-file") inspect_mac_file "${2}" "from_args";;
-		*) display_problem_inspecting_arguments ;;
-	esac
+    case "$1" in
+        --url|-u|URL)                   inspect_URL      "$2"   from_args ;;
+        --wait|-w|delay)                inspect_float    $1 $2  from_args ;;
+        --timeout|-t|timeout)           inspect_float    $1 $2  from_args ;;
+        --break|-b|break)               inspect_int      $1 $2  from_args ;;
+        --pause-for|-d|break_duration)  inspect_float    $1 $2  from_args ;;
+        --stop|-s|stop)                 inspect_int      $1 $2  from_args ;;
+        --from|-F|--to|-L)              inspect_mac      $2     from_args ;;
+        --mac-file)                     inspect_mac_file  "$2"  from_args ;;
+        *)                              display_problem_inspecting_arguments ;;
+    esac
 }
 
-
 inspect_float() {
-	mode=$3
-	if ! [[ $(echo "$2" | grep -Eo '([0-9]+)?(\.)?[0-9]+') == "${2}" ]]; then
-		display_bad_float "${1}"
-		if [[ "${mode}" == "from_args" ]]; then
-			exit 1
-		else
-			return 1
-		fi
-	fi
-	if [[ "${mode}" == "from_args" && $(echo "${2}" | sed 's/\ //g') == "" ]]; then
-		display_empty_value "${1}"
-		exit 1
-	fi
+    local _caller="$1"
+    local float="$2"
+    local mode=$3
+    if ! [[ $float =~ ^([0-9]+)?(\.)?[0-9]+$ ]]; then
+        display_bad_float "$_caller"
+        if [[ $mode == from_args ]]; then
+            exit 1
+        else
+            return 1
+        fi
+    fi
+    if [[ $mode == from_args && "${float// /}" == "" ]]; then
+        display_empty_value "$_caller"
+        exit 1
+    fi
 }
 
 inspect_int() {
-	mode=$3
-	if ! [[ $(echo "$2" | grep -Eo '[0-9]+') == "${2}" ]]; then
-		display_bad_int "${1}"
-		if [[ "${mode}" == "from_args" ]]; then
-			exit 1
-		else
-			return 1
-		fi
-	fi
-	if [[ "${mode}" == "from_args" && $(echo "${2}" | sed 's/\ //g') == "" ]]; then
-		display_empty_value "${1}"
-		exit 1
-	fi
+    local _caller="$1"
+    local int="$2"
+    local mode=$3
+    if ! [[ $int =~ ^[0-9]+$ ]]; then
+        display_bad_int "$_caller"
+        if [[ $mode == from_args ]]; then
+            exit 1
+        else
+            return 1
+        fi
+    fi
+    if [[ $mode == "from_args" && "${int// /}" == "" ]]; then
+        display_empty_value "$_caller"
+        exit 1
+    fi
 }

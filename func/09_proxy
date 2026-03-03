@@ -1,29 +1,28 @@
 #!/bin/sh
 
-
 update_proxy() {
-	# Change current proxy
-	if [[ -n "${proxy_from_file}" ]]; then
-		proxy_from_file
-		proxy_url_option=$(echo "-x $proxy_url")
-		display_proxy_rotation
-	fi
+    # Change current proxy
+    if [[ -n "${proxy_from_file}" ]]; then
+        proxy_from_file
+        proxy_url_option=$(echo "-x $proxy_url")
+        display_proxy_rotation
+    fi
 }
 
 exclude_proxy() {
-	# If proxy leads to timeout => exclude from list
-	echo "TODO"
+    # If proxy leads to timeout => exclude from list
+    echo "TODO"
 }
 
 proxy_from_file() {
-	# Grabing proxy IP:PORT from file line by line
-	if [[ -z "${started_reading_from_proxy_file+x}" ]]; then
-		started_reading_from_proxy_file=true
-		current_proxy_line=0
-	fi
-	current_proxy_line=$(( current_proxy_line + 1 ))
-	if [[ "${current_proxy_line}" -gt $(cat "${proxy_file}" | wc -l) ]]; then
-		current_proxy_line=1
-	fi
-	proxy_url=$(sed "${current_proxy_line}q;d" "${proxy_file}")
+    # Grabing proxy IP:PORT from file line by line
+    if [[ -z "${started_reading_from_proxy_file+x}" ]]; then
+        started_reading_from_proxy_file=true
+        current_proxy_line=0
+    fi
+    current_proxy_line=$(( current_proxy_line + 1 ))
+    if [[ "${current_proxy_line}" -gt $(cat "${proxy_file}" | wc -l) ]]; then
+        current_proxy_line=1
+    fi
+    proxy_url=$(sed "${current_proxy_line}q;d" "${proxy_file}")
 }

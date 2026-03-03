@@ -1,8 +1,7 @@
 #!/bin/sh
 
 checkpoint_load() {
-	checkpoint_mac=$(cat "${destination}/checkpoint_${name}")
-	range_from=${checkpoint_mac}
-	default_first_mac=${checkpoint_mac}
+	checkpoint_mac=$(cat "${destination}/checkpoint_$SCANNED_URL")
+	range_from=$checkpoint_mac
+	default_first_mac=$checkpoint_mac
 }
-

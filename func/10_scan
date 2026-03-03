@@ -1,250 +1,251 @@
 #!/bin/sh
 
 check_if_time_to_stop() {
-	if [[ -n ${stopping} && $item -eq $stopping ]]; then
-		if ! [[ -n ${only_outputs_mac} ]]; then
-			display_valid_out_of_tested
-		fi
-		exit 0
-	fi
+    if [[ -n ${stopping} && $item -eq $stopping ]]; then
+        if ! [[ -n ${only_outputs_mac} ]]; then
+            display_valid_out_of_tested
+        fi
+        exit 0
+    fi
 }
 
 check_if_timebreak() {
-	if [[ ${timebreak} -ne 0 && $(expr $(( $item )) % $timebreak ) == 0 ]]; then
-		if [[ -z ${only_outputs_mac+x} ]]; then
-			display_pausing_auto
-		fi
-		sleep $timebreak_duration
-	else
-		sleep $request_delay
-	fi
+    if [[ ${timebreak} -ne 0 && $(expr $(( $item )) % $timebreak ) == 0 ]]; then
+        if [[ -z ${only_outputs_mac+x} ]]; then
+            display_pausing_auto
+        fi
+        sleep $timebreak_duration
+    else
+        sleep $request_delay
+    fi
 }
 
 
 handshake_token_is_empty() {
-	if [[ $handshake_token = "" || $(echo $handshake_token | grep null) ]]; then
-		if ! [[ -n ${only_outputs_mac} ]]; then
-			display_mac_no_account
-		fi
-		return 0
-	fi
-	return 1
+    if [[ $handshake_token = "" || $handshake_token =~ null ]]; then
+        if ! [[ -n ${only_outputs_mac} ]]; then
+            display_mac_no_account
+        fi
+        return 0
+    fi
+    return 1
 }
 
 #profile_is_empty() {
 #}
 
 check_if_timeout_limit() {
-	if [[ -z "${proxy_from_file+x}" ]]; then
-		if [[ $consecutive_timeout_number -ge $consecutive_timeout_limit && \
-			$consecutive_timeout_limit -ne 0 ]]; then
-			display_timeout_consecutive_limit
-			exit 1
-		elif [[ $total_timeout_number -ge $total_timeout_limit &&\
-			$total_timeout_limit -ne 0 ]]; then
-			display_timeout_total_limit
-			exit 1
-		fi
-	fi
+    if [[ -z "${proxy_from_file+x}" ]]; then
+        if [[ $consecutive_timeout_number -ge $consecutive_timeout_limit && $consecutive_timeout_limit -ne 0 ]]; then
+            display_timeout_consecutive_limit
+            exit 1
+        elif [[ $total_timeout_number -ge $total_timeout_limit && $total_timeout_limit -ne 0 ]]; then
+            display_timeout_total_limit
+            exit 1
+        fi
+    fi
 }
 
 last_request_failed() {
-	unset mac_not_changed
-	if [[ -n "${proxy_from_file}" ]]; then
-		if [[ $consecutive_timeout_number -ge $consecutive_timeout_limit && $consecutive_timeout_limit -ne 0 ]]; then
-			unset last_request_was_error
-			update_proxy
-			consecutive_timeout_number=0
-			total_timeout_number=0
-			error_number=0
-		elif [[ $total_timeout_number -ge $total_timeout_limit && $total_timeout_limit -ne 0 ]]; then
-			unset last_request_was_error
-			update_proxy
-			consecutive_timeout_number=0
-			total_timeout_number=0
-			error_number=0
-		elif [[ -n ${last_request_was_error} ]]; then
-			unset last_request_was_error
-			update_proxy
-			consecutive_timeout_number=0
-			total_timeout_number=0
-			error_number=0
-		fi
-	#else
-	#	if [[ -n ${last_request_was_error} ]]; then
-	#		unset last_request_was_error
-	#		if [[ $error_number -ge $total_error_limit && $total_error_limit -ne 0 ]]; then
-	#			echo todo
-	#		fi
-	fi
+    unset mac_not_changed
+    if [[ -n "${proxy_from_file}" ]]; then
+        if [[ $consecutive_timeout_number -ge $consecutive_timeout_limit && $consecutive_timeout_limit -ne 0 ]]; then
+            unset last_request_was_error
+            update_proxy
+            consecutive_timeout_number=0
+            total_timeout_number=0
+            error_number=0
+        elif [[ $total_timeout_number -ge $total_timeout_limit && $total_timeout_limit -ne 0 ]]; then
+            unset last_request_was_error
+            update_proxy
+            consecutive_timeout_number=0
+            total_timeout_number=0
+            error_number=0
+        elif [[ -n ${last_request_was_error} ]]; then
+            unset last_request_was_error
+            update_proxy
+            consecutive_timeout_number=0
+            total_timeout_number=0
+            error_number=0
+        fi
+    fi
 }
 
 request_is_a_timeout() {
-	if ! [[ -n ${only_outputs_mac} ]]; then
-		display_timeout_pausing
-	fi
-	sleep $timebreak_duration
-	if ! [[ -n ${only_outputs_mac} ]]; then
-		display_timeout_new_attempt
-	fi
+    if ! [[ -n ${only_outputs_mac} ]]; then
+        display_timeout_pausing
+    fi
+    sleep $timebreak_duration
+    if ! [[ -n ${only_outputs_mac} ]]; then
+        display_timeout_new_attempt
+    fi
 }
 
 check_curl_exit_code() {
-	# Function that returns 1 if curl failed, else 0
-	curl_exit=$?
-	if [ $curl_exit -eq 28 ]; then
-		consecutive_timeout_number=$(( $consecutive_timeout_number + 1 ))
-		total_timeout_number=$(( $total_timeout_number + 1 ))
-		mac_not_changed=true
-		check_if_timeout_limit
-		request_is_a_timeout
-		return 1
-	elif [ $curl_exit -ne 0 ]; then
-		if [ $curl_exit -eq 5 ]; then
-			if [[ -n "${debug}" ]]; then
-				display_curl_could_not_resolve_proxy
-			fi
-		else
-			if [[ -n "${debug}" ]]; then
-				display_curl_exit_code
-			fi
-		fi
-		mac_not_changed=true
-		last_request_was_error=true
-		error_number=$(( error_number + 1 ))
-		return 1
-	fi
-	return 0
+    # Function that returns 1 if curl failed, else 0
+    curl_exit=$?
+    if [ $curl_exit -eq 28 ]; then
+        consecutive_timeout_number=$(( $consecutive_timeout_number + 1 ))
+        total_timeout_number=$(( $total_timeout_number + 1 ))
+        mac_not_changed=true
+        check_if_timeout_limit
+        request_is_a_timeout
+        return 1
+    elif [ $curl_exit -ne 0 ]; then
+        if [ $curl_exit -eq 5 ]; then
+            if [[ -n "${debug}" ]]; then
+                display_curl_could_not_resolve_proxy
+            fi
+        else
+            if [[ -n "${debug}" ]]; then
+                display_curl_exit_code
+            fi
+        fi
+        mac_not_changed=true
+        last_request_was_error=true
+        error_number=$(( error_number + 1 ))
+        return 1
+    fi
+    return 0
 }
 
 make_cookie() {
-	cookie="mac=$mac; stb_lang=en; timezone=Europe/Amsterdam; "
-	if [[ -n ${enhanced_auth} ]]; then
-		# generate Sn and DEViD
-		mac_sn=$(echo -n "${mac}" | tr 'a-z' 'A-Z' | md5sum | tr 'a-z' 'A-Z')
-		sn=${mac_sn:0:13}
-		mac_dev=$(echo -n "${mac}" | tr 'a-z' 'A-Z' | sha256sum | sed "s/\ .*//g" | tr 'a-z' 'A-Z')
-		device_id=$mac_dev
-		#device_id2=
-		#signature=
-		#stb_type=
-		cookie="mac=$mac; sn=$sn; device_id=$device_id; stb_lang=en; timezone=Europe/Amsterdam; "
-	fi
+    cookie="mac=$mac; stb_lang=en; timezone=Europe/Amsterdam; "
+    if [[ -n ${enhanced_auth} ]]; then
+        # generate Sn and DEViD
+        mac_sn=$(echo -n "$mac" | tr 'a-z' 'A-Z' | md5sum | tr 'a-z' 'A-Z')
+        sn=${mac_sn:0:13}
+        mac_dev=$(echo -n "$mac" | tr 'a-z' 'A-Z' | sha256sum | sed "s/\ .*//g" | tr 'a-z' 'A-Z')
+        device_id=$mac_dev
+        #device_id2=
+        #signature=
+        #stb_type=
+        cookie="mac=$mac; sn=$sn; device_id=$device_id; stb_lang=en; timezone=Europe/Amsterdam; "
+    fi
 }
 
 
 get_handshake() {
-	handshake_url=$(echo $dns)'/portal.php?action=handshake&type=stb&token=&mac='$(echo $encoded_mac)
-	make_cookie
-	random_user_agent
+    handshake_url="$URL/portal.php?action=handshake&type=stb&token=&mac=$encoded_mac"
+    make_cookie
+    random_user_agent
 
-	handshake_token=$(curl $debug_verbose_curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Cookie: $(echo $cookie)" "$(echo $handshake_url)"); if ! check_curl_exit_code; then return 1; fi
+    handshake_token=$(curl $debug_verbose_curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $user_agent" -H "Cookie: $cookie" "$handshake_url"); if ! check_curl_exit_code; then return 1; fi
 
-	if [[ -n ${debug} ]]; then
-		display_debug_token
-	fi
+    if [[ -n ${debug} ]]; then
+        display_debug_token
+    fi
 
-	if [[ $(echo "$handshake_token" | grep -Eio "error code|unauthorized|502 bad gateway|maximum number of open connections reached|just a moment|500 internal server error|error|blocked") ]]; then
-		#echo "contains error"
-		last_request_was_error=true
-		mac_not_changed=true
-		return 1
-	fi
+    shopt -s nocasematch # for old bash not supporting lowercasing with ${string,,}, we want to match case insensitive
+    if [[ "$handshake_token" =~ (error code|unauthorized|502 bad gateway|maximum number of open connections reached|just a moment|500 internal server error|error|blocked) ]]; then
+        last_request_was_error=true
+        mac_not_changed=true
+        return 1
+    fi
+    shopt -u nocasematch # unset case insensitive matching
 
-	handshake_token=$(echo $handshake_token| grep -o '"token".*' | sed 's/\"token\":// ; s/\}\}//')
+    if [[ "$handshake_token" =~ \"token\"\ *:\ *\"([0-9a-zA-Z]+)\" ]] ; then
+        handshake_token="${BASH_REMATCH[1]}"
+    else
+        handshake_token=""
+    fi
 
-	if handshake_token_is_empty; then
-		return 1
-	fi
+    if handshake_token_is_empty; then
+        return 1
+    fi
 }
 
 get_profile() {
-	authorization='Bearer '$(echo $handshake_token)
-	profile_url=$(echo $dns)'/portal.php?type=account_info&action=get_main_info&mac='$(echo $mac)
-	profile=$(curl $debug_verbose_curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $profile_url)"); if ! check_curl_exit_code; then return 1; fi
+    authorization="Bearer $handshake_token"
+    profile_url="$URL/portal.php?type=account_info&action=get_main_info&mac=$mac"
+    profile=$(curl $debug_verbose_curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $user_agent" -H "Authorization: $authorization" -H "Cookie: $cookie" "$profile_url"); if ! check_curl_exit_code; then return 1; fi
 
-	if [[ -n ${debug} ]]; then
-		full_profile_url=$(echo $dns)'/portal.php?type=stb&action=get_profile&JsHttpRequest=1-xml'
-		full_profile=$(curl $debug_verbose_curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $full_profile_url)"); if ! check_curl_exit_code; then return 1; fi
-		display_debug_full_profile
-	fi
+    if [[ -n ${debug} ]]; then
+        full_profile_url="$URL/portal.php?type=stb&action=get_profile&JsHttpRequest=1-xml"
+        full_profile=$(curl $debug_verbose_curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $user_agent" -H "Authorization: $authorization" -H "Cookie: $cookie" "$full_profile_url"); if ! check_curl_exit_code; then return 1; fi
+        display_debug_full_profile
+    fi
 
 
-	if [[ $profile == "" ]]; then
-		maybeGEN1portal=true
-		profile_url=$(echo $dns)'/portal.php?type=stb&action=get_profile&JsHttpRequest=1-xml='$(echo $mac)
-		profile=$(curl $debug_verbose_curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $profile_url)"); if ! check_curl_exit_code; then return 1; fi
-	fi
+    if [[ $profile == "" ]]; then
+        maybeGEN1portal=true
+        profile_url="$URL/portal.php?type=stb&action=get_profile&JsHttpRequest=1-xml=$mac"
+        profile=$(curl $debug_verbose_curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $user_agent" -H "Authorization: $authorization" -H "Cookie: $cookie" "$profile_url"); if ! check_curl_exit_code; then return 1; fi
+    fi
 
-	if [[ $profile == "" ]]; then
-		unset maybeGEN1portal
-		if ! [[ -n ${only_outputs_mac} ]]; then
-			display_mac_no_account
-		fi
-		return 1 # test
-	fi
+    if [[ $profile == "" ]]; then
+        unset maybeGEN1portal
+        if ! [[ -n ${only_outputs_mac} ]]; then
+            display_mac_no_account
+        fi
+        return 1 # test
+    fi
 
-	if [[ -z ${maybeGEN1portal+x} ]]; then
-		account_url=$(echo $dns)'/portal.php?type=account_info&action=get_main_info&mac='$(echo $mac)
-		account=$(curl $debug_verbose_curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $(echo $user_agent)" -H "Authorization: $(echo $authorization)" -H "Cookie: $(echo $cookie)" "$(echo $account_url)"); if ! check_curl_exit_code; then return 1; fi
-		if ! [[ $account == "" ]]; then
-			if [[ -n ${debug} ]]; then
-				display_debug_account
-				display_debug_profile1
-			fi
-			profile=$account
-		fi
-	fi
+    if [[ -z ${maybeGEN1portal+x} ]]; then
+        account_url="$URL/portal.php?type=account_info&action=get_main_info&mac=$mac"
+        account=$(curl $debug_verbose_curl $proxy_user_option $proxy_url_option --max-time $timeout -s -X GET -H "Accept: */*" -H "User-Agent: $user_agent" -H "Authorization: $authorization" -H "Cookie: $cookie" "$account_url"); if ! check_curl_exit_code; then return 1; fi
+        if ! [[ $account == "" ]]; then
+            if [[ -n ${debug} ]]; then
+                display_debug_account
+                display_debug_profile1
+            fi
+            profile=$account
+        fi
+    fi
 
-	if [[ -n ${debug} ]]; then
-		display_debug_profile2
-	fi
+    if [[ -n ${debug} ]]; then
+        display_debug_profile2
+    fi
 }
 
 get_exp_date() {
-	expiration_date=$(echo $profile | grep -o "\"phone\":\".*\"" | sed 's/\"phone\":\"//' | sed 's/\".*//')
+    if [[ "$profile" =~ \"phone\"\ *:\ *\"([^\"]+)\" ]] ; then
+        expiration_date=${BASH_REMATCH[1]}
+    else
+        expiration_date=""
+    fi
 
-	if [[ -n ${debug} ]]; then
-		display_debug_exp_date
-	fi
+    if [[ -n ${debug} ]]; then
+        display_debug_exp_date
+    fi
 
-	if [[ -z ${expiration_date} && -z ${keep_expired+x} ]]; then
-		if ! [[ -n ${only_outputs_mac} ]]; then
-			display_mac_expired
-		fi
-		return 1
-	fi
+    if [[ -z ${expiration_date} && -z ${keep_expired+x} ]]; then
+        if ! [[ -n ${only_outputs_mac} ]]; then
+            display_mac_expired
+        fi
+        return 1
+    fi
 
-	if [[ -z ${expiration_date} && -n ${keep_expired} ]]; then
-		if ! [[ -n ${only_outputs_mac} ]]; then
-			display_mac_expired
-			echo -ne "\n"
-		fi
-		if [[ $valid_macs_number == 0 ]]; then
-			write_date_before_mac
-		fi
-		write_expired_mac
-		return 1
-	fi
+    if [[ -z ${expiration_date} && -n ${keep_expired} ]]; then
+        if ! [[ -n ${only_outputs_mac} ]]; then
+            display_mac_expired
+            echo -ne "\n"
+        fi
+        if [[ $valid_macs_number == 0 ]]; then
+            write_date_before_mac
+        fi
+        write_expired_mac
+        return 1
+    fi
 }
 
 scanning() {
-	if [[ -n ${mac_not_changed} ]]; then
-		last_request_failed
-	else
-		consecutive_timeout_number=0
-		if ! [[ $item == 0 ]]; then
-			check_if_time_to_stop
-			check_if_timebreak
-		fi
-		item=$(( $item + 1 ))
-		generate_mac
-	fi
+    if [[ -n ${mac_not_changed} ]]; then
+        last_request_failed
+    else
+        consecutive_timeout_number=0
+        if ! [[ $item == 0 ]]; then
+            check_if_time_to_stop
+            check_if_timebreak
+        fi
+        item=$(( $item + 1 ))
+        generate_mac
+    fi
 
-	if ! get_handshake; then return; fi
-	if ! get_profile; then return; fi
-	if ! get_exp_date; then return; fi
+    if ! get_handshake; then return; fi
+    if ! get_profile  ; then return; fi
+    if ! get_exp_date ; then return; fi
 
-	valid_mac_found
-	unset maybeGEN1portal
+    valid_mac_found
+    unset maybeGEN1portal
 }

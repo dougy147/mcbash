@@ -1,38 +1,20 @@
-# mcbash
-
-`mcbash` is a fast, modular and user-friendly script to find valid MAC addresses on some IPTV platforms.
-
-Just feed it with a server URL or IP, and let it check by itself.
+If you twist it hard enough, `mcbash` will stand for Yet Another MAC Scanner.
 
 <p align="center">
 <img src="./assets/mcbash.gif" width="80%" />
 </p>
 
-
 ## Quick start
 
-```bash
-git clone https://github.com/dougy147/mcbash
-cd ./mcbash
-sudo make install
+```console
+$ wget https://raw.githubusercontent.com/dougy147/mcbash/refs/heads/main/bin/mcbash
+$ chmod +x ./mcbash
+$ ./mcbash
 ```
 
-### Docker
+## Overview
 
-```bash
-git clone https://github.com/dougy147/mcbash
-cd ./mcbash
-docker-compose up -d
-docker exec -it mcbash /bin/bash
-```
-
-### AUR
-
-For Arch users, there is an up-to-date `mcbash` package on the AUR.
-
-## Functionalities overview
-
-As servers may differ in the way they handle requests, one need to adapt. The key feature of `mcbash` is **flexibility**. It comes with handy options to manage your requests. 
+`mcbash --help` displays most common options.
 
 ### Requests
 
@@ -69,83 +51,58 @@ As servers may differ in the way they handle requests, one need to adapt. The ke
 | `--show-only-mac`         | Only outputs found MACs                                      |
 | `--no-checkpoint`         | Don't store checkpoints                                      |
 
-`mcbash --help` displays most common options. 
-
 For *advanced* settings, read the manual : `man mcbash`.
 
+To change default options, simply edit `$HOME/.config/mcbash/mcbash.conf`.
 
-### Scan randomly, sequentially, or from file
+## Usecase examples
 
-By default, MACs are *pseudo*-randomly generated and checked (random mode). 
-If you want to screen sequentially, use `--seq` (sequential mode). 
-You can also read MACs from a file (line by line) with `--mac-file your_file.txt`.
-
-### Scan inside a range
-
-In sequential mode you need to specify lower and upper bounds of the range of MACs you want to scan (i.e. the "lowest" and "highest" MAC values).
-You can do that in random mode too, with the option `--range`.
-
-### Checkpoints
-
-When screening sequentially, `mcbash` creates a checkpoint file, storing last checked MAC.
-You can specify `--no-checkpoint` to bypass that (i.e. no checkpoint will then be saved).
-
-### Proxy works
-
-The use of a proxy and credentials is supported. Thanks to `curl`, any protocol works.
-Here is an example with proxy and credentials use : `--proxy http://localhost:12345 --proxy-user user:pwd`.
-
-### Default parameters
-
-The configuration file `$HOME/.config/mcbash/mcbash.conf` contains default options. You can change them according to your needs.
-
-### MACs are stored
-
-When a valid MAC is found, it is immediately stored in `$HOME/.mcbash` directory.
-
-## Misc
-
-### Size sometimes matters
-
-For `00:1A:79:xx:xx:xx`-like MAC addresses (most commons), there are $16^6$ possibilities (≈16.7million). Collision probability on sparsely populated servers is low by definition. So, there won't be too much matches on small ones!
-
-### macOS compatibility
-
-macOS runs a dinosaur version of bash. But `mcbash` won't allow its users to be left behind. That's why its code is meant to stay retro-compatible. How kind from this little script 😎!
-
-
-## Usage examples
-
-- **Example 0** : `mcbash`
-
-Easiest way to use it! `mcbash` guides you and adapts to your requests.
-
-- **Example 1** : `mcbash -u my-fakedns.bla:8080 -w 1.5 -b 10 -d 3 -s 1500 -t 2`
-
-The program waits 1.5 seconds between each requests, makes a break every 10 requests for 3 seconds, stops after 1500 MACs checked, and considers a request timeouted after 2 seconds (timeouts trigger a pause to avoid flood).
-
-
-- **Example 2** : `mcbash -u my-fakedns.bla:8080 -F 00:1A:79:00:00:00 -L 00:1A:79:00:11:11`
+```console
+$ mcbash -F 00:1A:79:00:00:00 -L 00:1A:79:00:11:11 --seq
+```
 
 Scans sequentially from `00:1A:79:00:00:00` to `00:1A:79:00:11:11`.
 
 
-- **Example 3** : `mcbash -u my-fakedns.bla:8080 --proxy http://localhost:12345 --proxy-user user:pwd`
+```console
+$ mcbash --proxy http://localhost:12345 --proxy-user user:pwd
+```
 
-Establishes communications through proxy `http://localhost:12345`, with `user:pwd` username and password.
+Uses specified proxy `http://localhost:12345`, with `user:pwd` username and password.
 
 
-## Instructions for the careless mind 🧠
+```console
+$ mcbash --proxy-file /path/to/proxies-list.txt
+```
 
-Power is all relative, and this program's is pretty low; even quite harmless. However, I must release myself of any responsibility in the way you will use it. Indeed, its use might be unappropriate in your country.
+Uses proxies listed in a file (format must be IP[:PORT], one line = one proxy). Auto-rotates if proxy fails.
 
-As far as I understand (i.e. poorly), imperative programming is like stacking bricks on top of each other.
-If there's nothing wrong stacking, climbing the pile might.
-That way, it's unnecessary to say I'm only responsible for sharing a recipe one could find all the ingredients thanks to any search engine.
 
-So, illegality is not contained in that program. It can only be in its user's behavior.
-Please use that script consciously, with and on your personal goods only.
+```console
+$ mcbash --mac-file ./path/to/your-MACs-list.txt
+```
 
+Scans using your own list of MACs (one line = one MAC).
+
+## Install
+
+### From source
+
+```console
+$ git clone https://github.com/dougy147/mcbash
+$ cd ./mcbash
+$ make install
+```
+
+### ArchLinux
+
+```console
+$ yay -S mcbash
+```
+
+## DISCLAIMER
+
+> bla bla bla don't hurt anyone with this tool, including yourself 3;)
 
 ## Special thanks to contributors !
 

@@ -1,173 +1,182 @@
 #!/bin/sh
 
+MAX_MAC_LENGTH=12
+
 # Check MAC randomly (between a range or not).
 random_mac() {
-	a=(1 2 3 4 5 6 7 8 9 0 A B C D E F)
-	if [[ -n ${prefix} ]]; then
-		mac_prefix=${prefix}
-	else
-		mac_prefix=${default_mac_prefix}
-	fi
-	number_chars_prefix=$(( $(echo ${mac_prefix} | sed 's/://g' | wc -m) - 1 ))
-	missing_mac_values=$(( max_mac_length - number_chars_prefix ))
-	suffix=""
-	for (( i=0;i<${missing_mac_values};i++ )); do
-		#suffix=$(echo $suffix)$(echo ${a[RANDOM%16]})
-		random_number=$(echo "$(od -An -N4 -tu4 /dev/random) % 16" | bc 2>/dev/null) 2>/dev/null
-		if [[ -z "${random_number+x}" || \
-			! $(which od 2>/dev/null) || \
-			! $(which bc 2>/dev/null) ]]; then
-			suffix=$(echo $suffix)$(echo ${a[RANDOM%16]})
-		else
-			suffix=$(echo $suffix)$(echo ${a[${random_number}]})
-		fi
-	done
-	mac_without_colon=$(echo $mac_prefix | sed 's/://g')$(echo $suffix)
-	new_mac=$(echo $mac_without_colon | sed -r 's/.{2}/&:/g ; s/:$//')
+    local a
+    declare -a a=(1 2 3 4 5 6 7 8 9 0 A B C D E F)
+    if [[ -n $prefix ]]; then
+        local mac_prefix=$prefix
+    else
+        local mac_prefix=$default_mac_prefix
+    fi
+    local trimmed_mac=${mac_prefix//:/}
+    local missing_mac_values=$(( MAX_MAC_LENGTH - ${#trimmed_mac} ))
+    local suffix=""
+    for (( i=0;i<$missing_mac_values;i++ )); do
+        local random_number=$(echo "$(od -An -N4 -tu4 /dev/random) % 16" | bc 2>/dev/null) 2>/dev/null
+        if [[ -z "${random_number+x}" || ! $(which od 2>/dev/null) || ! $(which bc 2>/dev/null) ]]; then
+            suffix=${suffix}${a[RANDOM%16]}
+        else
+            suffix=${suffix}${a[random_number]}
+        fi
+    done
+    local mac_without_colon=${trimmed_mac}$suffix
+    local new_mac=$(echo $mac_without_colon | sed -r 's/.{2}/&:/g ; s/:$//')
 
-	# If --range is set, chose randomly between it
-	if [[ -n ${range} ]]; then
-		prev_mac=$(echo $mac)
-		range_mac
-		if [[ $(echo $new_mac) == $(echo $prev_mac) ]]; then
-			random_mac
-		fi
-	fi
+    # If --range is set, chose randomly between it
+    if [[ -n $range ]]; then
+        prev_mac=$mac
+        range_mac
+        if [[ $new_mac == $prev_mac ]]; then
+            random_mac
+        fi
+    fi
 
-	# Encode mac
-	mac=$(echo $new_mac)
-	encoded_mac=$(echo $mac | sed 's/:/\%3A/g')
-	#return
+    # Encode mac
+    mac=$new_mac
+    encoded_mac=${mac//:/%3A}
 }
 
 # Check MAC one by one from --range-from to --range-to.
 seq_mac() {
-	if [[ -n ${last_mac_reached} ]]; then
-		( [[ -n ${only_outputs_mac} ]] || display_range_fulfilled )
-		exit 0
-	fi
-	[[ -z ${first_mac+x} ]] && first_mac="$default_first_mac" && mac=$(echo $first_mac) && return # user first value of the MAC
-	[[ $item == 1 ]] && mac=$(echo $first_mac) && return
+    if [[ -n $last_mac_reached ]]; then
+        ( [[ -n $only_outputs_mac ]] || display_range_fulfilled )
+        exit 0
+    fi
+    if [[ -z ${first_mac+x} ]]; then
+        first_mac=$default_first_mac
+        mac=$first_mac
+        return # user first value of the MAC
+    fi
+    if [[ $item == 1 ]]; then
+        mac=$first_mac
+        return
+    fi
 
-	# Save checkpoint
-	# if not '--no-checkpoint', save that MAC in checkpoint file
-	[[ -z ${no_checkpoint+x} ]] && echo "${mac}" > "${destination}/checkpoint_${name}"
+    # Save checkpoint
+    # if not '--no-checkpoint', save that MAC in checkpoint file
+    if [[ -z ${no_checkpoint+x} ]]; then 
+        echo "${mac}" > "${destination}/checkpoint_$SCANNED_URL"
+    fi
 
-	new_mac=$(echo $first_mac)
-	mac_simple=$(echo $new_mac |  tr '[:lower:]' '[:upper:]' | tr -d ':') && \
-		mac_dec=$( printf '%d\n' 0x$mac_simple ) && \
-		mac_add=$( expr $mac_dec + 1 ) && \
-		mac_hex=$( printf '%012X\n' $mac_add ) && \
-		new_mac=$(echo $mac_hex | sed 's/../&:/g;s/:$//') && \
-		first_mac=$(echo $new_mac) && \
-		mac=$(echo $new_mac) && \
-		[[ -n ${last_mac} && $last_mac == $mac ]] && last_mac_reached=true
-	#return
-	encoded_mac=$(echo $mac | sed 's/:/\%3A/g')
+    new_mac=$first_mac
+    local mac_simple=$(echo $new_mac |  tr '[:lower:]' '[:upper:]' | tr -d ':')
+    local mac_dec=$( printf '%d\n' 0x$mac_simple )
+    local mac_add=$( expr $mac_dec + 1 )
+    local mac_hex=$( printf '%012X\n' $mac_add )
+    local new_mac=$(echo $mac_hex | sed 's/../&:/g;s/:$//')
+    first_mac=$new_mac
+    mac=$new_mac
+    if [[ -n $last_mac && $last_mac == $mac ]]; then
+        last_mac_reached=true
+    fi
+    #return
+    encoded_mac=${mac//:/%3A}
 }
 
 # If --range is selected, MAC are created BETWEEN the range.
 range_mac() {
-	if [[ -z ${mac_low_dec+x} || -z ${mac_max_dec+x} ]]; then
-		mac_low_basic=$(echo $range_from |  tr '[:lower:]' '[:upper:]' | tr -d ':')
-		mac_low_dec=$( printf '%d\n' 0x$mac_low_basic )
-		mac_max_basic=$(echo $range_to |  tr '[:lower:]' '[:upper:]' | tr -d ':')
-		mac_max_dec=$( printf '%d\n' 0x$mac_max_basic )
-	fi
-	random_between_range=$(awk -v beginning=${mac_low_dec} -v finish=${mac_max_dec} 'BEGIN{srand();print int(rand()*(finish - beginning) + beginning) }')
-	printf_string=$(echo "%0${max_mac_length}x\n")
-	mac_hex=$(printf "${printf_string}" $random_between_range)
-	new_mac=$(echo $mac_hex | tr '[:lower:]' '[:upper:]' | sed 's/../&:/g;s/:$//')
-	encoded_mac=$(echo $mac | sed 's/:/\%3A/g')
+    if [[ -z ${mac_low_dec+x} || -z ${mac_max_dec+x} ]]; then
+        local mac_low_basic=$(echo $range_from |  tr '[:lower:]' '[:upper:]' | tr -d ':')
+        mac_low_dec=$( printf '%d\n' 0x$mac_low_basic )
+        local mac_max_basic=$(echo $range_to |  tr '[:lower:]' '[:upper:]' | tr -d ':')
+        mac_max_dec=$( printf '%d\n' 0x$mac_max_basic )
+    fi
+    local random_between_range=$(awk -v beginning=$mac_low_dec -v finish=$mac_max_dec 'BEGIN{srand();print int(rand()*(finish - beginning) + beginning) }')
+    local printf_string=$(echo "%0${MAX_MAC_LENGTH}x\n")
+    local mac_hex=$(printf "$printf_string" $random_between_range)
+    new_mac=$(echo $mac_hex | tr '[:lower:]' '[:upper:]' | sed 's/../&:/g;s/:$//')
+    encoded_mac=${mac//:/%3A}
 }
 
-
 read_mac_from_file() {
-	if [[ -z ${started_reading_file+x} ]]; then
-		started_reading_file=true
-		line_to_read=0
-		#max_number_of_lines_to_read=$(cat "$file_to_read_mac_from" | sed '/^$/d' | wc -l)
-		max_number_of_lines_to_read=$(cat "$file_to_read_mac_from" | wc -l)
-	fi
-	if [[ $line_to_read -gt $max_number_of_lines_to_read ]]; then
-		display_end_of_mac_file
-		exit 0
-	fi
-	line_to_read=$(( line_to_read + 1 ))
-	mac=$(sed "${line_to_read}q;d" "$file_to_read_mac_from")
-	if [[ $mac == "" ]]; then
-		read_mac_from_file
-	elif ! inspect_mac $mac "read_mac_from_file_function"; then
-		read_mac_from_file
-	fi
-	encoded_mac=$(echo $mac | sed 's/:/\%3A/g')
+    if [[ -z ${started_reading_file+x} ]]; then
+        started_reading_file=true
+        line_to_read=0
+        max_number_of_lines_to_read=$(cat "$file_to_read_mac_from" | wc -l)
+    fi
+    if [[ $line_to_read -gt $max_number_of_lines_to_read ]]; then
+        display_end_of_mac_file
+        exit 0
+    fi
+    line_to_read=$(( line_to_read + 1 ))
+    mac=$(sed "${line_to_read}q;d" "$file_to_read_mac_from")
+    if [[ $mac == "" ]]; then
+        read_mac_from_file
+    elif ! inspect_mac $mac "read_mac_from_file_function"; then
+        read_mac_from_file
+    fi
+    encoded_mac=${mac//:/%3A}
 }
 
 generate_mac() {
-	if [[ -n ${read_from_file} ]]; then
-		read_mac_from_file
-	else
-		[[ -n ${seq} ]] && seq_mac
-		[[ -z ${seq+x} ]] && random_mac
-	fi
+    if [[ -n ${read_from_file} ]]; then
+        read_mac_from_file
+    else
+        [[ -n ${seq} ]] && seq_mac
+        [[ -z ${seq+x} ]] && random_mac
+    fi
 }
 
 valid_mac_found() {
-	if [[ $valid_macs_number == 0 ]]; then
-		write_date_before_mac
-	fi
-	write_valid_mac
-	if [[ -n ${only_outputs_mac} ]]; then
-		display_raw_mac
-	else
-		display_formatted_mac
-	fi
-	valid_macs_number=$(( $valid_macs_number + 1 ))
+    if [[ $valid_macs_number == 0 ]]; then
+        write_date_before_mac
+    fi
+    write_valid_mac
+    if [[ -n ${only_outputs_mac} ]]; then
+        display_raw_mac
+    else
+        display_formatted_mac
+    fi
+    valid_macs_number=$(( $valid_macs_number + 1 ))
 }
 
 write_date_before_mac() {
-	echo -e "\n$dns ($(date))\n" >> $destination/valid_macs_$name
+    echo -e "\n$URL ($(date))\n" >> $destination/valid_macs_$SCANNED_URL
 }
 
 write_valid_mac() {
-	echo "$mac [$expiration_date]" >> $destination/valid_macs_$name
-	if [[ -n "${enhanced_auth}" ]]; then
-		echo -e "\t-> SN: ${sn}" >> $destination/valid_macs_$name
-		echo -e "\t-> Device_ID1: ${device_id}" >> $destination/valid_macs_$name
-	fi
+    echo "$mac [$expiration_date]" >> $destination/valid_macs_$SCANNED_URL
+    if [[ -n "${enhanced_auth}" ]]; then
+        echo -e "\t-> SN: ${sn}" >> $destination/valid_macs_$SCANNED_URL
+        echo -e "\t-> Device_ID1: ${device_id}" >> $destination/valid_macs_$SCANNED_URL
+    fi
 }
 
 write_expired_mac() {
-	echo "$mac [expired]" >> $destination/valid_macs_$name
-	if [[ -n "${enhanced_auth}" ]]; then
-		echo -e "\t-> SN: ${sn}" >> $destination/valid_macs_$name
-		echo -e "\t-> DevID1: ${device_id}" >> $destination/valid_macs_$name
-	fi
+    echo "$mac [expired]" >> $destination/valid_macs_$SCANNED_URL
+    if [[ -n "${enhanced_auth}" ]]; then
+        echo -e "\t-> SN: ${sn}" >> $destination/valid_macs_$SCANNED_URL
+        echo -e "\t-> DevID1: ${device_id}" >> $destination/valid_macs_$SCANNED_URL
+    fi
 }
 
 inspect_mac () {
-	mode=$2
-	# If while checking USER argument : exit 1
-	# Else, if reading a MAC file : return 1 for "bad MAC"
-	if ! [[ $(echo "${1}" | grep -Eo "([0-9a-fA-F]{2}[-:]){$(( (max_mac_length / 2) - 1 ))}[0-9a-fA-F]{2}") == "${1}" ]]; then
-		if [[ "${mode}" == "from_args" || "${mode}" == "from_interactive" ]]; then
-			display_bad_mac_format
-			if [[ "${mode}" == "from_args" ]]; then
-				exit 1
-			else
-				return 1
-			fi
-		else
-			return 1
-		fi
-	fi
+    local mac=$1
+    local mode=$2
+    # If while checking USER argument : exit 1
+    # Else, if reading a MAC file : return 1 for "bad MAC"
+    local regex="^([0-9a-fA-F]{2}[-:]){$(( (MAX_MAC_LENGTH / 2) - 1 ))}[0-9a-fA-F]{2}$"
+    if ! [[ $mac =~ $regex ]]; then
+        if [[ $mode == from_args || $mode == from_interactive ]]; then
+            display_bad_mac_format
+            if [[ $mode == from_args ]]; then
+                exit 1
+            else
+                return 1
+            fi
+        else
+            return 1
+        fi
+    fi
 }
 
 inspect_mac_file() {
-	if ! [[ -f $(realpath "${1}") ]]; then
-		display_bad_mac_file "${1}"
-		exit 1
-	fi
+    local filepath="$1"
+    if ! [[ -f $(realpath "$filepath") ]]; then
+        display_bad_mac_file "$filepath"
+        exit 1
+    fi
 }
-
-
