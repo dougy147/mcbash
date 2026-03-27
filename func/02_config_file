@@ -8,14 +8,24 @@ load_config_file() {
         # because when updates to config file, this one is ALWAYS REPLACED.
         # This way, variables not updated inside the USER config folder are loaded anyway.
         if [[ -f "${ALT_CONF_DEST}/mcbash.conf" ]]; then
-            source "${ALT_CONF_DEST}/mcbash.conf"
+            load_formatted_config_file "${ALT_CONF_DEST}/mcbash.conf"
         fi
-        source "$CONFIG_FILE"
+        load_formatted_config_file "$CONFIG_FILE"
     else
         if [[ -f "${ALT_CONF_DEST}/mcbash.conf" ]]; then
-            source "${ALT_CONF_DEST}/mcbash.conf"
+            load_formatted_config_file "${ALT_CONF_DEST}/mcbash.conf"
         else
             display_config_file_not_found
         fi
     fi
+}
+
+load_formatted_config_file() {
+    # Users may not know mcbash.conf is a simple
+    # bash script. They might violate bash syntax
+    # by putting spaces between variables id and
+    # values. Here we try to anticipate and take
+    # care of that.
+    local config_filepath="$1"
+    source <(sed 's/\ *=\ */=/g' $config_filepath)
 }
