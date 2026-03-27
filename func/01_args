@@ -16,7 +16,8 @@ read_args() {
                 only_outputs_mac=true
                 ;;
             -np|--default)
-                avoid_parameters=true
+                avoid_parameters=true # legacy
+                no_interactive=true
                 ;;
             -u|--url)
                 URL="${args[i+1]}"

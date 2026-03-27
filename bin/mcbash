@@ -49,7 +49,8 @@ read_args() {
                 only_outputs_mac=true
                 ;;
             -np|--default)
-                avoid_parameters=true
+                avoid_parameters=true # legacy
+                no_interactive=true
                 ;;
             -u|--url)
                 URL="${args[i+1]}"
@@ -664,7 +665,7 @@ inspect_mac_file() {
 }
 
 check_parameters() {
-    if [ "$avoid_parameters" = true ]; then
+    if [ "$no_interactive" = true || "$avoid_parameters" = true ]; then # legacy "avoid_parameters" is now replaced by "no_interactive" in config file
         if [[ -n ${seq} && -z ${no_checkpoint+x} && -z ${range_from+x} ]]; then
             if [[ -f "${destination}/checkpoint_$SCANNED_URL" ]]; then
                 checkpoint_load
