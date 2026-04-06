@@ -1,5 +1,7 @@
 #!/bin/sh
 
 locate_destination_folder() {
-    [ -d $destination ] || mkdir -p "$destination" &> /dev/null || display_cannot_create_saving_dir
+    if [[ ! -d $destination ]]; then 
+        mkdir -p "$destination" &> /dev/null || display_cannot_create_saving_dir
+    fi
 }

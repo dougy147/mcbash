@@ -7,7 +7,7 @@ read_args "$@"
 
 [[ -n ${only_outputs_mac} ]] || display_logo
 
-URL_name
+process_URL
 check_parameters
 
 [[ -n ${only_outputs_mac} ]] || scanning_text

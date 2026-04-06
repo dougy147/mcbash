@@ -18,27 +18,26 @@ load_special_prompts() {
 }
 
 display_logo() {
-	echo ${_GREEN} " ░█▄▒▄█░▄▀▀░██▄▒▄▀▄░▄▀▀░█▄█ " ${_RESET} && \
+	echo ${_GREEN} " ░█▄▒▄█░▄▀▀░██▄▒▄▀▄░▄▀▀░█▄█ " ${_RESET}
 	echo ${_GREEN} " ░█▒▀▒█░▀▄▄▒█▄█░█▀█▒▄██▒█▒█ " ${_RESET}
 }
 
 display_help() {
-	echo -e "${_BOLD}Help menu :${_RESET} \
-	\n -u ${_BLUE}URL:port${_RESET} : Server ${_BLUE}URL/IP${_RESET} and ${_BLUE}port (optional)${_RESET} \
-	\n -w ${_BLUE}X${_RESET} : Wait ${_BLUE}X${_RESET} seconds between each requests \
-	\n -b ${_BLUE}X${_RESET} : Make a break every ${_BLUE}X${_RESET} requests \
-	\n -d ${_BLUE}X${_RESET} : Break or timeout duration (${_BLUE}X${_RESET} seconds) \
-	\n -t ${_BLUE}X${_RESET} : Consider request a timeout after a delay of ${_BLUE}X${_RESET} seconds \
-	\n -s ${_BLUE}X${_RESET} : Stop mcbash after ${_BLUE}X${_RESET} tested MAC addresses \
-	\n --seq : Scan MAC addresses sequentially \
-	\n --mac-file ${_BLUE}FILE${_RESET} : Scan MAC addresses from a file \
-	\n -np : Use default parameters \
-	\n man mcbash : Look up the manual for more tweaks (proxy support, shell scripts call, etc.)\
-	\n \
-	\n ${_BOLD}Example ${_RESET}: mcbash -u my-URL.com:8080 -w 1.5 -b 10 -d 3 -s 150 -t 2 -k \
-	\n Set your default parameters inside this file : \"$HOME/.config/mcbash/mcbash.conf\"\
-	\n MACs are stored here : \"${destination}\"\
-	"
+	echo -e "${_BOLD}Help menu :${_RESET}"
+	echo -e "    -u ${_BLUE}URL:port${_RESET} : Server ${_BLUE}URL/IP${_RESET} and ${_BLUE}port (optional)${_RESET}"
+	echo -e "    -w ${_BLUE}X${_RESET} : Wait ${_BLUE}X${_RESET} seconds between each requests"
+	echo -e "    -b ${_BLUE}X${_RESET} : Make a break every ${_BLUE}X${_RESET} requests"
+	echo -e "    -d ${_BLUE}X${_RESET} : Break or timeout duration (${_BLUE}X${_RESET} seconds)"
+	echo -e "    -t ${_BLUE}X${_RESET} : Consider request a timeout after a delay of ${_BLUE}X${_RESET} seconds"
+	echo -e "    -s ${_BLUE}X${_RESET} : Stop mcbash after ${_BLUE}X${_RESET} tested MAC addresses"
+	echo -e "    --seq : Scan MAC addresses sequentially"
+	echo -e "    --mac-file ${_BLUE}FILE${_RESET} : Scan MAC addresses from a file"
+	echo -e "    -np : Use default parameters"
+	echo -e "    man mcbash : Look up the manual for more tweaks (proxy support, shell scripts call, etc.)"
+    echo
+	echo -e "${_BOLD}Example ${_RESET}: mcbash -u my-URL.com:8080 -w 1.5 -b 10 -d 3 -s 150 -t 2 -k"
+	echo -e "Default config file : \"$HOME/.config/mcbash/mcbash.conf\""
+	echo -e "MACs are stored here : \"${destination}\""
 }
 
 scanning_text() {
@@ -186,12 +185,9 @@ display_destination_file_saved() {
 	echo ${_GREEN}"File saved => $destination/valid_macs_$SCANNED_URL"${_RESET}
 }
 
-display_erase_3_up() {
-	echo -ne "${_ERASE_UP}\033[0K$@${_ERASE_UP}\033[0K$@${_ERASE_UP}\033[0K$@"
-}
-
-display_erase_4_up() {
-	echo -ne "${_ERASE_UP}\033[0K$@${_ERASE_UP}\033[0K$@${_ERASE_UP}\033[0K$@${_ERASE_UP}\033[0K$@"
+display_erase_up() {
+    local rows=$1 shift
+    for (( i=0;i<rows;i++ )); do echo -ne "${_ERASE_UP}\033[0K$@"; done
 }
 
 display_checkpoint_detected_and_loaded() {

@@ -1,24 +1,24 @@
 #!/bin/sh
 
-URL_name() {
+process_URL() {
     if [[ -z "${URL+x}" ]]; then
         read -p "$SERVER_URL_PROMPT" URL
     fi
     if [[ -n $only_outputs_mac ]]; then
-        #tput sgr0 # can't place _RESET here due to last 'read' command. Help?
+        # can't place _RESET here due to last 'read' command. Help?
         echo -n $'\e[0m'
     fi
-    #tput sgr0 # can't place _RESET here due to last 'read' command. Help?
+
     if [[ "$URL" = "" ]]; then
         unset URL
         display_empty_URL
-        URL_name
+        process_URL
     fi
 
     SCANNED_URL=$(echo "$URL" | sed "s/\/$// ; s/http:\/\/// ; s/:// ; s/\///g")
     if ! inspect_URL "$URL" from_interactive; then
         unset URL
-        URL_name
+        process_URL
     fi
 }
 
