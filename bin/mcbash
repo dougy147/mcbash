@@ -1246,7 +1246,7 @@ store_genres() {
     while read -r genre_id && read -r title; do
         GENRES["${title// /_}"]="$genre_id"
         #echo "$title"
-    done < <(grep -oP "\"id\":\"([0-9]+|\*)\"|\"title\":\"[^\"]+\"" < <(get_genres) | sed -r "s/\"id\":\"([0-9]+)\"/\1/;s/\"title\":\"([^\"]+)\"/\1/")
+    done < <(grep -oE "\"id\":\"([0-9]+|\*)\"|\"title\":\"[^\"]+\"" < <(get_genres) | sed -r "s/\"id\":\"([0-9]+)\"/\1/;s/\"title\":\"([^\"]+)\"/\1/")
 }
 
 
@@ -1263,7 +1263,7 @@ store_channels() {
     local genre_id=
     if [[ $check_playable == true ]]; then
         for genre in "${!GENRES[@]}"; do
-            if [[ $(grep -iP "$REGEX_GENRE" <<< "$genre") ]]; then
+            if [[ $(grep -iE "$REGEX_GENRE" <<< "$genre") ]]; then
                 genre_id="${GENRES[$genre]}"
                 break
             fi
@@ -1277,13 +1277,13 @@ store_channels() {
     get_channels_url="${URL}/portal.php?type=itv&action=get_ordered_list&genre=${genre_id}&force_ch_link_check=&fav=0&sortby=number&hd=0&p=${page}&JsHttpRequest=1-xml&from_ch_id=0"
     while read -r channel_id && read -r name; do
         CHANNELS["${name// /_}"]="$channel_id"
-    done < <(grep -oP "\"id\":\"([0-9]+)\",\"name\":\"[^\"]+\"" < <(get_channels) | sed -r "s/\"id\":\"([0-9]+)\",\"name\":\"([^\"]+)\"/\1\n\2/")
+    done < <(grep -oE "\"id\":\"([0-9]+)\",\"name\":\"[^\"]+\"" < <(get_channels) | sed -r "s/\"id\":\"([0-9]+)\",\"name\":\"([^\"]+)\"/\1\n\2/")
 }
 
 user_wanted_genre_matches() {
     local match=false
     for genre in "${!GENRES[@]}"; do
-        if [[ $(grep -iP "$REGEX_GENRE" <<< "$genre") ]]; then
+        if [[ $(grep -iE "$REGEX_GENRE" <<< "$genre") ]]; then
             match=true
             break
         fi
