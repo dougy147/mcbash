@@ -67,6 +67,10 @@ user_wanted_genre_matches() {
 
 user_can_play_channel() {
     local genre_keys=("${!CHANNELS[@]}")
+    if (( ${#genre_keys[@]} == 0 )); then
+        # TODO: try again?
+        return 1
+    fi
     local channel_id="${CHANNELS[${genre_keys[RANDOM%${#genre_keys[@]}]}]}"
 
     # https://stackoverflow.com/a/64827805
