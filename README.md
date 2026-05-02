@@ -42,6 +42,13 @@ $ ./mcbash
 |  **`-L`**, `--to`         | Set range higher boundary (highest MAC value to check)       |
 | `--prefix`                | Select MACs prefix when screening in random mode             |
 
+### Filters 🆕
+
+| Option                    | Functionality                                                |
+|---------------------------|--------------------------------------------------------------|
+| `--genre-regex`           | Ensure specified genre exists (accepts regular expressions)  |
+| `--playable`              | Ensure stream/channels are playable (requires `ffprobe`)     |
+
 ### Others
 
 | Option                    | Functionality                                                |
@@ -83,6 +90,12 @@ $ mcbash --mac-file ./path/to/your-MACs-list.txt
 ```
 
 Scans using your own list of MACs (one line = one MAC).
+
+```console
+$ mcbash --genre-regex "(4K|HEVC)" --playable
+```
+
+A MAC is valid only if a genre containing "4K" or "HEVC" exists, and if channels can be played.
 
 ## Install
 
