@@ -1,8 +1,6 @@
----
-version: '3.5'
 services:
     mcbash:
-        # image: Not available yet
+        #network_mode: "container:vpn"
         build:
             context: ./
             dockerfile: Dockerfile
@@ -11,8 +9,7 @@ services:
             - TZ=Europe/Berlin
         volumes:
             - ./config:/root/.mcbash
-        #network_mode: container:vpn
         tty: true
         stdin_open: true
         command: bash
-        #restart: unless-s
+        restart: unless-stopped
