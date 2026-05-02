@@ -1,6 +1,4 @@
-#!/usr/bin/env bash
-
-# Check channel readability when a MAC is found
+#!/bin/sh
 
 declare -A GENRES
 declare -A CHANNELS
@@ -70,7 +68,6 @@ user_wanted_genre_matches() {
 user_can_play_channel() {
     local genre_keys=("${!CHANNELS[@]}")
     local channel_id="${CHANNELS[${genre_keys[RANDOM%${#genre_keys[@]}]}]}"
-    echo "channel id = $channel_id"
 
     # https://stackoverflow.com/a/64827805
     local ffprobe_timeout=5 # seconds
