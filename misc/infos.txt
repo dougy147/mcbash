@@ -1,10 +1,7 @@
-Dependencies :  NAME : PACKAGE TO INSTALL
-		 - curl : core/curl
-		 - echo : core/utils
-		 - md5sum : core/utils
-		 - sha256sum : core/utils
-		 - od : core/utils
+Dependencies:
+    - mandatory: curl
+    - optional : md5sum, sha256sum, od, ffprobe
 
 dougy147 [2022]
 https://github.com/dougy147/mcbash
-last updated : 03mar2026
+last updated : 02may2026

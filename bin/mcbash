@@ -1326,12 +1326,9 @@ do
     scanning
     trap quit_mcbash SIGINT
 done
-# Dependencies :  NAME : PACKAGE TO INSTALL
-# - curl : core/curl
-# - echo : core/utils
-# - md5sum : core/utils
-# - sha256sum : core/utils
-# - od : core/utils
+# Dependencies:
+# - mandatory: curl
+# - optional : md5sum, sha256sum, od, ffprobe
 
 # 
 # dougy147 [2022]

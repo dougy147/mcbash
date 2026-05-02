@@ -36,12 +36,9 @@ while read -r lines; do
 	echo "# ${lines}" >> $TARGET;
 done < ./misc/infos.txt
 
-# Read version of mcbash to insert it in program
-# TODO
-
 # Finalize program building
 chmod +x $TARGET
 mv $TARGET ./bin/mcbash
 rm -r $BUILD_DIR 2>/dev/null
 
-echo "[DONE] mcbash was built successfully"
+echo "OK: mcbash was built successfully"
