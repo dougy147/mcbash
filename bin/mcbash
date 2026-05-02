@@ -24,7 +24,7 @@ check_dependencies() {
             exit 1
         fi
     done
-    declare -a opt_dep=(md5sum sha256sum od bc) # optional dependencies
+    declare -a opt_dep=(md5sum sha256sum od bc ffprobe) # optional dependencies
     for o in ${opt_dep[@]}; do
         if ! which $o >/dev/null 2>&1; then
             display_missing_optional_dependency
@@ -119,6 +119,13 @@ read_args() {
                 read_from_file=true
                 file_to_read_mac_from="${args[i+1]}"
                 inspect_from_args --mac-file "$file_to_read_mac_from"
+                ;;
+            --genre-regex|-gr)
+                check_genre=true
+                REGEX_GENRE="${args[i+1]}" # Perl compliant regex (case insensitive!!)
+                ;;
+            --playable|-pl)
+                check_playable=true
                 ;;
             -h|--help)
                 display_help
@@ -1150,7 +1157,7 @@ get_exp_date() {
 }
 
 scanning() {
-    if [[ -n ${mac_not_changed} ]]; then
+    if [[ -n $mac_not_changed ]]; then
         last_request_failed
     else
         consecutive_timeout_number=0
@@ -1166,13 +1173,31 @@ scanning() {
     if ! get_profile  ; then return; fi
     if ! get_exp_date ; then return; fi
 
+    if [[ -n $check_genre || -n $check_playable ]]; then
+        # Generate (genres:ids) associative array (avoid duplicate requests)
+        store_genres || return
+    fi
+
+    if [[ -n $check_genre ]]; then
+        user_wanted_genre_matches || return
+    fi
+
+    if [[ -n $check_playable ]]; then
+        # Generate (channels:ids) associative array (avoid duplicate requests)
+        # TODO: might be useful someday to look for specific channel
+        store_channels || return
+        user_can_play_channel || return
+    fi
+
     valid_mac_found
+
     unset maybeGEN1portal
 }
 
 random_user_agent() {
     local list_user_agent
-    declare -a list_user_agent=("Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3"
+    declare -a list_user_agent=(
+        "Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3"
         "Mozilla/5.0 (X11; Linux i686; rv:93.0) Gecko/20100101 Firefox/93.0"
         "Mozilla/5.0 (Linux x86_64; rv:93.0) Gecko/20100101 Firefox/93.0"
         "Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:93.0) Gecko/20100101 Firefox/93.0"
@@ -1180,8 +1205,97 @@ random_user_agent() {
         "Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:93.0) Gecko/20100101 Firefox/93.0"
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:53.0) Gecko/20100101 Firefox/53.0"
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393")
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393"
+
+        "Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3"
+    )
     user_agent="${list_user_agent[RANDOM%${#list_user_agent[@]}]}"
+}
+
+random_x_user_agent() {
+    local list_x_user_agent
+    declare -a list_x_user_agent=(
+        "Model: MAG200; Link: WiFi"
+        "Model: MAG250; Link: WiFi"
+    )
+    x_user_agent="${list_x_user_agent[RANDOM%${#list_x_user_agent[@]}]}"
+}
+
+
+declare -A GENRES
+declare -A CHANNELS
+
+get_genres() { 
+    local get_genres_url="${URL}/portal.php?type=itv&action=get_genres&JsHttpRequest=1-xml"
+    make_cookie
+    random_user_agent
+    random_x_user_agent
+    curl -s "$get_genres_url" -H "User-Agent: ${user_agent}" -H "X-User-Agent: ${x_user_agent}" -H "Authorization: ${authorization}" -H "Cookie: ${cookie}"
+}
+
+store_genres() {
+    # store GENRES in a hashtable to either:
+    # - check if a language is available
+    # - ensure channels are readable
+    GENRES=() # reset global hashmap
+    while read -r genre_id && read -r title; do
+        GENRES["${title// /_}"]="$genre_id"
+        #echo "$title"
+    done < <(grep -oP "\"id\":\"([0-9]+|\*)\"|\"title\":\"[^\"]+\"" < <(get_genres) | sed -r "s/\"id\":\"([0-9]+)\"/\1/;s/\"title\":\"([^\"]+)\"/\1/")
+}
+
+
+get_channels() { 
+    local get_channels_url="${URL}/portal.php?type=itv&action=get_ordered_list&genre=${genre_id}&force_ch_link_check=&fav=0&sortby=number&hd=0&p=0&JsHttpRequest=1-xml&from_ch_id=0"
+    make_cookie
+    random_user_agent
+    random_x_user_agent
+    curl -s "$get_channels_url" -H "User-Agent: ${user_agent}" -H "X-User-Agent: ${x_user_agent}" -H "Authorization: ${authorization}" -H "Cookie: ${cookie}"
+}
+
+store_channels() {
+    CHANNELS=() # reset global hashmap
+    local genre_id=
+    if [[ $check_playable == true ]]; then
+        for genre in "${!GENRES[@]}"; do
+            if [[ $(grep -iP "$REGEX_GENRE" <<< "$genre") ]]; then
+                genre_id="${GENRES[$genre]}"
+                break
+            fi
+        done
+    else
+        genre_keys=("${!CHANNELS[@]}")
+        genre_id="${GENRES[${genre_keys[RANDOM%${#genre_keys[@]}]}]}"
+    fi
+
+    local page=0
+    get_channels_url="${URL}/portal.php?type=itv&action=get_ordered_list&genre=${genre_id}&force_ch_link_check=&fav=0&sortby=number&hd=0&p=${page}&JsHttpRequest=1-xml&from_ch_id=0"
+    while read -r channel_id && read -r name; do
+        CHANNELS["${name// /_}"]="$channel_id"
+    done < <(grep -oP "\"id\":\"([0-9]+)\",\"name\":\"[^\"]+\"" < <(get_channels) | sed -r "s/\"id\":\"([0-9]+)\",\"name\":\"([^\"]+)\"/\1\n\2/")
+}
+
+user_wanted_genre_matches() {
+    local match=false
+    for genre in "${!GENRES[@]}"; do
+        if [[ $(grep -iP "$REGEX_GENRE" <<< "$genre") ]]; then
+            match=true
+            break
+        fi
+    done
+
+    if [[ $match == false ]]; then false; fi
+}
+
+user_can_play_channel() {
+    local genre_keys=("${!CHANNELS[@]}")
+    local channel_id="${CHANNELS[${genre_keys[RANDOM%${#genre_keys[@]}]}]}"
+    echo "channel id = $channel_id"
+
+    # https://stackoverflow.com/a/64827805
+    local ffprobe_timeout=5 # seconds
+    #timeout ${ffprobe_timeout}s ffprobe -timeout 3000000 -loglevel quiet "${URL}/play/live.php?mac=${mac}&stream=${channel_id}&extension=ts"
+    ffprobe -timeout ${ffprobe_timeout}000000 -loglevel quiet "http://${URL}/play/live.php?mac=${mac}&stream=${channel_id}&extension=ts"
 }
 
 check_dependencies
@@ -1216,4 +1330,4 @@ done
 # 
 # dougy147 [2022]
 # https://github.com/dougy147/mcbash
-# last updated : 03mar2026
+# last updated : 02may2026
