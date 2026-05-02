@@ -15,7 +15,7 @@ _DIM=$'\e[2m'
 _ERASE=$'\r\033[0K' #Cursor to EOL (\r resets cursor to left)
 _ERASE_UP=$'\r\033[1A' #Erase one line up
 
-MCBASH_VERSION="1.0.0"
+MCBASH_VERSION="0.8.7"
 
 check_dependencies() {
     local dep opt_dep d o
