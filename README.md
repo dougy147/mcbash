@@ -64,38 +64,36 @@ To change default options, simply edit `$HOME/.config/mcbash/mcbash.conf`.
 
 ## Usecase examples
 
+Scan sequentially from `00:1A:79:00:00:00` to `00:1A:79:00:11:11` :
+
 ```console
 $ mcbash -F 00:1A:79:00:00:00 -L 00:1A:79:00:11:11 --seq
 ```
 
-Scans sequentially from `00:1A:79:00:00:00` to `00:1A:79:00:11:11`.
-
+Use proxy `http://localhost:12345` and `user:pwd` as username and password :
 
 ```console
 $ mcbash --proxy http://localhost:12345 --proxy-user user:pwd
 ```
 
-Uses specified proxy `http://localhost:12345`, with `user:pwd` username and password.
-
+Use proxies listed in a text file (format must be IP[:PORT], one line = one proxy). Auto-rotation if current proxy fails :
 
 ```console
 $ mcbash --proxy-file /path/to/proxies-list.txt
 ```
 
-Uses proxies listed in a file (format must be IP[:PORT], one line = one proxy). Auto-rotates if proxy fails.
-
+Scan using your own MACs list (one line = one MAC) :
 
 ```console
 $ mcbash --mac-file ./path/to/your-MACs-list.txt
 ```
 
-Scans using your own list of MACs (one line = one MAC).
+Keep MAC only if a genre containing "4K" or "HEVC" exists, and if channels can be played :
 
 ```console
 $ mcbash --genre-regex "(4K|HEVC)" --playable
 ```
 
-A MAC is valid only if a genre containing "4K" or "HEVC" exists, and if channels can be played.
 
 ## Install
 
