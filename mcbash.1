@@ -1,116 +1,114 @@
-.TH McBash 1 mcbash
+.TH mcbash 1 mcbash
 .SH NAME
-mcbash \- IPTV MAC scanner.
+mcbash \- Customizable and user-friendly MAC scanner.
 .SH SYNOPSIS
-.B mcbash
-[
-.I DNS_URL
-]
+.B mcbash [OPTS]
 .SH DESCRIPTION
 .B mcbash
-scans MAC addresses on specified server.
-.SH COMMANDS
+scans MAC addresses on specified server. It supports random scan (default), sequential scan, and from-file scan.
+For random and sequential scans, ranges can be specified (lowest and highest MAC).
+A checkpoint system is used by default for sequential scans.
+.SH OPTIONS
+.SS Server
 .TP
-.B -w
-[
-.I requests_per_seconds
-]
-delay between two requests in seconds (avoid flood). Default delay = 2
+\f[B]-u\f[R], \f[B]--url\f[R] \f[I]URL/IP\f[R]
+Set server location.
+.SS Scan mode
 .TP
-.B -b
-[
-.I number_of_requests
-]
-number of requests before pausing.
+\f[B]--seq\f[R]
+Check MACs sequentially.
 .TP
-.B -d
-[
-.I duration_in_seconds
-]
-duration time for each pause. Default duration = 10
+\f[B]--range\f[R]
+Check within an inclusive range between lower-to-upper bound MAC.
+If \f[B]--default\f[R] is set, \f[B]mcbash\f[R] will check for them in the configuration file.
+Else if \f[B]--from\f[R] or \f[B]--to\f[R] is not specified, \f[B]mcbash\f[R] will interactively prompt the user.
 .TP
-.B -s
-[
-.I number_of_requests
-]
-stop
+\f[B]-F\f[R], \f[B]--from\f[R] \f[I]XX:XX:XX:XX:XX\f[R]
+Set lower bound MAC.
+.TP
+\f[B]-L\f[R], \f[B]--to\f[R] \f[I]XX:XX:XX:XX:XX\f[R]
+Set upper bound MAC.
+.TP
+\f[B]--mac-file\f[R] \f[I]FILE\f[R]
+Check MACs provided from \f[I]FILE\f[R]. MACs must be line by line in \f[I]FILE\f[R].
+.SS Requests
+.TP
+\f[B]-w\f[R], \f[B]--wait\f[R] \f[I]SECONDS\f[R]
+Delay between two requests in seconds.
+.TP
+\f[B]-t\f[R], \f[B]--timeout\f[R] \f[I]SECONDS\f[R]
+Delay before considering request a timeout.
+.TP
+\f[B]-b\f[R], \f[B]--break\f[R] \f[I]COUNT\f[R]
+Make a break every \f[I]COUNT\f[R] requests.
+.TP
+\f[B]-d\f[R], \f[B]--pause-for\f[R] \f[I]SECONDS\f[R]
+Break duration.
+.TP
+\f[B]-s\f[R], \f[B]--stop\f[R] \f[I]COUNT\f[R]
+Stop 
 .B mcbash
-after X requests.
+after \f[I]COUNT\f[R] requests.
+.SS Connections
 .TP
-.B -k
-store expired MAC addresses (valid but expired accounts)
+\f[B]-P\f[R], \f[B]--proxy\f[R] \f[I][PROTOCOL://]HOST[:PORT]\f[R]
+Establish connections through proxy. See \f[B]--proxy-user\f[R] for credentials.
 .TP
-.B -t
-[
-.I seconds
-]
-consider requests timeouted after this delay.
+\f[B]-pu\f[R], \f[B]--proxy-user\f[R] \f[I]USERNAME:PASSWORD\f[R]
+Use \f[I]USERNAME\f[R] and \f[I]PASSWORD\f[R] credentials with \f[B]--proxy\f[R].
 .TP
-.B -u
-[
-.I URL/IP
-]
-indicate the server URL/IP.
+\f[B]--proxy-file\f[R] \f[I]FILE\f[R]
+Use proxies from \f[I]FILE\f[R] (proxies must be line by line in \f[I]FILE\f[R]).
+Rotation occurs each time consecutive timeouts \f[I]COUNT\f[R] reaches the default limit.
+.SS Filters
 .TP
-.B --seq
-check MAC addresses sequentially.
+\f[B]-gr\f[R], \f[B]--genre-regex\f[R] \f[I]REGEX\f[R]
+Verify at least one channels category (genre) matches \f[B]REGEX\f[R].
+Otherwise, consider MAC invalid and do not store.
+Match is case-insensitive.
+\f[B]REGEX\f[R] is any Perl-compatible regular expression.
+This is useful when looking for a specific language or category.
+For example: "U(nited)?.?K[^r]*" will match "United-Kingdom" or "UK" but not "Ukraine"
 .TP
-.B --mac-file
-[
-.I FILE
-]
-check MAC addresses stored inside a file. MAC addresses should be line by line in that file.
+\f[B]-pl\f[R], \f[B]--playable\f[R]
+Ensure channels can be played using \f[B]ffprobe\f[R] (dependency).
+Otherwise, consider MAC invalid and do not store.
+In conjunction with \f[B]--genre-regex\f[R], a channel from a matching genre is selected.
+Otherwise a random channel is selected.
+.SS Others
 .TP
-.B --range
-set a range (lower and upper bound) between which MAC addresses are checked. This option is force when using
-.B --seq
-option, and fully functional with random checking.
+\f[B]-np\f[R], \f[B]--default\f[R]
+No interactive startup. Immediate use of default parameters from $HOME/.mcbash/mcbash.conf or /etc/mcbash.conf
 .TP
-.B -F
-[
-.I xx:xx:xx:xx:xx
-]
-indicate first MAC address to check.
+\f[B]--prefix\f[R] \f[I]PREFIX\f[R]
+Check MACs starting with \f[I]PREFIX\f[R]. \f[I]PREFIX\f[R] can be any slice of a MAC.
+For example: "00:1A:", "00:11:22:33", ...
 .TP
-.B -L
-[
-.I xx:xx:xx:xx:xx
-]
-indicate last MAC address to check.
+\f[B]-k\f[R], \f[B]--keep\f[R]
+Store MACs even when they are expired.
 .TP
-.B --prefix
-set first characters of MAC to be checked.
+\f[B]-EA\f[R], \f[B]--enhanced-auth\f[R]
+Experimental. Add serial number and Device_ID1 to GET requests.
 .TP
-.B -np
-don't ask for parameters. Set your default parameters in $HOME/.mcbash/mcbash.conf
+\f[B]--no-checkpoint\f[R]
+Ignore any previous checkpoint and do not store any.
 .TP
-.B --proxy
-[
-.I http://proxy
-]
-tells mcbash to communicate through http://proxy. See --proxy-user for credentials.
+\f[B]--show-only-mac\f[R]
+Only outputs found MACs to stdout. Useful to redirect them to another program.
 .TP
-.B --proxy-user
-[
-.I username:password
-]
-set username and password when using --proxy.
+\f[B]--version\f[R]
+Display \f[B]mcbash\f[R] version and exit.
 .TP
-.B --proxy-file
-[
-.I FILE
-]
-tells mcbash to read from a proxy list in a file. When a request is timeout, the next proxy is selected.
+\f[B]-h\f[R], \f[B]--help\f[R]
+Print a quick help menu and exit.
+.SH FILES
 .TP
-.B -EA
-for "enhanced authentication" will add serial number and Device_ID1 to GET requests, and save those informations if MAC found.
+.I /etc/\:\%mcbash\:.conf
+Global configuration file (optional). Sourced at startup, before any local configuration file.
 .TP
-.B --no-checkpoint
-ignore loading and saving checkpoints.
-.TP
-.B --show-only-mac
-only outputs found MAC addresses to stdout. Useful if you want to redirect mcbash output to another program.
+.I $HOME/\:\%.config/\:\%mcbash/\:\%mcbash\:.conf
+Local configuration file (optional). Sourced at startup, after any global configuration file.
 .SH AUTHORS
-Written by dougy147 originally in 2022.
+Written by dougy147 originally in 2022. https://github.com/dougy147/mcbash
 .SH LICENSE
 GPLv3
