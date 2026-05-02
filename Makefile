@@ -8,7 +8,7 @@ ifndef MANPREFIX
   MANPREFIX = $(PREFIX)/man
 endif
 
-.PHONY: install uninstall build
+.PHONY: build
 
 build:
 	bash build.sh
@@ -24,8 +24,14 @@ install: build
 	sudo chmod 644 /etc/mcbash.conf
 
 	mkdir -p $${HOME}/.config/mcbash
-	cp -f mcbash.conf $${HOME}/.config/mcbash/mcbash.conf
-	chmod 777 $${HOME}/.config/mcbash/mcbash.conf
+	if [[ -f $${HOME}/.config/mcbash/mcbash.conf ]]; then                  \
+		cp -f mcbash.conf $${HOME}/.config/mcbash/mcbash.conf.new ;        \
+		echo "[INFO] You may need to manually update mcbash config file" ; \
+		echo "[INFO] A newer version is available here: $${HOME}/.config/mcbash/mcbash.conf.new" ; \
+	else                                                                   \
+		cp -f mcbash.conf $${HOME}/.config/mcbash/mcbash.conf ;            \
+	fi
+	chmod 755 $${HOME}/.config/mcbash/mcbash.conf
 
 uninstall:
 	sudo rm -f $(DESTDIR)$(PREFIX)/bin/mcbash
