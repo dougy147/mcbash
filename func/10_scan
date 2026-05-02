@@ -230,7 +230,7 @@ get_exp_date() {
 }
 
 scanning() {
-    if [[ -n ${mac_not_changed} ]]; then
+    if [[ -n $mac_not_changed ]]; then
         last_request_failed
     else
         consecutive_timeout_number=0
@@ -246,6 +246,23 @@ scanning() {
     if ! get_profile  ; then return; fi
     if ! get_exp_date ; then return; fi
 
+    if [[ -n $check_genre || -n $check_playable ]]; then
+        # Generate (genres:ids) associative array (avoid duplicate requests)
+        store_genres || return
+    fi
+
+    if [[ -n $check_genre ]]; then
+        user_wanted_genre_matches || return
+    fi
+
+    if [[ -n $check_playable ]]; then
+        # Generate (channels:ids) associative array (avoid duplicate requests)
+        # TODO: might be useful someday to look for specific channel
+        store_channels || return
+        user_can_play_channel || return
+    fi
+
     valid_mac_found
+
     unset maybeGEN1portal
 }

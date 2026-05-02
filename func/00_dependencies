@@ -9,7 +9,7 @@ check_dependencies() {
             exit 1
         fi
     done
-    declare -a opt_dep=(md5sum sha256sum od bc) # optional dependencies
+    declare -a opt_dep=(md5sum sha256sum od bc ffprobe) # optional dependencies
     for o in ${opt_dep[@]}; do
         if ! which $o >/dev/null 2>&1; then
             display_missing_optional_dependency

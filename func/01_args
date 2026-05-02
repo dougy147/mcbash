@@ -87,6 +87,13 @@ read_args() {
                 file_to_read_mac_from="${args[i+1]}"
                 inspect_from_args --mac-file "$file_to_read_mac_from"
                 ;;
+            --genre-regex|-gr)
+                check_genre=true
+                REGEX_GENRE="${args[i+1]}" # Perl compliant regex (case insensitive!!)
+                ;;
+            --playable|-pl)
+                check_playable=true
+                ;;
             -h|--help)
                 display_help
                 exit 0
