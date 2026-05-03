@@ -27,6 +27,13 @@ for conf_file in ./misc/*.conf; do sed '/^#!\/bin\/\(ba\)\?sh/d ; /^#.*/d' "${co
 # Concatenate all functions into mcbash (filename must be in correct order)
 for fun in ./func/*; do sed '/^#!\/bin\/\(ba\)\?sh/d ; /^#.*/d' "${fun}" >> $TARGET; done
 
+# Insert hard coded config file
+if [ -f ./mcbash.conf ]; then
+    while read default_param ; do 
+        sed -ri "s/(# HARD_CODED_CONFIG_PLACEHOLDER)/${default_param//\//\\\/}\n\t\1/" $TARGET
+    done < <(sed 's/\ *=\ */=/g;/^\ *#.*/d;/^$/d' ./mcbash.conf)
+fi
+
 # Append infos to the end of the program
 while read -r lines; do
 	if [ "${lines}" = "" ]
