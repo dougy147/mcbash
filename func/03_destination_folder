@@ -4,4 +4,5 @@ locate_destination_folder() {
     if [[ ! -d $destination ]]; then 
         mkdir -p "$destination" &> /dev/null || display_cannot_create_saving_dir
     fi
+    mkdir -p "$destination/checkpoints" || display_cannot_create_checkpoints_dir
 }

@@ -15,7 +15,7 @@ _DIM=$'\e[2m'
 _ERASE=$'\r\033[0K' #Cursor to EOL (\r resets cursor to left)
 _ERASE_UP=$'\r\033[1A' #Erase one line up
 
-MCBASH_VERSION="0.8.7"
+MCBASH_VERSION="0.8.8"
 
 check_dependencies() {
     local dep opt_dep d o
@@ -124,7 +124,7 @@ read_args() {
                 ;;
             --genre-regex|-gr)
                 check_genre=true
-                REGEX_GENRE="${args[i+1]}" # Perl compliant regex (case insensitive!!)
+                REGEX_GENRE="${args[i+1]}" # extended regex allowed (case insensitive!!)
                 ;;
             --playable|-pl)
                 check_playable=true
@@ -225,6 +225,7 @@ locate_destination_folder() {
     if [[ ! -d $destination ]]; then 
         mkdir -p "$destination" &> /dev/null || display_cannot_create_saving_dir
     fi
+    mkdir -p "$destination/checkpoints" || display_cannot_create_checkpoints_dir
 }
 
 process_URL() {
@@ -280,7 +281,7 @@ inspect_URL() {
 }
 
 checkpoint_load() {
-	checkpoint_mac=$(cat "${destination}/checkpoint_$SCANNED_URL")
+	checkpoint_mac=$(cat "${destination}/checkpoints/checkpoint_$SCANNED_URL")
 	range_from=$checkpoint_mac
 	default_first_mac=$checkpoint_mac
 }
@@ -375,7 +376,11 @@ display_config_file_not_found() {
 }
 
 display_cannot_create_saving_dir() {
-	echo -e "${_BLUE}Can't create saving directory to $destination.\nPlease be sure you have permissions.\nValid MAC addresses will not be stored.${_RESET}"
+	echo -e "${_BLUE}Can't create saving directory to \"$destination\".\nPlease be sure you have permissions.\nValid MAC addresses will not be stored.${_RESET}"
+}
+
+display_cannot_create_checkpoints_dir() {
+	echo -e "${_BLUE}Can't create checkpoints directory to \"$destination/checkpoints\".\nPlease be sure you have permissions.\nCheckpoints won't be stored.${_RESET}"
 }
 
 display_empty_URL() {
@@ -553,7 +558,7 @@ seq_mac() {
     # Save checkpoint
     # if not '--no-checkpoint', save that MAC in checkpoint file
     if [[ -z ${no_checkpoint+x} ]]; then 
-        echo "${mac}" > "${destination}/checkpoint_$SCANNED_URL"
+        echo "${mac}" > "${destination}/checkpoints/checkpoint_$SCANNED_URL"
     fi
 
     new_mac=$first_mac
@@ -678,7 +683,7 @@ inspect_mac_file() {
 check_parameters() {
     if [[ "$no_interactive" = true || "$avoid_parameters" = true ]]; then # legacy "avoid_parameters" is now replaced by "no_interactive" in config file
         if [[ -n ${seq} && -z ${no_checkpoint+x} && -z ${range_from+x} ]]; then
-            if [[ -f "${destination}/checkpoint_$SCANNED_URL" ]]; then
+            if [[ -f "${destination}/checkpoints/checkpoint_$SCANNED_URL" ]]; then
                 checkpoint_load
                 display_checkpoint_detected_and_loaded
             fi
@@ -703,7 +708,7 @@ check_parameters() {
         #user_asks_parameters
 
     elif [[ -n ${range} || -n ${range_from} || -n ${range_to} ]]; then
-        if [[ -f "${destination}/checkpoint_$SCANNED_URL" && -z ${no_checkpoint+x} && -z ${range_from+x} ]]; then
+        if [[ -f "${destination}/checkpoints/checkpoint_$SCANNED_URL" && -z ${no_checkpoint+x} && -z ${range_from+x} ]]; then
             checkpoint_load
             display_checkpoint_detected_and_loaded
         fi
@@ -727,7 +732,7 @@ check_parameters() {
         [[ -n ${timeout}            ]] || timeout=$default_timeout
         if [[ -n ${range} || -n ${range_from} || -n ${range_to} ]]; then
             range=true
-            if [[ -f "${destination}/checkpoint_$SCANNED_URL" && -z ${no_checkpoint+x} ]]; then
+            if [[ -f "${destination}/checkpoints/checkpoint_$SCANNED_URL" && -z ${no_checkpoint+x} ]]; then
                 checkpoint_load
                 display_checkpoint_detected_and_loaded
             fi
@@ -850,8 +855,8 @@ ask_last_mac() {
 
 ask_range() {
     if [[ -n ${range} && -z ${range_from+x} ]]; then
-        if [[ -f "${destination}/checkpoint_$SCANNED_URL" && -z ${no_checkpoint+x} ]]; then
-            checkpoint_mac=$(cat "${destination}/checkpoint_$SCANNED_URL")
+        if [[ -f "${destination}/checkpoints/checkpoint_$SCANNED_URL" && -z ${no_checkpoint+x} ]]; then
+            checkpoint_mac=$(cat "${destination}/checkpoints/checkpoint_$SCANNED_URL")
             load_special_prompts
             read -p "${ASK_CHECKPOINT_CONTINUE_OR_RESET_PROMPT}" grab_checkpoint
             if [[ $grab_checkpoint =~ [nN] ]]; then

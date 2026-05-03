@@ -58,7 +58,7 @@ seq_mac() {
     # Save checkpoint
     # if not '--no-checkpoint', save that MAC in checkpoint file
     if [[ -z ${no_checkpoint+x} ]]; then 
-        echo "${mac}" > "${destination}/checkpoint_$SCANNED_URL"
+        echo "${mac}" > "${destination}/checkpoints/checkpoint_$SCANNED_URL"
     fi
 
     new_mac=$first_mac

@@ -89,7 +89,7 @@ read_args() {
                 ;;
             --genre-regex|-gr)
                 check_genre=true
-                REGEX_GENRE="${args[i+1]}" # Perl compliant regex (case insensitive!!)
+                REGEX_GENRE="${args[i+1]}" # extended regex allowed (case insensitive!!)
                 ;;
             --playable|-pl)
                 check_playable=true
