@@ -4,7 +4,7 @@
 check_parameters() {
     if [[ "$no_interactive" = true || "$avoid_parameters" = true ]]; then # legacy "avoid_parameters" is now replaced by "no_interactive" in config file
         if [[ -n ${seq} && -z ${no_checkpoint+x} && -z ${range_from+x} ]]; then
-            if [[ -f "${destination}/checkpoint_$SCANNED_URL" ]]; then
+            if [[ -f "${destination}/checkpoints/checkpoint_$SCANNED_URL" ]]; then
                 checkpoint_load
                 display_checkpoint_detected_and_loaded
             fi
@@ -29,7 +29,7 @@ check_parameters() {
         #user_asks_parameters
 
     elif [[ -n ${range} || -n ${range_from} || -n ${range_to} ]]; then
-        if [[ -f "${destination}/checkpoint_$SCANNED_URL" && -z ${no_checkpoint+x} && -z ${range_from+x} ]]; then
+        if [[ -f "${destination}/checkpoints/checkpoint_$SCANNED_URL" && -z ${no_checkpoint+x} && -z ${range_from+x} ]]; then
             checkpoint_load
             display_checkpoint_detected_and_loaded
         fi
@@ -53,7 +53,7 @@ check_parameters() {
         [[ -n ${timeout}            ]] || timeout=$default_timeout
         if [[ -n ${range} || -n ${range_from} || -n ${range_to} ]]; then
             range=true
-            if [[ -f "${destination}/checkpoint_$SCANNED_URL" && -z ${no_checkpoint+x} ]]; then
+            if [[ -f "${destination}/checkpoints/checkpoint_$SCANNED_URL" && -z ${no_checkpoint+x} ]]; then
                 checkpoint_load
                 display_checkpoint_detected_and_loaded
             fi
@@ -176,8 +176,8 @@ ask_last_mac() {
 
 ask_range() {
     if [[ -n ${range} && -z ${range_from+x} ]]; then
-        if [[ -f "${destination}/checkpoint_$SCANNED_URL" && -z ${no_checkpoint+x} ]]; then
-            checkpoint_mac=$(cat "${destination}/checkpoint_$SCANNED_URL")
+        if [[ -f "${destination}/checkpoints/checkpoint_$SCANNED_URL" && -z ${no_checkpoint+x} ]]; then
+            checkpoint_mac=$(cat "${destination}/checkpoints/checkpoint_$SCANNED_URL")
             load_special_prompts
             read -p "${ASK_CHECKPOINT_CONTINUE_OR_RESET_PROMPT}" grab_checkpoint
             if [[ $grab_checkpoint =~ [nN] ]]; then

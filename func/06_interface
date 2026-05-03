@@ -92,7 +92,11 @@ display_config_file_not_found() {
 }
 
 display_cannot_create_saving_dir() {
-	echo -e "${_BLUE}Can't create saving directory to $destination.\nPlease be sure you have permissions.\nValid MAC addresses will not be stored.${_RESET}"
+	echo -e "${_BLUE}Can't create saving directory to \"$destination\".\nPlease be sure you have permissions.\nValid MAC addresses will not be stored.${_RESET}"
+}
+
+display_cannot_create_checkpoints_dir() {
+	echo -e "${_BLUE}Can't create checkpoints directory to \"$destination/checkpoints\".\nPlease be sure you have permissions.\nCheckpoints won't be stored.${_RESET}"
 }
 
 display_empty_URL() {
