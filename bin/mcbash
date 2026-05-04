@@ -618,7 +618,7 @@ read_mac_from_file() {
         max_number_of_lines_to_read=$(cat "$file_to_read_mac_from" | wc -l)
     fi
     if [[ $line_to_read -gt $max_number_of_lines_to_read ]]; then
-        display_end_of_mac_file
+        ( [[ -n $only_outputs_mac ]] || display_end_of_mac_file )
         exit 0
     fi
     line_to_read=$(( line_to_read + 1 ))
