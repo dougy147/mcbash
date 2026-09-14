@@ -207,6 +207,7 @@ load_config_file() {
             load_formatted_config_file "${ALT_CONF_DEST}/mcbash.conf"
         else
             display_config_file_not_found
+            load_hard_coded_config
         fi
     fi
 }
@@ -221,11 +222,31 @@ load_formatted_config_file() {
     source <(sed 's/\ *=\ */=/g' $config_filepath)
 }
 
+load_hard_coded_config() {
+    # those are default parameters to use in the
+    # case no config file is found on the system
+    destination=$HOME/.mcbash
+	default_request_delay=2 # delay between two requests (seconds)
+	default_timeout=5 # request are considered timeout after <X> seconds
+	consecutive_timeout_limit=5 # rotate proxy (or exit) when <X> consecutive timeouts (0=no limit)
+	total_timeout_limit=0       # rotate proxy (or exit) when <X> timeouts (0=no limit)
+	default_timebreak=0 # make a break every <X> requests
+	default_timebreak_duration=10 # break duration (seconds)
+	default_stopping=0 # stop mcbash after <X> requests (0=never stop)
+	default_mac_prefix="00:1A:79:" # default MAC prefix
+	default_first_mac="00:1A:79:00:00:00"
+	default_last_mac="00:1A:79:FF:FF:FF"
+	no_interactive=false # or true
+	# HARD_CODED_CONFIG_PLACEHOLDER
+}
+
 locate_destination_folder() {
     if [[ ! -d $destination ]]; then 
         mkdir -p "$destination" &> /dev/null || display_cannot_create_saving_dir
     fi
-    mkdir -p "$destination/checkpoints" || display_cannot_create_checkpoints_dir
+    if [[ ! -d $destination/checkpoints ]]; then 
+        mkdir -p "$destination/checkpoints" || display_cannot_create_checkpoints_dir
+    fi
 }
 
 process_URL() {
@@ -597,7 +618,7 @@ read_mac_from_file() {
         max_number_of_lines_to_read=$(cat "$file_to_read_mac_from" | wc -l)
     fi
     if [[ $line_to_read -gt $max_number_of_lines_to_read ]]; then
-        display_end_of_mac_file
+        ( [[ -n $only_outputs_mac ]] || display_end_of_mac_file )
         exit 0
     fi
     line_to_read=$(( line_to_read + 1 ))

@@ -16,6 +16,7 @@ load_config_file() {
             load_formatted_config_file "${ALT_CONF_DEST}/mcbash.conf"
         else
             display_config_file_not_found
+            load_hard_coded_config
         fi
     fi
 }
@@ -28,4 +29,10 @@ load_formatted_config_file() {
     # care of that.
     local config_filepath="$1"
     source <(sed 's/\ *=\ */=/g' $config_filepath)
+}
+
+load_hard_coded_config() {
+    # those are default parameters to use in the
+    # case no config file is found on the system
+    # HARD_CODED_CONFIG_PLACEHOLDER
 }
