@@ -1,3 +1,10 @@
+> [:NOTE]
+> I've been writing a GUI alternative to `mcbash`. 
+> It is called [`smac`](https://github.com/dougy147/smac), come take a look here: [https://github.com/dougy147/smac](https://github.com/dougy147/smac)
+> It is cross-platform: Windows, Linux compatible
+> It comes with a CLI too, and extra perks
+
+
 If you twist it hard enough, `mcbash` will stand for Yet Another MAC Scanner.
 
 <p align="center">
